@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
 interface AxisProps {
-  scale: d3.ScaleLinear<number, number>;
+  scale: d3.ScaleLinear<number, number> | d3.ScaleTime<number, number>;
   orientation: 'bottom' | 'left' | 'top' | 'right';
   transform?: string;
   label?: string;
