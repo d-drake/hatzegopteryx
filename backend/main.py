@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import engine, Base
 import models
-from routers import items, cd_data
+from routers import items, cd_data, spc_limits
 
 Base.metadata.create_all(bind=engine)
 
@@ -27,6 +27,7 @@ app.add_middleware(
 
 app.include_router(items.router, prefix="/api/items", tags=["items"])
 app.include_router(cd_data.router, prefix="/api/cd-data", tags=["cd-data"])
+app.include_router(spc_limits.router, prefix="/api/spc-limits", tags=["spc-limits"])
 
 @app.get("/")
 async def root():

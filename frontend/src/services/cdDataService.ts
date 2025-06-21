@@ -13,6 +13,9 @@ export interface CDDataItem {
   entity: string;
   fake_property1: string;
   fake_property2: string;
+  process_type: string;
+  product_type: string;
+  spc_monitor_name: string;
 }
 
 export interface CDDataFilters {
@@ -21,6 +24,9 @@ export interface CDDataFilters {
   endDate?: string;
   limit?: number;
   offset?: number;
+  process_type?: string;
+  product_type?: string;
+  spc_monitor_name?: string;
 }
 
 export interface CDDataStats {
@@ -43,6 +49,9 @@ export async function fetchCDData(filters?: CDDataFilters): Promise<CDDataItem[]
       if (filters.endDate) params.append('end_date', filters.endDate);
       if (filters.limit) params.append('limit', filters.limit.toString());
       if (filters.offset) params.append('offset', filters.offset.toString());
+      if (filters.process_type) params.append('process_type', filters.process_type);
+      if (filters.product_type) params.append('product_type', filters.product_type);
+      if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
     }
 
     const response = await axios.get<CDDataItem[]>(`${API_URL}/api/cd-data/`, {
@@ -64,6 +73,9 @@ export async function fetchCDDataStats(filters?: CDDataFilters): Promise<CDDataS
       if (filters.entity) params.append('entity', filters.entity);
       if (filters.startDate) params.append('start_date', filters.startDate);
       if (filters.endDate) params.append('end_date', filters.endDate);
+      if (filters.process_type) params.append('process_type', filters.process_type);
+      if (filters.product_type) params.append('product_type', filters.product_type);
+      if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
     }
 
     const response = await axios.get<CDDataStats>(`${API_URL}/api/cd-data/stats`, {
@@ -83,6 +95,36 @@ export async function fetchEntities(): Promise<string[]> {
     return response.data;
   } catch (error) {
     console.error('Error fetching entities:', error);
+    throw error;
+  }
+}
+
+export async function fetchProcessTypes(): Promise<string[]> {
+  try {
+    const response = await axios.get<string[]>(`${API_URL}/api/cd-data/process-types`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching process types:', error);
+    throw error;
+  }
+}
+
+export async function fetchProductTypes(): Promise<string[]> {
+  try {
+    const response = await axios.get<string[]>(`${API_URL}/api/cd-data/product-types`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching product types:', error);
+    throw error;
+  }
+}
+
+export async function fetchSPCMonitorNames(): Promise<string[]> {
+  try {
+    const response = await axios.get<string[]>(`${API_URL}/api/cd-data/spc-monitor-names`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching SPC monitor names:', error);
     throw error;
   }
 }

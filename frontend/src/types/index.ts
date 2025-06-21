@@ -30,6 +30,9 @@ export interface CDData {
   entity: string;
   fake_property1: string;
   fake_property2: string;
+  process_type: string;
+  product_type: string;
+  spc_monitor_name: string;
 }
 
 export interface CDDataStats {
@@ -38,6 +41,26 @@ export interface CDDataStats {
   min_cd_att: number;
   max_cd_att: number;
   avg_cd_6sig: number;
-  avg_property1: number;
-  avg_property2: number;
+}
+
+export interface SPCLimits {
+  id: number;
+  process_type: string;
+  product_type: string;
+  spc_monitor_name: string;
+  spc_chart_name: string;
+  cl?: number;
+  lcl?: number;
+  ucl?: number;
+  effective_date: string;
+}
+
+export interface SPCLimitsCreate {
+  process_type: string;
+  product_type: string;
+  spc_monitor_name: string;
+  spc_chart_name: string;
+  cl?: number;
+  lcl?: number;
+  ucl?: number;
 }

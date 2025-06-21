@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, Index
 from sqlalchemy.sql import func
 from database import Base
 
@@ -25,3 +25,25 @@ class CDData(Base):
     entity = Column(String, nullable=False, index=True)  # FAKE_TOOL1-6
     fake_property1 = Column(String, nullable=False)  # FP1_A through FP1_E
     fake_property2 = Column(String, nullable=False)  # FP2_A through FP2_E
+    process_type = Column(String, nullable=False, index=True)  # 900, 1000, 1100
+    product_type = Column(String, nullable=False, index=True)  # XLY1, XLY2, BNT44, VLQR1
+    spc_monitor_name = Column(String, nullable=False, index=True)  # SPC_CD_L1
+
+class SPCLimits(Base):
+    __tablename__ = "spc_limits"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    process_type = Column(String, nullable=False, index=True)  # 900, 1000, 1100
+    product_type = Column(String, nullable=False, index=True)  # XLY1, XLY2, BNT44, VLQR1
+    spc_monitor_name = Column(String, nullable=False, index=True)  # SPC_CD_L1
+    spc_chart_name = Column(String, nullable=False, index=True)  # cd_att, cd_x_y, cd_6sig
+    cl = Column(Float, nullable=True)  # Center Line
+    lcl = Column(Float, nullable=True)  # Lower Control Limit
+    ucl = Column(Float, nullable=True)  # Upper Control Limit
+    effective_date = Column(DateTime, nullable=False, default=func.now())  # When this limit becomes effective
+    
+    # Create composite index for efficient querying
+    __table_args__ = (
+        Index('idx_spc_limits_composite', 
+              'process_type', 'product_type', 'spc_monitor_name', 'spc_chart_name', 'effective_date'),
+    )

@@ -199,6 +199,9 @@ export default function CDDataSection() {
                   CD 6σ
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Process/Product
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Properties
                 </th>
               </tr>
@@ -222,6 +225,12 @@ export default function CDDataSection() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {row.cd_6sig.toFixed(2)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="text-xs">
+                      <div>{row.process_type} / {row.product_type}</div>
+                      <div className="text-gray-500">{row.spc_monitor_name}</div>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     P1: {row.fake_property1} / P2: {row.fake_property2}

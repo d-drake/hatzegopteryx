@@ -42,9 +42,10 @@ def generate_cd_data():
     possible_bias = list(range(-30, 31, 1))  # -30, -29, -28, ..., 29, 30
     possible_bias_x_y = list(range(-15, 16, 1))  # -15, -14, -13, ..., 14, 15
 
-    # Fake property ordinal values
-    # fake_property1_values = ["FP1_A", "FP1_B", "FP1_C", "FP1_D", "FP1_E"]
-    # fake_property2_values = ["FP2_A", "FP2_B", "FP2_C", "FP2_D", "FP2_E"]
+    # New ordinal category values
+    process_types = ["900", "1000", "1100"]
+    product_types = ["XLY1", "XLY2", "BNT44", "VLQR1"]
+    spc_monitor_name = "SPC_CD_L1"  # Only one value for now
 
     # Initialize bias settings for each entity with change schedules
     entity_bias_settings = {}
@@ -147,6 +148,10 @@ def generate_cd_data():
         else:
             fake_property2 = random.choice(["FP2_A", "FP2_B"])
 
+        # Select random process and product types
+        process_type = random.choice(process_types)
+        product_type = random.choice(product_types)
+        
         # Create data point with lot ID
         lot_id = f"Lot{lot_counter}"
         data_point = CDData(
@@ -160,6 +165,9 @@ def generate_cd_data():
             entity=entity,
             fake_property1=fake_property1,
             fake_property2=fake_property2,
+            process_type=process_type,
+            product_type=product_type,
+            spc_monitor_name=spc_monitor_name,
         )
         data_points.append(data_point)
         lot_counter += 1

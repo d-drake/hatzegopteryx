@@ -33,12 +33,35 @@ class CDDataBase(BaseModel):
     entity: str
     fake_property1: str
     fake_property2: str
+    process_type: str
+    product_type: str
+    spc_monitor_name: str
 
 class CDDataCreate(CDDataBase):
     lot: str
 
 class CDData(CDDataBase):
     lot: str
+    
+    class Config:
+        from_attributes = True
+
+# SPC Limits Schemas
+class SPCLimitsBase(BaseModel):
+    process_type: str
+    product_type: str
+    spc_monitor_name: str
+    spc_chart_name: str
+    cl: Optional[float] = None
+    lcl: Optional[float] = None
+    ucl: Optional[float] = None
+
+class SPCLimitsCreate(SPCLimitsBase):
+    pass
+
+class SPCLimits(SPCLimitsBase):
+    id: int
+    effective_date: datetime
     
     class Config:
         from_attributes = True

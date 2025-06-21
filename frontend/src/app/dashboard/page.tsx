@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import ScatterPlot from '@/components/charts/ScatterPlot';
-import FilterControls from '@/components/dashboard/FilterControls';
+import EnhancedFilterControls, { FilterState } from '@/components/dashboard/EnhancedFilterControls';
 import AppTabs from '@/components/AppTabs';
-import { fetchCDData, fetchEntities, CDDataItem } from '@/services/cdDataService';
+import { fetchCDData, CDDataItem } from '@/services/cdDataService';
 
 export default function DashboardPage() {
   const [data, setData] = useState<CDDataItem[]>([]);
-  const [entities, setEntities] = useState<string[]>([]);
-  const [selectedEntity, setSelectedEntity] = useState<string>('');
-  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
-    start: '',
-    end: '',
+  const [filters, setFilters] = useState<FilterState>({
+    entity: '',
+    processType: '',
+    productType: '',
+    spcMonitorName: '',
+    startDate: '',
+    endDate: ''
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,20 +24,16 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedEntity || dateRange.start || dateRange.end) {
+    if (Object.values(filters).some(filter => filter !== '')) {
       loadFilteredData();
     }
-  }, [selectedEntity, dateRange]);
+  }, [filters]);
 
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [dataResponse, entitiesResponse] = await Promise.all([
-        fetchCDData(),
-        fetchEntities(),
-      ]);
+      const dataResponse = await fetchCDData({ limit: 1000 });
       setData(dataResponse);
-      setEntities(entitiesResponse);
       setError(null);
     } catch (err) {
       setError('Failed to load data');
@@ -48,12 +46,18 @@ export default function DashboardPage() {
   const loadFilteredData = async () => {
     try {
       setLoading(true);
-      const filteredData = await fetchCDData({
-        entity: selectedEntity,
-        startDate: dateRange.start,
-        endDate: dateRange.end,
-      });
-      setData(filteredData);
+      const filterParams = {
+        limit: 1000,
+        ...(filters.entity && { entity: filters.entity }),
+        ...(filters.processType && { process_type: filters.processType }),
+        ...(filters.productType && { product_type: filters.productType }),
+        ...(filters.spcMonitorName && { spc_monitor_name: filters.spcMonitorName }),
+        ...(filters.startDate && { startDate: filters.startDate }),
+        ...(filters.endDate && { endDate: filters.endDate })
+      };
+      
+      const dataResponse = await fetchCDData(filterParams);
+      setData(dataResponse);
       setError(null);
     } catch (err) {
       setError('Failed to load filtered data');
@@ -61,6 +65,22 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFiltersChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      entity: '',
+      processType: '',
+      productType: '',
+      spcMonitorName: '',
+      startDate: '',
+      endDate: ''
+    });
+    loadInitialData();
   };
 
   return (
@@ -81,12 +101,10 @@ export default function DashboardPage() {
 
         <h2 className="text-2xl font-bold mb-6">SPC Data Dashboard</h2>
         
-        <FilterControls
-          entities={entities}
-          selectedEntity={selectedEntity}
-          onEntityChange={setSelectedEntity}
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
+        <EnhancedFilterControls
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          loading={loading}
         />
 
         {loading && (

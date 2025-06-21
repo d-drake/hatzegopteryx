@@ -16,6 +16,9 @@ def get_cd_data(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     entity: Optional[str] = None,
+    process_type: Optional[str] = None,
+    product_type: Optional[str] = None,
+    spc_monitor_name: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(models.CDData)
@@ -28,6 +31,12 @@ def get_cd_data(
         filters.append(models.CDData.date_process <= datetime.combine(end_date, datetime.max.time()))
     if entity:
         filters.append(models.CDData.entity == entity)
+    if process_type:
+        filters.append(models.CDData.process_type == process_type)
+    if product_type:
+        filters.append(models.CDData.product_type == product_type)
+    if spc_monitor_name:
+        filters.append(models.CDData.spc_monitor_name == spc_monitor_name)
     
     if filters:
         query = query.filter(and_(*filters))
@@ -41,6 +50,9 @@ def get_cd_data_stats(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     entity: Optional[str] = None,
+    process_type: Optional[str] = None,
+    product_type: Optional[str] = None,
+    spc_monitor_name: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(models.CDData)
@@ -53,6 +65,12 @@ def get_cd_data_stats(
         filters.append(models.CDData.date_process <= datetime.combine(end_date, datetime.max.time()))
     if entity:
         filters.append(models.CDData.entity == entity)
+    if process_type:
+        filters.append(models.CDData.process_type == process_type)
+    if product_type:
+        filters.append(models.CDData.product_type == product_type)
+    if spc_monitor_name:
+        filters.append(models.CDData.spc_monitor_name == spc_monitor_name)
     
     if filters:
         query = query.filter(and_(*filters))
@@ -79,3 +97,18 @@ def get_cd_data_stats(
 def get_entities(db: Session = Depends(get_db)):
     entities = db.query(models.CDData.entity).distinct().all()
     return [entity[0] for entity in entities]
+
+@router.get("/process-types")
+def get_process_types(db: Session = Depends(get_db)):
+    process_types = db.query(models.CDData.process_type).distinct().all()
+    return [pt[0] for pt in process_types]
+
+@router.get("/product-types")
+def get_product_types(db: Session = Depends(get_db)):
+    product_types = db.query(models.CDData.product_type).distinct().all()
+    return [pt[0] for pt in product_types]
+
+@router.get("/spc-monitor-names")
+def get_spc_monitor_names(db: Session = Depends(get_db)):
+    spc_monitor_names = db.query(models.CDData.spc_monitor_name).distinct().all()
+    return [smn[0] for smn in spc_monitor_names]
