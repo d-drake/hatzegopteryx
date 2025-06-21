@@ -56,7 +56,7 @@ export default function Axis({
       
       axisGroup
         .append('text')
-        .attr('transform', isVertical ? 'rotate(-90)' : undefined)
+        .attr('transform', isVertical ? 'rotate(-90)' : null)
         .attr('x', labelOffset.x)
         .attr('y', labelOffset.y)
         .attr('fill', 'black')
