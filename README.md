@@ -3,6 +3,7 @@
 A modern fullstack application built with PostgreSQL, FastAPI, and React TypeScript.
 
 ![CI/CD Pipeline](https://github.com/d-drake/hatzegopteryx/workflows/CI%2FCD%20Pipeline/badge.svg)
+![Deploy](https://github.com/d-drake/hatzegopteryx/workflows/Deploy/badge.svg)
 
 ## Tech Stack
 
