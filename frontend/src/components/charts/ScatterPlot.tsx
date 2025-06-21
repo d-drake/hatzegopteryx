@@ -5,6 +5,7 @@ import ChartContainer, { useChartDimensions } from './ChartContainer';
 import Axis from './Axis';
 import Circles from './Circles';
 import Symbols from './Symbols';
+import Line from './Line';
 import Legend from './Legend';
 import { useTooltip, formatTooltipContent } from './Tooltip';
 import {
@@ -178,6 +179,17 @@ export default function ScatterPlot({
           onHover={handleHover}
         />
       )}
+
+      {/* Connection lines by entity */}
+      <Line
+        data={data}
+        xAccessor={xAccessor}
+        yAccessor={yAccessor}
+        groupBy={colorAccessor}
+        stroke="#666666"
+        strokeWidth={1}
+        strokeOpacity={0.4}
+      />
 
       {/* Legends */}
       <Legend

@@ -26,6 +26,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - ./backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/docs || exit 1"]
@@ -47,24 +49,20 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: deps
     ports:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NODE_ENV=development
     depends_on:
       backend:
         condition: service_healthy
-    command: npm run dev
     develop:
       watch:
-        - action: sync+restart
-          path: ./frontend
-          target: /app
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
           ignore:
             - node_modules/
-            - .next/
         - action: rebuild
           path: ./frontend/package.json
 
