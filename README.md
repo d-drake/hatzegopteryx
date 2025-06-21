@@ -1,6 +1,8 @@
-# Fullstack App
+# Hatzegopteryx
 
 A modern fullstack application built with PostgreSQL, FastAPI, and React TypeScript.
+
+![CI/CD Pipeline](https://github.com/d-drake/hatzegopteryx/workflows/CI%2FCD%20Pipeline/badge.svg)
 
 ## Tech Stack
 
@@ -8,6 +10,7 @@ A modern fullstack application built with PostgreSQL, FastAPI, and React TypeScr
 - **Backend**: FastAPI (Python 3.13)
 - **Frontend**: React with TypeScript
 - **Containerization**: Docker & Docker Compose
+- **CI/CD**: GitHub Actions
 
 ## Getting Started
 
@@ -20,8 +23,8 @@ A modern fullstack application built with PostgreSQL, FastAPI, and React TypeScr
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/d-drake/fullstack-app.git
-cd fullstack-app
+git clone https://github.com/d-drake/hatzegopteryx.git
+cd hatzegopteryx
 ```
 
 2. Copy the environment file:
@@ -63,6 +66,25 @@ The React TypeScript frontend features:
 - `GET /api/items/{id}` - Get a specific item
 - `PUT /api/items/{id}` - Update an item
 - `DELETE /api/items/{id}` - Delete an item
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+- **CI Pipeline**: Runs on every push and pull request
+  - Tests backend with Python 3.13
+  - Tests frontend with Node.js 20
+  - Builds and validates Docker images
+  
+- **CD Pipeline**: Deploys on push to main branch
+  - Builds and pushes Docker images to Docker Hub
+  - Ready for deployment to your infrastructure
+
+### Setting up CI/CD
+
+To enable deployment, add these secrets to your GitHub repository:
+- `DOCKER_USERNAME`: Your Docker Hub username
+- `DOCKER_PASSWORD`: Your Docker Hub password
 
 ## Contributing
 
