@@ -205,9 +205,9 @@ export default function CDDataSection() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {cdData.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
+                <tr key={row.lot} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(row.datetime).toLocaleString()}
+                    {new Date(row.date_process).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {row.entity}

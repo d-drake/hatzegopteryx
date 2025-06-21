@@ -45,7 +45,7 @@ export default function ScatterPlot({
 
   // Create scales
   const xScale = useMemo(() => {
-    if (xField === 'datetime') {
+    if (xField === 'date_process') {
       return createTimeScale(getDateExtent(data, xField), [0, innerWidth]);
     } else {
       return createLinearScale(getNumericExtent(data, xField), [0, innerWidth]);
@@ -97,7 +97,7 @@ export default function ScatterPlot({
 
   // Accessor functions
   const xAccessor = (d: CDDataItem) => {
-    if (xField === 'datetime') {
+    if (xField === 'date_process') {
       return (xScale as any)(new Date(String(d[xField])));
     } else {
       return (xScale as any)(Number(d[xField]));

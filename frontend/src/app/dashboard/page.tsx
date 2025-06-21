@@ -110,7 +110,7 @@ export default function DashboardPage() {
                 <h4 className="text-lg font-medium mb-3 text-center">CD ATT vs Date</h4>
                 <ScatterPlot
                   data={data}
-                  xField="datetime"
+                  xField="date_process"
                   yField="cd_att"
                   colorField="bias"
                   shapeField="fake_property1"
@@ -125,7 +125,7 @@ export default function DashboardPage() {
                 <h4 className="text-lg font-medium mb-3 text-center">CD X/Y vs Date</h4>
                 <ScatterPlot
                   data={data}
-                  xField="datetime"
+                  xField="date_process"
                   yField="cd_x_y"
                   colorField="bias_x_y"
                   width={800}
@@ -139,7 +139,7 @@ export default function DashboardPage() {
                 <h4 className="text-lg font-medium mb-3 text-center">CD 6-Sigma vs Date</h4>
                 <ScatterPlot
                   data={data}
-                  xField="datetime"
+                  xField="date_process"
                   yField="cd_6sig"
                   width={800}
                   height={400}

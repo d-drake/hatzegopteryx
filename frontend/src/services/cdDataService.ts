@@ -3,16 +3,16 @@ import axios from 'axios';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export interface CDDataItem {
-  id: number;
-  datetime: string;
+  lot: string;
+  date_process: string;
   bias: number;
   bias_x_y: number;
   cd_att: number;
   cd_x_y: number;
   cd_6sig: number;
   entity: string;
-  fake_property1: number;
-  fake_property2: number;
+  fake_property1: string;
+  fake_property2: string;
 }
 
 export interface CDDataFilters {

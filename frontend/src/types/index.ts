@@ -20,16 +20,16 @@ export interface UpdateItem {
 }
 
 export interface CDData {
-  id: number;
-  datetime: string;
+  lot: string;
+  date_process: string;
   bias: number;
   bias_x_y: number;
   cd_att: number;
   cd_x_y: number;
   cd_6sig: number;
   entity: string;
-  fake_property1: number;
-  fake_property2: number;
+  fake_property1: string;
+  fake_property2: string;
 }
 
 export interface CDDataStats {

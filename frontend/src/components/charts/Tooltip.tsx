@@ -69,7 +69,7 @@ export function formatTooltipContent(data: Record<string, any>, fields: string[]
       
       if (typeof value === 'number') {
         return `<strong>${formattedField}:</strong> ${value.toFixed(2)}`;
-      } else if (field === 'datetime' && typeof value === 'string') {
+      } else if (field === 'date_process' && typeof value === 'string') {
         return `<strong>${formattedField}:</strong> ${new Date(value).toLocaleString()}`;
       } else {
         return `<strong>${formattedField}:</strong> ${value}`;
@@ -86,6 +86,6 @@ function formatFieldName(field: string): string {
     .replace('Att', 'ATT')
     .replace('Sig', 'Sig')
     .replace('X Y', 'X/Y')
-    .replace('Datetime', 'Date Time')
+    .replace('Date Process', 'Date/Time')
     .replace('Fake Property', 'Property');
 }

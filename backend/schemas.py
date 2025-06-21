@@ -24,21 +24,21 @@ class Item(ItemBase):
         from_attributes = True
 
 class CDDataBase(BaseModel):
-    datetime: datetime
+    date_process: datetime
     bias: int
     bias_x_y: int
     cd_att: float
     cd_x_y: float
     cd_6sig: float
     entity: str
-    fake_property1: int
-    fake_property2: int
+    fake_property1: str
+    fake_property2: str
 
 class CDDataCreate(CDDataBase):
-    pass
+    lot: str
 
 class CDData(CDDataBase):
-    id: int
+    lot: str
     
     class Config:
         from_attributes = True
