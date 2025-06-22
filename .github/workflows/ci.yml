@@ -88,8 +88,40 @@ jobs:
         docker compose build
     
     - name: Test Docker compose
+      timeout-minutes: 5
       run: |
+        echo "=== Starting Docker Compose Debug Session ==="
+        echo "Starting docker compose in detached mode..."
         docker compose up -d
+        
+        echo "=== Waiting for services to start ==="
         sleep 10
-        curl -f http://localhost:8000/health || exit 1
+        
+        echo "=== Checking container status ==="
+        docker compose ps
+        
+        echo "=== System resources ==="
+        df -h
+        free -h
+        
+        echo "=== Checking backend logs ==="
+        docker compose logs backend
+        
+        echo "=== Checking postgres logs ==="
+        docker compose logs postgres
+        
+        echo "=== Testing health endpoint ==="
+        echo "Attempting health check..."
+        if curl -f -v http://localhost:8000/health; then
+          echo "✓ Health check successful"
+        else
+          echo "✗ Health check failed"
+          echo "=== Network debugging ==="
+          netstat -tlnp | grep :8000 || echo "Port 8000 not listening"
+          echo "=== Final container status ==="
+          docker compose ps
+          exit 1
+        fi
+        
+        echo "=== Cleanup ==="
         docker compose down
