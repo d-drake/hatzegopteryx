@@ -52,9 +52,9 @@ class SPCLimitsBase(BaseModel):
     product_type: str
     spc_monitor_name: str
     spc_chart_name: str
-    cl: Optional[float] = None
-    lcl: Optional[float] = None
-    ucl: Optional[float] = None
+    cl: Optional[int] = None
+    lcl: Optional[int] = None
+    ucl: Optional[int] = None
 
 class SPCLimitsCreate(SPCLimitsBase):
     pass

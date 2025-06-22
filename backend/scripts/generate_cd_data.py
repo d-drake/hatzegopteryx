@@ -1,8 +1,8 @@
 import random
 import numpy as np
 from datetime import datetime, timedelta
-from database import SessionLocal, engine
-from models import Base, CDData
+from backend.database import SessionLocal, engine
+from backend.models import Base, CDData
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
@@ -49,18 +49,20 @@ def generate_cd_data():
 
     # Initialize bias settings for each combination of entity/spc_monitor_name/product_type/process_type
     bias_settings_by_combo = {}
-    
+
     # Pre-generate all possible combinations
     for entity in entities:
         for process_type in process_types:
             for product_type in product_types:
                 combo_key = (entity, spc_monitor_name, product_type, process_type)
-                
+
                 # Initialize with random bias values
                 # Average change frequency: once per 2 weeks (14 days)
                 next_bias_change = start_date + timedelta(days=random.uniform(10, 18))
-                next_bias_x_y_change = start_date + timedelta(days=random.uniform(10, 18))
-                
+                next_bias_x_y_change = start_date + timedelta(
+                    days=random.uniform(10, 18)
+                )
+
                 bias_settings_by_combo[combo_key] = {
                     "current_bias": random.choice(possible_bias),
                     "next_bias_change": next_bias_change,
@@ -79,36 +81,46 @@ def generate_cd_data():
         entity = random.choice(entities)
         process_type = random.choice(process_types)
         product_type = random.choice(product_types)
-        
+
         # Get the combination key
         combo_key = (entity, spc_monitor_name, product_type, process_type)
         settings = bias_settings_by_combo[combo_key]
-        
+
         # Check if bias should change for this combination
         if timestamp >= settings["next_bias_change"]:
             settings["current_bias"] = random.choice(possible_bias)
             # Schedule next change (average 14 days, range 10-18 days)
-            days_until_next = np.random.normal(14, 2)  # Normal distribution with mean 14, std 2
+            days_until_next = np.random.normal(
+                14, 2
+            )  # Normal distribution with mean 14, std 2
             days_until_next = np.clip(days_until_next, 10, 18)  # Clamp to 10-18 days
             settings["next_bias_change"] = timestamp + timedelta(days=days_until_next)
             # Reduce noise by half when bias changes
             settings["cd_att_noise_factor"] = 0.5
         else:
             # Gradually restore noise factor over time
-            settings["cd_att_noise_factor"] = min(1.0, settings["cd_att_noise_factor"] + 0.01)
+            settings["cd_att_noise_factor"] = min(
+                1.0, settings["cd_att_noise_factor"] + 0.01
+            )
 
         # Check if bias_x_y should change for this combination
         if timestamp >= settings["next_bias_x_y_change"]:
             settings["current_bias_x_y"] = random.choice(possible_bias_x_y)
             # Schedule next change (average 14 days, range 10-18 days)
-            days_until_next = np.random.normal(14, 2)  # Normal distribution with mean 14, std 2
+            days_until_next = np.random.normal(
+                14, 2
+            )  # Normal distribution with mean 14, std 2
             days_until_next = np.clip(days_until_next, 10, 18)  # Clamp to 10-18 days
-            settings["next_bias_x_y_change"] = timestamp + timedelta(days=days_until_next)
+            settings["next_bias_x_y_change"] = timestamp + timedelta(
+                days=days_until_next
+            )
             # Reduce noise by half when bias_x_y changes
             settings["cd_x_y_noise_factor"] = 0.5
         else:
             # Gradually restore noise factor over time
-            settings["cd_x_y_noise_factor"] = min(1.0, settings["cd_x_y_noise_factor"] + 0.01)
+            settings["cd_x_y_noise_factor"] = min(
+                1.0, settings["cd_x_y_noise_factor"] + 0.01
+            )
 
         # Get current bias values for this combination
         bias_value = settings["current_bias"]
@@ -145,7 +157,7 @@ def generate_cd_data():
             fake_property2 = random.choice(["FP2_B", "FP2_C", "FP2_D"])
         else:
             fake_property2 = random.choice(["FP2_A", "FP2_B"])
-        
+
         # Create data point with lot ID
         lot_id = f"Lot{lot_counter}"
         data_point = CDData(

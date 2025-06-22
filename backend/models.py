@@ -37,9 +37,9 @@ class SPCLimits(Base):
     product_type = Column(String, nullable=False, index=True)  # XLY1, XLY2, BNT44, VLQR1
     spc_monitor_name = Column(String, nullable=False, index=True)  # SPC_CD_L1
     spc_chart_name = Column(String, nullable=False, index=True)  # cd_att, cd_x_y, cd_6sig
-    cl = Column(Float, nullable=True)  # Center Line
-    lcl = Column(Float, nullable=True)  # Lower Control Limit
-    ucl = Column(Float, nullable=True)  # Upper Control Limit
+    cl = Column(Integer, nullable=True)  # Center Line
+    lcl = Column(Integer, nullable=True)  # Lower Control Limit
+    ucl = Column(Integer, nullable=True)  # Upper Control Limit
     effective_date = Column(DateTime, nullable=False, default=func.now())  # When this limit becomes effective
     
     # Create composite index for efficient querying

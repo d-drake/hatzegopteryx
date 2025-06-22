@@ -77,20 +77,34 @@ def get_cd_data_stats(
     
     # Get statistics
     from sqlalchemy import func
-    stats = db.query(
+    query = db.query(
         func.count(models.CDData.lot).label("total_count"),
         func.avg(models.CDData.cd_att).label("avg_cd_att"),
         func.min(models.CDData.cd_att).label("min_cd_att"),
         func.max(models.CDData.cd_att).label("max_cd_att"),
         func.avg(models.CDData.cd_6sig).label("avg_cd_6sig")
-    ).filter(and_(*filters) if filters else True).first()
+    )
+    
+    if filters:
+        query = query.filter(and_(*filters))
+    
+    stats = query.first()
+    
+    if not stats:
+        return {
+            "total_count": 0,
+            "avg_cd_att": 0,
+            "min_cd_att": 0,
+            "max_cd_att": 0,
+            "avg_cd_6sig": 0
+        }
     
     return {
         "total_count": stats.total_count or 0,
-        "avg_cd_att": round(stats.avg_cd_att, 2) if stats.avg_cd_att else 0,
-        "min_cd_att": round(stats.min_cd_att, 2) if stats.min_cd_att else 0,
-        "max_cd_att": round(stats.max_cd_att, 2) if stats.max_cd_att else 0,
-        "avg_cd_6sig": round(stats.avg_cd_6sig, 2) if stats.avg_cd_6sig else 0
+        "avg_cd_att": round(stats.avg_cd_att, 2) if stats.avg_cd_att is not None else 0,
+        "min_cd_att": round(stats.min_cd_att, 2) if stats.min_cd_att is not None else 0,
+        "max_cd_att": round(stats.max_cd_att, 2) if stats.max_cd_att is not None else 0,
+        "avg_cd_6sig": round(stats.avg_cd_6sig, 2) if stats.avg_cd_6sig is not None else 0
     }
 
 @router.get("/entities")

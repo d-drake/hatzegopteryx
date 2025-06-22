@@ -83,14 +83,14 @@ def generate_spc_limits():
                         # Generate new limits based on chart type
                         ranges = limit_ranges[chart_name]
                         
-                        # Generate CL
-                        cl = random.uniform(*ranges["cl"]) if ranges["cl"] else None
+                        # Generate CL as integer
+                        cl = random.randint(*ranges["cl"]) if ranges["cl"] else None
                         
-                        # Generate LCL
-                        lcl = random.uniform(*ranges["lcl"]) if ranges["lcl"] else None
+                        # Generate LCL as integer
+                        lcl = random.randint(*ranges["lcl"]) if ranges["lcl"] else None
                         
-                        # Generate UCL
-                        ucl = random.uniform(*ranges["ucl"]) if ranges["ucl"] else None
+                        # Generate UCL as integer
+                        ucl = random.randint(*ranges["ucl"]) if ranges["ucl"] else None
                         
                         # Create the limit record
                         limit_record = SPCLimits(
@@ -98,9 +98,9 @@ def generate_spc_limits():
                             product_type=product_type,
                             spc_monitor_name=spc_monitor_name,
                             spc_chart_name=chart_name,
-                            cl=round(cl, 2) if cl is not None else None,
-                            lcl=round(lcl, 2) if lcl is not None else None,
-                            ucl=round(ucl, 2) if ucl is not None else None,
+                            cl=cl,
+                            lcl=lcl,
+                            ucl=ucl,
                             effective_date=current_date
                         )
                         
