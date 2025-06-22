@@ -38,6 +38,7 @@ export default function SPCTimeline({
       yField={yField}
       colorField={effectiveColorField}
       shapeField={effectiveShapeField}
+      lineGroupField="entity"
       width={width}
       height={height}
       margin={margin}

@@ -23,6 +23,7 @@ interface TimelineProps<T extends Record<string, any>> {
   yField: keyof T;
   colorField?: keyof T;
   shapeField?: keyof T;
+  lineGroupField?: keyof T;
   width?: number;
   height?: number;
   margin?: { top: number; right: number; bottom: number; left: number };
@@ -34,6 +35,7 @@ export default function Timeline<T extends Record<string, any>>({
   yField,
   colorField = 'entity',
   shapeField,
+  lineGroupField,
   width = 800,
   height = 500,
   margin = { top: 20, right: 150, bottom: 60, left: 70 },
@@ -41,9 +43,25 @@ export default function Timeline<T extends Record<string, any>>({
   const { innerWidth, innerHeight } = useChartDimensions(width, height, margin);
   const { showTooltip, hideTooltip } = useTooltip();
 
-  // Create scales
+  // Create scales - axes connect at origin, data maintains 30px margins
   const xScale = useMemo(() => {
     // Check if the first data point's xField value is a date
+    if (data.length > 0) {
+      const firstValue = data[0][xField];
+      if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
+        return createTimeScale(getDateExtent(data, xField), [0, innerWidth]);
+      }
+    }
+    return createLinearScale(getNumericExtent(data, xField), [0, innerWidth]);
+  }, [data, xField, innerWidth]);
+
+  const yScale = useMemo(
+    () => createLinearScale(getNumericExtent(data, yField), [innerHeight, 0]),
+    [data, yField, innerHeight]
+  );
+
+  // Create data scales with margins for positioning data points
+  const xDataScale = useMemo(() => {
     if (data.length > 0) {
       const firstValue = data[0][xField];
       if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
@@ -53,7 +71,7 @@ export default function Timeline<T extends Record<string, any>>({
     return createLinearScale(getNumericExtent(data, xField), [30, innerWidth - 30]);
   }, [data, xField, innerWidth]);
 
-  const yScale = useMemo(
+  const yDataScale = useMemo(
     () => createLinearScale(getNumericExtent(data, yField), [innerHeight - 30, 30]),
     [data, yField, innerHeight]
   );
@@ -96,18 +114,19 @@ export default function Timeline<T extends Record<string, any>>({
     [shapeField, shapeScale, shapeCategories]
   );
 
-  // Accessor functions
+  // Accessor functions - use data scales for positioning data points
   const xAccessor = (d: T) => {
     const value = d[xField];
     if ((value as any) instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value as string)))) {
-      return (xScale as any)(new Date(String(value)));
+      return (xDataScale as any)(new Date(String(value)));
     } else {
-      return (xScale as any)(Number(value));
+      return (xDataScale as any)(Number(value));
     }
   };
-  const yAccessor = (d: T) => yScale(Number(d[yField]));
+  const yAccessor = (d: T) => yDataScale(Number(d[yField]));
   const colorAccessor = (d: T) => String(d[colorField]);
   const shapeAccessor = shapeField ? (d: T) => String(d[shapeField]) : undefined;
+  const lineGroupAccessor = (d: T) => String(d[lineGroupField || colorField]);
 
   // Handle hover
   const handleHover = (event: MouseEvent, datum: T | null) => {
@@ -178,12 +197,12 @@ export default function Timeline<T extends Record<string, any>>({
         />
       )}
 
-      {/* Connection lines by entity */}
+      {/* Connection lines by group field */}
       <Line
         data={data}
         xAccessor={xAccessor}
         yAccessor={yAccessor}
-        groupBy={colorAccessor}
+        groupBy={lineGroupAccessor}
         stroke="#666666"
         strokeWidth={1}
         strokeOpacity={0.4}

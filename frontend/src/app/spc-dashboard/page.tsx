@@ -11,14 +11,30 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [data, setData] = useState<CDDataItem[]>([]);
-  const [filters, setFilters] = useState<FilterState>({
-    entity: '',
-    processType: '',
-    productType: '',
-    spcMonitorName: '',
-    startDate: '',
-    endDate: ''
-  });
+  // Create default filters with date range
+  const getDefaultFilters = (): FilterState => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    return {
+      entity: 'FAKE_TOOL1',
+      processType: '1000',
+      productType: 'BNT44',
+      spcMonitorName: 'SPC_CD_L1',
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate)
+    };
+  };
+
+  const [filters, setFilters] = useState<FilterState>(getDefaultFilters());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -94,6 +110,9 @@ function DashboardContent() {
     
     if (hasUrlFilters) {
       setFilters(urlFilters);
+    } else {
+      // If no URL filters, use defaults (which are already set in useState)
+      setFilters(getDefaultFilters());
     }
     
     setIsInitialized(true);
@@ -191,7 +210,7 @@ function DashboardContent() {
             <div className="space-y-8">
               {/* CD ATT vs Date */}
               <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="text-lg font-medium mb-3 text-center">CD ATT vs Date</h4>
+                <h4 className="text-lg font-medium mb-3 text-center text-black">CD ATT vs Date</h4>
                 <SPCTimeline
                   data={data}
                   xField="date_process"
@@ -206,7 +225,7 @@ function DashboardContent() {
 
               {/* CD X/Y vs Date */}
               <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="text-lg font-medium mb-3 text-center">CD X/Y vs Date</h4>
+                <h4 className="text-lg font-medium mb-3 text-center text-black">CD X/Y vs Date</h4>
                 <SPCTimeline
                   data={data}
                   xField="date_process"
@@ -220,7 +239,7 @@ function DashboardContent() {
 
               {/* CD 6-Sigma vs Date */}
               <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="text-lg font-medium mb-3 text-center">CD 6-Sigma vs Date</h4>
+                <h4 className="text-lg font-medium mb-3 text-center text-black">CD 6-Sigma vs Date</h4>
                 <SPCTimeline
                   data={data}
                   xField="date_process"
