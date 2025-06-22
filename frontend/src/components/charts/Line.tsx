@@ -29,7 +29,8 @@ export default function Line({
       .line<any>()
       .x(xAccessor)
       .y(yAccessor)
-      .curve(d3.curveLinear);
+      .curve(d3.curveLinear)
+      .defined(d => !isNaN(xAccessor(d)) && !isNaN(yAccessor(d)));
   }, [xAccessor, yAccessor]);
 
   const groupedData = useMemo(() => {

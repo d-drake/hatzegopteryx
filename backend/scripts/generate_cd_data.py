@@ -1,8 +1,8 @@
 import random
 import numpy as np
 from datetime import datetime, timedelta
-from backend.database import SessionLocal, engine
-from backend.models import Base, CDData
+from database import SessionLocal, engine
+from models import Base, CDData
 
 # Create all tables
 Base.metadata.create_all(bind=engine)

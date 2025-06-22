@@ -11,7 +11,7 @@ interface Tab {
 const tabs: Tab[] = [
   { id: 'items', label: 'Todo Items', href: '/' },
   { id: 'cd-data', label: 'CD Data Analytics', href: '/?tab=cd-data' },
-  { id: 'dashboard', label: 'SPC Dashboard', href: '/dashboard' },
+  { id: 'spc-dashboard', label: 'SPC Dashboard', href: '/spc-dashboard' },
 ];
 
 interface AppTabsProps {
@@ -24,7 +24,7 @@ export default function AppTabs({ activeTab = 'items', onTabChange }: AppTabsPro
   const pathname = usePathname();
 
   const handleTabClick = (tab: Tab) => {
-    if (tab.id === 'dashboard') {
+    if (tab.id === 'spc-dashboard') {
       router.push(tab.href);
     } else {
       onTabChange?.(tab.id);
@@ -32,8 +32,8 @@ export default function AppTabs({ activeTab = 'items', onTabChange }: AppTabsPro
   };
 
   const isActive = (tab: Tab) => {
-    if (pathname === '/dashboard' && tab.id === 'dashboard') return true;
-    if (pathname === '/' && tab.id !== 'dashboard') return activeTab === tab.id;
+    if (pathname === '/spc-dashboard' && tab.id === 'spc-dashboard') return true;
+    if (pathname === '/' && tab.id !== 'spc-dashboard') return activeTab === tab.id;
     return false;
   };
 

@@ -17,17 +17,17 @@ export interface FilterState {
   endDate: string;
 }
 
-interface EnhancedFilterControlsProps {
+interface FilterControlsProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   loading?: boolean;
 }
 
-export default function EnhancedFilterControls({ 
+export default function FilterControls({ 
   filters, 
   onFiltersChange, 
   loading = false 
-}: EnhancedFilterControlsProps) {
+}: FilterControlsProps) {
   const [entities, setEntities] = useState<string[]>([]);
   const [processTypes, setProcessTypes] = useState<string[]>([]);
   const [productTypes, setProductTypes] = useState<string[]>([]);

@@ -17,20 +17,18 @@ import {
   getNumericExtent,
   getDateExtent,
 } from './scales';
-import { CDDataItem } from '@/services/cdDataService';
-
-interface ScatterPlotProps {
-  data: CDDataItem[];
-  xField: keyof CDDataItem;
-  yField: keyof CDDataItem;
-  colorField?: keyof CDDataItem;
-  shapeField?: keyof CDDataItem;
+interface TimelineProps<T extends Record<string, any>> {
+  data: T[];
+  xField: keyof T;
+  yField: keyof T;
+  colorField?: keyof T;
+  shapeField?: keyof T;
   width?: number;
   height?: number;
   margin?: { top: number; right: number; bottom: number; left: number };
 }
 
-export default function ScatterPlot({
+export default function Timeline<T extends Record<string, any>>({
   data,
   xField,
   yField,
@@ -39,21 +37,24 @@ export default function ScatterPlot({
   width = 800,
   height = 500,
   margin = { top: 20, right: 150, bottom: 60, left: 70 },
-}: ScatterPlotProps) {
+}: TimelineProps<T>) {
   const { innerWidth, innerHeight } = useChartDimensions(width, height, margin);
   const { showTooltip, hideTooltip } = useTooltip();
 
   // Create scales
   const xScale = useMemo(() => {
-    if (xField === 'date_process') {
-      return createTimeScale(getDateExtent(data, xField), [0, innerWidth]);
-    } else {
-      return createLinearScale(getNumericExtent(data, xField), [0, innerWidth]);
+    // Check if the first data point's xField value is a date
+    if (data.length > 0) {
+      const firstValue = data[0][xField];
+      if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
+        return createTimeScale(getDateExtent(data, xField), [30, innerWidth - 30]);
+      }
     }
+    return createLinearScale(getNumericExtent(data, xField), [30, innerWidth - 30]);
   }, [data, xField, innerWidth]);
 
   const yScale = useMemo(
-    () => createLinearScale(getNumericExtent(data, yField), [innerHeight, 0]),
+    () => createLinearScale(getNumericExtent(data, yField), [innerHeight - 30, 30]),
     [data, yField, innerHeight]
   );
 
@@ -96,29 +97,26 @@ export default function ScatterPlot({
   );
 
   // Accessor functions
-  const xAccessor = (d: CDDataItem) => {
-    if (xField === 'date_process') {
-      return (xScale as any)(new Date(String(d[xField])));
+  const xAccessor = (d: T) => {
+    const value = d[xField];
+    if ((value as any) instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value as string)))) {
+      return (xScale as any)(new Date(String(value)));
     } else {
-      return (xScale as any)(Number(d[xField]));
+      return (xScale as any)(Number(value));
     }
   };
-  const yAccessor = (d: CDDataItem) => yScale(Number(d[yField]));
-  const colorAccessor = (d: CDDataItem) => String(d[colorField]);
-  const shapeAccessor = shapeField ? (d: CDDataItem) => String(d[shapeField]) : undefined;
+  const yAccessor = (d: T) => yScale(Number(d[yField]));
+  const colorAccessor = (d: T) => String(d[colorField]);
+  const shapeAccessor = shapeField ? (d: T) => String(d[shapeField]) : undefined;
 
   // Handle hover
-  const handleHover = (event: MouseEvent, datum: CDDataItem | null) => {
+  const handleHover = (event: MouseEvent, datum: T | null) => {
     if (datum) {
       const tooltipFields = [xField, yField];
       if (colorField) tooltipFields.push(colorField);
       if (shapeField) tooltipFields.push(shapeField);
       
-      // Add fake_property1 and fake_property2 if not already included
-      if (!tooltipFields.includes('fake_property1')) tooltipFields.push('fake_property1');
-      if (!tooltipFields.includes('fake_property2')) tooltipFields.push('fake_property2');
-      
-      const content = formatTooltipContent(datum as any, tooltipFields);
+      const content = formatTooltipContent(datum as any, tooltipFields as string[]);
       showTooltip(content, event.pageX, event.pageY);
     } else {
       hideTooltip();
@@ -147,13 +145,13 @@ export default function ScatterPlot({
         scale={xScale}
         orientation="bottom"
         transform={`translate(0,${innerHeight})`}
-        label={formatFieldName(xField)}
+        label={formatFieldName(String(xField))}
         labelOffset={{ x: innerWidth / 2, y: 45 }}
       />
       <Axis
         scale={yScale}
         orientation="left"
-        label={formatFieldName(yField)}
+        label={formatFieldName(String(yField))}
         labelOffset={{ x: -innerHeight / 2, y: -50 }}
       />
 
@@ -193,7 +191,7 @@ export default function ScatterPlot({
 
       {/* Legends */}
       <Legend
-        title={formatFieldName(colorField)}
+        title={formatFieldName(String(colorField))}
         items={colorLegendItems}
         x={innerWidth + 20}
         y={20}
@@ -201,7 +199,7 @@ export default function ScatterPlot({
       
       {shapeLegendItems.length > 0 && (
         <Legend
-          title={formatFieldName(shapeField!)}
+          title={formatFieldName(String(shapeField!))}
           items={shapeLegendItems}
           x={innerWidth + 20}
           y={40 + colorLegendItems.length * 20}
@@ -214,11 +212,5 @@ export default function ScatterPlot({
 function formatFieldName(field: string): string {
   return field
     .replace(/_/g, ' ')
-    .replace(/\b\w/g, l => l.toUpperCase())
-    .replace('Cd', 'CD')
-    .replace('Att', 'ATT')
-    .replace('Sig', 'Sig')
-    .replace('X Y', 'X/Y')
-    .replace('Datetime', 'Date Time')
-    .replace('Fake Property', 'Property');
+    .replace(/\b\w/g, l => l.toUpperCase());
 }

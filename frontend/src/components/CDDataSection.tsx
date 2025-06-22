@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CDData, CDDataStats } from '@/types';
 import { cdDataApi } from '@/lib/api';
 
@@ -14,30 +14,7 @@ export default function CDDataSection() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
 
-  useEffect(() => {
-    fetchInitialData();
-  }, []);
-
-  useEffect(() => {
-    fetchCDData();
-    fetchStats();
-  }, [selectedEntity, startDate, endDate]);
-
-  const fetchInitialData = async () => {
-    try {
-      const [entitiesData] = await Promise.all([
-        cdDataApi.getEntities(),
-      ]);
-      setEntities(entitiesData);
-      await fetchCDData();
-      await fetchStats();
-    } catch (err) {
-      setError('Failed to fetch initial data');
-      console.error(err);
-    }
-  };
-
-  const fetchCDData = async () => {
+  const fetchCDData = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -55,9 +32,9 @@ export default function CDDataSection() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEntity, startDate, endDate]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const params = {
         ...(selectedEntity && { entity: selectedEntity }),
@@ -69,7 +46,30 @@ export default function CDDataSection() {
     } catch (err) {
       console.error('Failed to fetch stats:', err);
     }
-  };
+  }, [selectedEntity, startDate, endDate]);
+
+  const fetchInitialData = useCallback(async () => {
+    try {
+      const [entitiesData] = await Promise.all([
+        cdDataApi.getEntities(),
+      ]);
+      setEntities(entitiesData);
+      await fetchCDData();
+      await fetchStats();
+    } catch (err) {
+      setError('Failed to fetch initial data');
+      console.error(err);
+    }
+  }, [fetchCDData, fetchStats]);
+
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
+
+  useEffect(() => {
+    fetchCDData();
+    fetchStats();
+  }, [selectedEntity, startDate, endDate, fetchCDData, fetchStats]);
 
   const clearFilters = () => {
     setSelectedEntity('');

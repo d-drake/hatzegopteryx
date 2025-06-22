@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import ScatterPlot from '@/components/charts/ScatterPlot';
-import EnhancedFilterControls, { FilterState } from '@/components/dashboard/EnhancedFilterControls';
+import SPCTimeline from '@/components/spc-dashboard/SPCTimeline';
+import FilterControls, { FilterState } from '@/components/spc-dashboard/FilterControls';
 import AppTabs from '@/components/AppTabs';
 import { fetchCDData, CDDataItem } from '@/services/cdDataService';
 
@@ -22,6 +22,61 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const loadInitialData = useCallback(async () => {
+    try {
+      setLoading(true);
+      // Calculate date 30 days ago
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      
+      // Format dates as YYYY-MM-DD
+      const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
+      const dataResponse = await fetchCDData({ 
+        limit: 1000,
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate)
+      });
+      setData(dataResponse);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load data');
+      console.error('Error loading data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadFilteredData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const filterParams = {
+        limit: 1000,
+        ...(filters.entity && { entity: filters.entity }),
+        ...(filters.processType && { process_type: filters.processType }),
+        ...(filters.productType && { product_type: filters.productType }),
+        ...(filters.spcMonitorName && { spc_monitor_name: filters.spcMonitorName }),
+        ...(filters.startDate && { startDate: filters.startDate }),
+        ...(filters.endDate && { endDate: filters.endDate })
+      };
+      
+      const dataResponse = await fetchCDData(filterParams);
+      setData(dataResponse);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load filtered data');
+      console.error('Error loading filtered data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters]);
 
   // Initialize filters from URL params on mount
   useEffect(() => {
@@ -54,7 +109,7 @@ function DashboardContent() {
         loadInitialData();
       }
     }
-  }, [isInitialized]);
+  }, [isInitialized, filters, loadFilteredData, loadInitialData]);
 
   // Update URL and load data when filters change
   useEffect(() => {
@@ -68,69 +123,14 @@ function DashboardContent() {
       });
       
       const queryString = params.toString();
-      router.push(`/dashboard${queryString ? `?${queryString}` : ''}`);
+      router.push(`/spc-dashboard${queryString ? `?${queryString}` : ''}`);
       
       // Load data based on filters
       if (Object.values(filters).some(filter => filter !== '')) {
         loadFilteredData();
       }
     }
-  }, [filters, isInitialized, router]);
-
-  const loadInitialData = async () => {
-    try {
-      setLoading(true);
-      // Calculate date 30 days ago
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
-      
-      // Format dates as YYYY-MM-DD
-      const formatDate = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
-      
-      const dataResponse = await fetchCDData({ 
-        limit: 1000,
-        startDate: formatDate(startDate),
-        endDate: formatDate(endDate)
-      });
-      setData(dataResponse);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load data');
-      console.error('Error loading data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadFilteredData = async () => {
-    try {
-      setLoading(true);
-      const filterParams = {
-        limit: 1000,
-        ...(filters.entity && { entity: filters.entity }),
-        ...(filters.processType && { process_type: filters.processType }),
-        ...(filters.productType && { product_type: filters.productType }),
-        ...(filters.spcMonitorName && { spc_monitor_name: filters.spcMonitorName }),
-        ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate })
-      };
-      
-      const dataResponse = await fetchCDData(filterParams);
-      setData(dataResponse);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load filtered data');
-      console.error('Error loading filtered data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [filters, isInitialized, router, loadFilteredData]);
 
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
@@ -145,7 +145,7 @@ function DashboardContent() {
       startDate: '',
       endDate: ''
     });
-    router.push('/dashboard');
+    router.push('/spc-dashboard');
     loadInitialData();
   };
 
@@ -162,12 +162,12 @@ function DashboardContent() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <AppTabs activeTab="dashboard" />
+          <AppTabs activeTab="spc-dashboard" />
         </div>
 
         <h2 className="text-2xl font-bold mb-6">SPC Data Dashboard</h2>
         
-        <EnhancedFilterControls
+        <FilterControls
           filters={filters}
           onFiltersChange={handleFiltersChange}
           loading={loading}
@@ -192,7 +192,7 @@ function DashboardContent() {
               {/* CD ATT vs Date */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <h4 className="text-lg font-medium mb-3 text-center">CD ATT vs Date</h4>
-                <ScatterPlot
+                <SPCTimeline
                   data={data}
                   xField="date_process"
                   yField="cd_att"
@@ -207,7 +207,7 @@ function DashboardContent() {
               {/* CD X/Y vs Date */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <h4 className="text-lg font-medium mb-3 text-center">CD X/Y vs Date</h4>
-                <ScatterPlot
+                <SPCTimeline
                   data={data}
                   xField="date_process"
                   yField="cd_x_y"
@@ -221,7 +221,7 @@ function DashboardContent() {
               {/* CD 6-Sigma vs Date */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <h4 className="text-lg font-medium mb-3 text-center">CD 6-Sigma vs Date</h4>
-                <ScatterPlot
+                <SPCTimeline
                   data={data}
                   xField="date_process"
                   yField="cd_6sig"
