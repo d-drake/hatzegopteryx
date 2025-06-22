@@ -88,26 +88,49 @@ jobs:
         docker compose build
     
     - name: Test Docker compose
-      timeout-minutes: 5
+      timeout-minutes: 8
       run: |
         echo "=== Starting Docker Compose Debug Session ==="
         echo "Starting docker compose in detached mode..."
         docker compose up -d
         
-        echo "=== Waiting for services to start ==="
-        sleep 10
-        
-        echo "=== Checking container status ==="
+        echo "=== Initial container check (immediately after start) ==="
         docker compose ps
         
         echo "=== System resources ==="
         df -h
         free -h
         
-        echo "=== Checking backend logs ==="
+        echo "=== Monitoring backend startup process ==="
+        for i in {1..10}; do
+          echo "--- Check $i/10 ($(date)) ---"
+          echo "Container status:"
+          docker compose ps backend
+          
+          echo "Backend logs (last 20 lines):"
+          docker compose logs --tail=20 backend
+          
+          echo "Testing port 8000 availability:"
+          if nc -z localhost 8000; then
+            echo "✓ Port 8000 is open"
+            break
+          else
+            echo "✗ Port 8000 not yet available"
+          fi
+          
+          if [ $i -lt 10 ]; then
+            echo "Waiting 15 seconds before next check..."
+            sleep 15
+          fi
+        done
+        
+        echo "=== Final status check ==="
+        docker compose ps
+        
+        echo "=== Complete backend logs ==="
         docker compose logs backend
         
-        echo "=== Checking postgres logs ==="
+        echo "=== Complete postgres logs ==="
         docker compose logs postgres
         
         echo "=== Testing health endpoint ==="
@@ -118,8 +141,9 @@ jobs:
           echo "✗ Health check failed"
           echo "=== Network debugging ==="
           netstat -tlnp | grep :8000 || echo "Port 8000 not listening"
-          echo "=== Final container status ==="
-          docker compose ps
+          echo "=== Container inspection ==="
+          docker compose ps -a
+          docker compose exec backend ps aux || echo "Cannot exec into backend"
           exit 1
         fi
         
