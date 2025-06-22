@@ -1,18 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  fetchEntities, 
-  fetchProcessTypes, 
-  fetchProductTypes, 
-  fetchSPCMonitorNames 
-} from '@/services/cdDataService';
+import { fetchEntities } from '@/services/cdDataService';
 
 export interface FilterState {
   entity: string;
-  processType: string;
-  productType: string;
-  spcMonitorName: string;
   startDate: string;
   endDate: string;
 }
@@ -29,9 +21,6 @@ export default function FilterControls({
   loading = false 
 }: FilterControlsProps) {
   const [entities, setEntities] = useState<string[]>([]);
-  const [processTypes, setProcessTypes] = useState<string[]>([]);
-  const [productTypes, setProductTypes] = useState<string[]>([]);
-  const [spcMonitorNames, setSpcMonitorNames] = useState<string[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
 
   useEffect(() => {
@@ -41,18 +30,8 @@ export default function FilterControls({
   const loadFilterOptions = async () => {
     try {
       setLoadingOptions(true);
-      const [entitiesData, processTypesData, productTypesData, spcMonitorNamesData] = 
-        await Promise.all([
-          fetchEntities(),
-          fetchProcessTypes(),
-          fetchProductTypes(),
-          fetchSPCMonitorNames()
-        ]);
-      
+      const entitiesData = await fetchEntities();
       setEntities(entitiesData);
-      setProcessTypes(processTypesData);
-      setProductTypes(productTypesData);
-      setSpcMonitorNames(spcMonitorNamesData);
     } catch (error) {
       console.error('Error loading filter options:', error);
     } finally {
@@ -70,9 +49,6 @@ export default function FilterControls({
   const clearFilters = () => {
     onFiltersChange({
       entity: '',
-      processType: '',
-      productType: '',
-      spcMonitorName: '',
       startDate: '',
       endDate: ''
     });
@@ -83,8 +59,8 @@ export default function FilterControls({
       <div className="bg-white p-4 rounded-lg shadow-sm border">
         <div className="animate-pulse">
           <div className="h-4 bg-gray-200 rounded w-32 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-            {[...Array(6)].map((_, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(3)].map((_, i) => (
               <div key={i} className="h-10 bg-gray-200 rounded"></div>
             ))}
           </div>
@@ -106,7 +82,7 @@ export default function FilterControls({
         </button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Entity Filter */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -122,66 +98,6 @@ export default function FilterControls({
             {entities.map((entity) => (
               <option key={entity} value={entity}>
                 {entity}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Process Type Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Process Type
-          </label>
-          <select
-            value={filters.processType}
-            onChange={(e) => handleFilterChange('processType', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
-            disabled={loading}
-          >
-            <option value="">All Process Types</option>
-            {processTypes.map((processType) => (
-              <option key={processType} value={processType}>
-                {processType}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Product Type Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Product Type
-          </label>
-          <select
-            value={filters.productType}
-            onChange={(e) => handleFilterChange('productType', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
-            disabled={loading}
-          >
-            <option value="">All Product Types</option>
-            {productTypes.map((productType) => (
-              <option key={productType} value={productType}>
-                {productType}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* SPC Monitor Name Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            SPC Monitor
-          </label>
-          <select
-            value={filters.spcMonitorName}
-            onChange={(e) => handleFilterChange('spcMonitorName', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
-            disabled={loading}
-          >
-            <option value="">All Monitors</option>
-            {spcMonitorNames.map((monitorName) => (
-              <option key={monitorName} value={monitorName}>
-                {monitorName}
               </option>
             ))}
           </select>

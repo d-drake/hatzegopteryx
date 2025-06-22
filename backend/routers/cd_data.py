@@ -126,3 +126,16 @@ def get_product_types(db: Session = Depends(get_db)):
 def get_spc_monitor_names(db: Session = Depends(get_db)):
     spc_monitor_names = db.query(models.CDData.spc_monitor_name).distinct().all()
     return [smn[0] for smn in spc_monitor_names]
+
+@router.get("/process-product-combinations")
+def get_process_product_combinations(db: Session = Depends(get_db)):
+    """Get unique combinations of process_type and product_type, sorted."""
+    combinations = db.query(
+        models.CDData.process_type, 
+        models.CDData.product_type
+    ).distinct().all()
+    
+    # Sort combinations by process_type first (as integers), then product_type alphabetically
+    sorted_combinations = sorted(combinations, key=lambda x: (int(x[0]), x[1]))
+    
+    return [{"process_type": pt, "product_type": pdt} for pt, pdt in sorted_combinations]

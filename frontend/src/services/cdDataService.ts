@@ -129,3 +129,18 @@ export async function fetchSPCMonitorNames(): Promise<string[]> {
     throw error;
   }
 }
+
+export interface ProcessProductCombination {
+  process_type: string;
+  product_type: string;
+}
+
+export async function fetchProcessProductCombinations(): Promise<ProcessProductCombination[]> {
+  try {
+    const response = await axios.get<ProcessProductCombination[]>(`${API_URL}/api/cd-data/process-product-combinations`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching process-product combinations:', error);
+    throw error;
+  }
+}
