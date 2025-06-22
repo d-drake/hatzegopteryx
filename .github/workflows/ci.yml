@@ -88,44 +88,61 @@ jobs:
         docker compose build
     
     - name: Test Docker compose
-      timeout-minutes: 8
+      timeout-minutes: 15
       run: |
         echo "=== Starting Docker Compose Debug Session ==="
         echo "Starting containers without waiting for health checks..."
-        docker compose up -d --wait=false
         
-        echo "=== Initial container check (immediately after start) ==="
-        docker compose ps
+        # Start containers in background and immediately begin monitoring
+        docker compose up -d --wait=false &
+        COMPOSE_PID=$!
         
         echo "=== System resources ==="
         df -h
         free -h
         
+        # Wait for compose command to finish
+        wait $COMPOSE_PID
+        echo "Docker compose up completed, starting monitoring..."
+        
+        echo "=== Initial container check ==="
+        docker compose ps
+        
         echo "=== Monitoring backend startup process ==="
-        for i in {1..10}; do
-          echo "--- Check $i/10 ($(date)) ---"
+        for i in {1..15}; do
+          echo "--- Check $i/15 ($(date)) ---"
+          
           echo "Container status:"
           docker compose ps backend
           
           echo "Backend logs (last 20 lines):"
           docker compose logs --tail=20 backend
           
+          echo "Backend health status:"
+          docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q backend) 2>/dev/null || echo "No health check or container not found"
+          
           echo "Testing port 8000 availability:"
           if nc -z localhost 8000; then
             echo "✓ Port 8000 is open"
-            break
+            echo "=== Testing health endpoint ==="
+            if curl -f -s http://localhost:8000/health; then
+              echo "✓ Health check successful"
+              break
+            else
+              echo "✗ Health endpoint failed but port is open"
+            fi
           else
             echo "✗ Port 8000 not yet available"
           fi
           
-          if [ $i -lt 10 ]; then
-            echo "Waiting 15 seconds before next check..."
-            sleep 15
+          if [ $i -lt 15 ]; then
+            echo "Waiting 10 seconds before next check..."
+            sleep 10
           fi
         done
         
         echo "=== Final status check ==="
-        docker compose ps
+        docker compose ps -a
         
         echo "=== Complete backend logs ==="
         docker compose logs backend
@@ -133,12 +150,11 @@ jobs:
         echo "=== Complete postgres logs ==="
         docker compose logs postgres
         
-        echo "=== Testing health endpoint ==="
-        echo "Attempting health check..."
+        echo "=== Final health endpoint test ==="
         if curl -f -v http://localhost:8000/health; then
-          echo "✓ Health check successful"
+          echo "✓ Final health check successful"
         else
-          echo "✗ Health check failed"
+          echo "✗ Final health check failed"
           echo "=== Network debugging ==="
           netstat -tlnp | grep :8000 || echo "Port 8000 not listening"
           echo "=== Container inspection ==="
