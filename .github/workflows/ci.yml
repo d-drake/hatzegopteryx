@@ -91,8 +91,8 @@ jobs:
       timeout-minutes: 8
       run: |
         echo "=== Starting Docker Compose Debug Session ==="
-        echo "Starting docker compose in detached mode..."
-        docker compose up -d
+        echo "Starting containers without waiting for health checks..."
+        docker compose up -d --wait=false
         
         echo "=== Initial container check (immediately after start) ==="
         docker compose ps
