@@ -22,6 +22,7 @@ class CDData(Base):
     cd_att = Column(Float, nullable=False)  # ~-100 to 100 nm
     cd_x_y = Column(Float, nullable=False)  # centered at 0
     cd_6sig = Column(Float, nullable=False)  # centered at 50 nm
+    duration_subseq_process_step = Column(Float, nullable=False)  # Duration in seconds (1500-2200s)
     entity = Column(String, nullable=False, index=True)  # FAKE_TOOL1-6
     fake_property1 = Column(String, nullable=False)  # FP1_A through FP1_E
     fake_property2 = Column(String, nullable=False)  # FP2_A through FP2_E

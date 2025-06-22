@@ -3,6 +3,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from database import SessionLocal, engine
 from models import Base, CDData
+from collections import defaultdict
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
@@ -12,9 +13,14 @@ def generate_cd_data():
     """Generate 365 days of fake CD data with ~40 points per day"""
     db = SessionLocal()
 
-    # Clear existing data
-    db.query(CDData).delete()
+    # Drop and recreate table to ensure clean schema
+    from sqlalchemy import text
+    db.execute(text('DROP TABLE IF EXISTS cd_data CASCADE'))
     db.commit()
+    
+    # Recreate table with current model schema
+    Base.metadata.create_all(bind=engine)
+    print("Table recreated with latest schema")
 
     # Parameters
     start_date = datetime.now() - timedelta(days=365)
@@ -46,6 +52,13 @@ def generate_cd_data():
     process_types = ["900", "1000", "1100"]
     product_types = ["XLY1", "XLY2", "BNT44", "VLQR1"]
     spc_monitor_name = "SPC_CD_L1"  # Only one value for now
+    
+    # Duration ranges by process/product type combinations for consistency
+    duration_base_values = defaultdict(lambda: np.random.normal(1850, 100))
+    for pt in process_types:
+        for prod in product_types:
+            key = f"{pt}_{prod}"
+            duration_base_values[key] = np.random.normal(1850, 80)  # Base value for this combination
 
     # Initialize bias settings for each combination of entity/spc_monitor_name/product_type/process_type
     bias_settings_by_combo = {}
@@ -126,8 +139,21 @@ def generate_cd_data():
         bias_value = settings["current_bias"]
         bias_x_y_value = settings["current_bias_x_y"]
 
-        # Generate cd_att - loosely proportional to bias with adjusted noise
+        # Generate duration for this process/product combination
+        duration_key = f"{process_type}_{product_type}"
+        base_duration = duration_base_values[duration_key]
+        duration_subseq_process_step = np.clip(
+            np.random.normal(base_duration, 50), 1500, 2200
+        )
+        
+        # Generate cd_att with correlation to duration (r ≈ 0.62)
         cd_att_base = bias_value * 2.5  # Scale bias influence
+        
+        # Add ultimate correlation between duration and cd_att (target r ≈ 0.62)  
+        # Positive correlation: longer duration = higher cd_att values
+        duration_effect = (duration_subseq_process_step - 1850) * 6.0  # Ultimate scale factor to achieve target correlation
+        cd_att_base += duration_effect
+        
         noise_std = 20 * settings["cd_att_noise_factor"]
         cd_att_noise = np.random.normal(0, noise_std)  # Adjusted Gaussian noise
         cd_att = np.clip(cd_att_base + cd_att_noise, -100, 100)
@@ -168,6 +194,7 @@ def generate_cd_data():
             cd_att=round(float(cd_att), 2),
             cd_x_y=round(float(cd_x_y), 2),
             cd_6sig=round(float(cd_6sig), 2),
+            duration_subseq_process_step=round(float(duration_subseq_process_step), 1),
             entity=entity,
             fake_property1=fake_property1,
             fake_property2=fake_property2,

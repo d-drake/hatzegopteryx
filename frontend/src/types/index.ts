@@ -27,6 +27,7 @@ export interface CDData {
   cd_att: number;
   cd_x_y: number;
   cd_6sig: number;
+  duration_subseq_process_step: number;  // Duration in seconds (1500-2200s)
   entity: string;
   fake_property1: string;
   fake_property2: string;
