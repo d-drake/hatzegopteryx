@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ScatterPlot from '@/components/charts/ScatterPlot';
 import EnhancedFilterControls, { FilterState } from '@/components/dashboard/EnhancedFilterControls';
 import AppTabs from '@/components/AppTabs';
 import { fetchCDData, CDDataItem } from '@/services/cdDataService';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [data, setData] = useState<CDDataItem[]>([]);
@@ -241,5 +241,13 @@ export default function DashboardPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
