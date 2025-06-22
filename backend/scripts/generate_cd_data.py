@@ -19,7 +19,7 @@ def generate_cd_data():
     # Parameters
     start_date = datetime.now() - timedelta(days=365)
     total_days = 365
-    avg_points_per_day = 40
+    avg_points_per_day = 120  # Tripled from 40 to 120
     total_points = total_days * avg_points_per_day
 
     # Generate timestamps - roughly distributed across 365 days
@@ -27,8 +27,8 @@ def generate_cd_data():
     current_time = start_date
 
     for _ in range(total_points):
-        # Add some randomness to time intervals (0.5 to 1.5 hours on average)
-        hours_increment = random.uniform(0.5, 1.5)
+        # Add some randomness to time intervals (0.15 to 0.5 hours on average) - reduced for triple data
+        hours_increment = random.uniform(0.15, 0.5)
         current_time += timedelta(hours=hours_increment)
         timestamps.append(current_time)
 
@@ -47,84 +47,82 @@ def generate_cd_data():
     product_types = ["XLY1", "XLY2", "BNT44", "VLQR1"]
     spc_monitor_name = "SPC_CD_L1"  # Only one value for now
 
-    # Initialize bias settings for each entity with change schedules
-    entity_bias_settings = {}
-    entity_bias_x_y_settings = {}
-
+    # Initialize bias settings for each combination of entity/spc_monitor_name/product_type/process_type
+    bias_settings_by_combo = {}
+    
+    # Pre-generate all possible combinations
     for entity in entities:
-        # Initialize with random bias values
-        entity_bias_settings[entity] = {
-            "current_bias": random.choice(possible_bias),
-            "next_change": start_date + timedelta(days=random.uniform(2, 30)),
-            "cd_att_noise_factor": 1.0,  # Start with normal distribution
-        }
-        entity_bias_x_y_settings[entity] = {
-            "current_bias_x_y": random.choice(possible_bias_x_y),
-            "next_change": start_date + timedelta(days=random.uniform(2, 30)),
-            "cd_x_y_noise_factor": 1.0,  # Start with normal distribution
-        }
+        for process_type in process_types:
+            for product_type in product_types:
+                combo_key = (entity, spc_monitor_name, product_type, process_type)
+                
+                # Initialize with random bias values
+                # Average change frequency: once per 2 weeks (14 days)
+                next_bias_change = start_date + timedelta(days=random.uniform(10, 18))
+                next_bias_x_y_change = start_date + timedelta(days=random.uniform(10, 18))
+                
+                bias_settings_by_combo[combo_key] = {
+                    "current_bias": random.choice(possible_bias),
+                    "next_bias_change": next_bias_change,
+                    "current_bias_x_y": random.choice(possible_bias_x_y),
+                    "next_bias_x_y_change": next_bias_x_y_change,
+                    "cd_att_noise_factor": 1.0,
+                    "cd_x_y_noise_factor": 1.0,
+                }
 
     # Generate data points
     data_points = []
     lot_counter = 100000
 
     for timestamp in timestamps:
-        # Select entity for this data point
+        # Select random attributes for this data point
         entity = random.choice(entities)
-
-        # Check if bias should change for this entity
-        if timestamp >= entity_bias_settings[entity]["next_change"]:
-            entity_bias_settings[entity]["current_bias"] = random.choice(possible_bias)
-            # Schedule next change (2-30 days, average 14 days)
-            days_until_next = np.random.exponential(
-                14
-            )  # Exponential distribution with mean 14
-            days_until_next = np.clip(days_until_next, 2, 30)  # Clamp to 2-30 days
-            entity_bias_settings[entity]["next_change"] = timestamp + timedelta(
-                days=days_until_next
-            )
+        process_type = random.choice(process_types)
+        product_type = random.choice(product_types)
+        
+        # Get the combination key
+        combo_key = (entity, spc_monitor_name, product_type, process_type)
+        settings = bias_settings_by_combo[combo_key]
+        
+        # Check if bias should change for this combination
+        if timestamp >= settings["next_bias_change"]:
+            settings["current_bias"] = random.choice(possible_bias)
+            # Schedule next change (average 14 days, range 10-18 days)
+            days_until_next = np.random.normal(14, 2)  # Normal distribution with mean 14, std 2
+            days_until_next = np.clip(days_until_next, 10, 18)  # Clamp to 10-18 days
+            settings["next_bias_change"] = timestamp + timedelta(days=days_until_next)
             # Reduce noise by half when bias changes
-            entity_bias_settings[entity]["cd_att_noise_factor"] = 0.5
+            settings["cd_att_noise_factor"] = 0.5
         else:
             # Gradually restore noise factor over time
-            entity_bias_settings[entity]["cd_att_noise_factor"] = min(
-                1.0, entity_bias_settings[entity]["cd_att_noise_factor"] + 0.01
-            )
+            settings["cd_att_noise_factor"] = min(1.0, settings["cd_att_noise_factor"] + 0.01)
 
-        # Check if bias_x_y should change for this entity
-        if timestamp >= entity_bias_x_y_settings[entity]["next_change"]:
-            entity_bias_x_y_settings[entity]["current_bias_x_y"] = random.choice(
-                possible_bias_x_y
-            )
-            # Schedule next change (2-30 days, average 14 days)
-            days_until_next = np.random.exponential(
-                14
-            )  # Exponential distribution with mean 14
-            days_until_next = np.clip(days_until_next, 2, 30)  # Clamp to 2-30 days
-            entity_bias_x_y_settings[entity]["next_change"] = timestamp + timedelta(
-                days=days_until_next
-            )
+        # Check if bias_x_y should change for this combination
+        if timestamp >= settings["next_bias_x_y_change"]:
+            settings["current_bias_x_y"] = random.choice(possible_bias_x_y)
+            # Schedule next change (average 14 days, range 10-18 days)
+            days_until_next = np.random.normal(14, 2)  # Normal distribution with mean 14, std 2
+            days_until_next = np.clip(days_until_next, 10, 18)  # Clamp to 10-18 days
+            settings["next_bias_x_y_change"] = timestamp + timedelta(days=days_until_next)
             # Reduce noise by half when bias_x_y changes
-            entity_bias_x_y_settings[entity]["cd_x_y_noise_factor"] = 0.5
+            settings["cd_x_y_noise_factor"] = 0.5
         else:
             # Gradually restore noise factor over time
-            entity_bias_x_y_settings[entity]["cd_x_y_noise_factor"] = min(
-                1.0, entity_bias_x_y_settings[entity]["cd_x_y_noise_factor"] + 0.01
-            )
+            settings["cd_x_y_noise_factor"] = min(1.0, settings["cd_x_y_noise_factor"] + 0.01)
 
-        # Get current bias values for this entity
-        bias_value = entity_bias_settings[entity]["current_bias"]
-        bias_x_y_value = entity_bias_x_y_settings[entity]["current_bias_x_y"]
+        # Get current bias values for this combination
+        bias_value = settings["current_bias"]
+        bias_x_y_value = settings["current_bias_x_y"]
 
         # Generate cd_att - loosely proportional to bias with adjusted noise
         cd_att_base = bias_value * 2.5  # Scale bias influence
-        noise_std = 20 * entity_bias_settings[entity]["cd_att_noise_factor"]
+        noise_std = 20 * settings["cd_att_noise_factor"]
         cd_att_noise = np.random.normal(0, noise_std)  # Adjusted Gaussian noise
         cd_att = np.clip(cd_att_base + cd_att_noise, -100, 100)
 
         # Generate cd_x_y - loosely proportional to bias_x_y with adjusted noise
         cd_x_y_base = bias_x_y_value * 3.0  # Scale bias_x_y influence
-        noise_std = 15 * entity_bias_x_y_settings[entity]["cd_x_y_noise_factor"]
+        noise_std = 15 * settings["cd_x_y_noise_factor"]
         cd_x_y_noise = np.random.normal(0, noise_std)  # Adjusted Gaussian noise
         cd_x_y = cd_x_y_base + cd_x_y_noise
 
@@ -147,10 +145,6 @@ def generate_cd_data():
             fake_property2 = random.choice(["FP2_B", "FP2_C", "FP2_D"])
         else:
             fake_property2 = random.choice(["FP2_A", "FP2_B"])
-
-        # Select random process and product types
-        process_type = random.choice(process_types)
-        product_type = random.choice(product_types)
         
         # Create data point with lot ID
         lot_id = f"Lot{lot_counter}"

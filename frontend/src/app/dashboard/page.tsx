@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ScatterPlot from '@/components/charts/ScatterPlot';
 import EnhancedFilterControls, { FilterState } from '@/components/dashboard/EnhancedFilterControls';
 import AppTabs from '@/components/AppTabs';
 import { fetchCDData, CDDataItem } from '@/services/cdDataService';
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<CDDataItem[]>([]);
   const [filters, setFilters] = useState<FilterState>({
     entity: '',
@@ -18,21 +21,83 @@ export default function DashboardPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
+  // Initialize filters from URL params on mount
   useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  useEffect(() => {
-    if (Object.values(filters).some(filter => filter !== '')) {
-      loadFilteredData();
+    const urlFilters: FilterState = {
+      entity: searchParams.get('entity') || '',
+      processType: searchParams.get('processType') || '',
+      productType: searchParams.get('productType') || '',
+      spcMonitorName: searchParams.get('spcMonitorName') || '',
+      startDate: searchParams.get('startDate') || '',
+      endDate: searchParams.get('endDate') || ''
+    };
+    
+    // Check if we have any filters from URL
+    const hasUrlFilters = Object.values(urlFilters).some(filter => filter !== '');
+    
+    if (hasUrlFilters) {
+      setFilters(urlFilters);
     }
-  }, [filters]);
+    
+    setIsInitialized(true);
+  }, [searchParams]);
+
+  // Load data when initialized
+  useEffect(() => {
+    if (isInitialized) {
+      const hasActiveFilters = Object.values(filters).some(filter => filter !== '');
+      if (hasActiveFilters) {
+        loadFilteredData();
+      } else {
+        loadInitialData();
+      }
+    }
+  }, [isInitialized]);
+
+  // Update URL and load data when filters change
+  useEffect(() => {
+    if (isInitialized) {
+      // Update URL with new filters
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) {
+          params.set(key, value);
+        }
+      });
+      
+      const queryString = params.toString();
+      router.push(`/dashboard${queryString ? `?${queryString}` : ''}`);
+      
+      // Load data based on filters
+      if (Object.values(filters).some(filter => filter !== '')) {
+        loadFilteredData();
+      }
+    }
+  }, [filters, isInitialized, router]);
 
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const dataResponse = await fetchCDData({ limit: 1000 });
+      // Calculate date 30 days ago
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      
+      // Format dates as YYYY-MM-DD
+      const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
+      const dataResponse = await fetchCDData({ 
+        limit: 1000,
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate)
+      });
       setData(dataResponse);
       setError(null);
     } catch (err) {
@@ -80,6 +145,7 @@ export default function DashboardPage() {
       startDate: '',
       endDate: ''
     });
+    router.push('/dashboard');
     loadInitialData();
   };
 
