@@ -94,3 +94,5 @@ To enable deployment, add these secrets to your GitHub repository:
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+<!-- CI/CD trigger: Duration field implementation completed -->
