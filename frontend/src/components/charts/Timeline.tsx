@@ -417,7 +417,7 @@ export default function Timeline<T extends Record<string, any>>({
               yAccessor={yAccessor}
               groupBy={lineGroupAccessor}
               stroke="#000000"
-              strokeWidth={1}
+              strokeWidth={2}
               strokeOpacity={0.3}
             />
 
