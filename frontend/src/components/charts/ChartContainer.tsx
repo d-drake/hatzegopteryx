@@ -1,26 +1,33 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, forwardRef } from 'react';
 
 interface ChartContainerProps {
   width: number;
   height: number;
   margin: { top: number; right: number; bottom: number; left: number };
   children: ReactNode;
+  onWheel?: (event: React.WheelEvent<SVGSVGElement>) => void;
 }
 
-export default function ChartContainer({ width, height, margin, children }: ChartContainerProps) {
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
+const ChartContainer = forwardRef<SVGSVGElement, ChartContainerProps>(
+  ({ width, height, margin, children, onWheel }, ref) => {
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
 
-  return (
-    <svg width={width} height={height}>
-      <g transform={`translate(${margin.left},${margin.top})`}>
-        {children}
-      </g>
-    </svg>
-  );
-}
+    return (
+      <svg ref={ref} width={width} height={height} onWheel={onWheel}>
+        <g transform={`translate(${margin.left},${margin.top})`}>
+          {children}
+        </g>
+      </svg>
+    );
+  }
+);
+
+ChartContainer.displayName = 'ChartContainer';
+
+export default ChartContainer;
 
 export function useChartDimensions(
   width: number,

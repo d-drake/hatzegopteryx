@@ -12,7 +12,7 @@ function SPCDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
-  
+
   // Extract URL parameters
   const spcMonitor = decodeURIComponent(params.spcMonitor as string);
   const processProduct = decodeURIComponent(params.processProduct as string);
@@ -28,7 +28,7 @@ function SPCDashboardContent() {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
-    
+
     const formatDate = (date: Date) => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -59,7 +59,7 @@ function SPCDashboardContent() {
         ...(filters.startDate && { startDate: filters.startDate }),
         ...(filters.endDate && { endDate: filters.endDate })
       };
-      
+
       const dataResponse = await fetchCDData(filterParams);
       setData(dataResponse);
       setError(null);
@@ -78,17 +78,17 @@ function SPCDashboardContent() {
       startDate: searchParams.get('startDate') || '',
       endDate: searchParams.get('endDate') || ''
     };
-    
+
     // Check if we have any filters from URL
     const hasUrlFilters = Object.values(urlFilters).some(filter => filter !== '');
-    
+
     if (hasUrlFilters) {
       setFilters(urlFilters);
     } else {
       // If no URL filters, use defaults (which are already set in useState)
       setFilters(getDefaultFilters());
     }
-    
+
     setIsInitialized(true);
   }, [searchParams]);
 
@@ -108,7 +108,7 @@ function SPCDashboardContent() {
           params.set(key, value);
         }
       });
-      
+
       const queryString = params.toString();
       const newUrl = `/spc-dashboard/${encodeURIComponent(spcMonitor)}/${encodeURIComponent(processProduct)}${queryString ? `?${queryString}` : ''}`;
       router.replace(newUrl);
@@ -133,7 +133,7 @@ function SPCDashboardContent() {
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold">Hatzegopteryx</h1>
           <p className="text-slate-300 mt-2">
-            Fullstack application with PostgreSQL, FastAPI, and Next.js
+            Fullstack application with PostgreSQL, FastAPI, and Next.js - Hello
           </p>
         </div>
       </header>
@@ -144,12 +144,12 @@ function SPCDashboardContent() {
         </div>
 
         <h2 className="text-2xl font-bold mb-6">SPC Data Dashboard</h2>
-        
+
         {/* SPC Monitor and Process-Product Tabs */}
         <div className="mb-6">
-          <SPCTabs 
-            spcMonitor={spcMonitor} 
-            processProduct={processProduct} 
+          <SPCTabs
+            spcMonitor={spcMonitor}
+            processProduct={processProduct}
           />
         </div>
 
@@ -161,7 +161,7 @@ function SPCDashboardContent() {
             <span><strong>Product Type:</strong> {productType}</span>
           </div>
         </div>
-        
+
         <FilterControls
           filters={filters}
           onFiltersChange={handleFiltersChange}
