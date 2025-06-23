@@ -33,7 +33,9 @@ interface TimelineProps<T extends Record<string, any>> {
     xScale: any;
     yScale: any;
     y2Scale?: any;
+    clipPathId?: string;
   }) => React.ReactNode;
+  tooltipMetadata?: Record<string, any>; // Additional metadata for tooltips
 }
 
 export default function Timeline<T extends Record<string, any>>({
@@ -48,6 +50,7 @@ export default function Timeline<T extends Record<string, any>>({
   height = 500,
   margin = { top: 20, right: 150, bottom: 60, left: 70 },
   renderOverlays,
+  tooltipMetadata,
 }: TimelineProps<T>) {
   const { innerWidth, innerHeight } = useChartDimensions(width, height, margin);
   const { showTooltip, hideTooltip } = useTooltip();
@@ -201,10 +204,11 @@ export default function Timeline<T extends Record<string, any>>({
   const handleHover = (event: MouseEvent, datum: T | null) => {
     if (datum) {
       const tooltipFields = [xField, yField];
+      if (y2Field) tooltipFields.push(y2Field);
       if (colorField) tooltipFields.push(colorField);
       if (shapeField) tooltipFields.push(shapeField);
 
-      const content = formatTooltipContent(datum as any, tooltipFields as string[]);
+      const content = formatTooltipContent(datum as any, tooltipFields as string[], tooltipMetadata);
       showTooltip(content, event.pageX, event.pageY);
     } else {
       hideTooltip();
@@ -435,7 +439,8 @@ export default function Timeline<T extends Record<string, any>>({
           {renderOverlays && renderOverlays({
             xScale,
             yScale,
-            y2Scale
+            y2Scale,
+            clipPathId
           })}
 
           {/* Legends - adjust position when secondary Y-axis is present */}

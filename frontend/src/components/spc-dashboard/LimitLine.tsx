@@ -57,7 +57,11 @@ export default function LimitLine({
     const relevantLimits = limits
       .filter(limit => {
         const value = type === 'CL' ? limit.cl : type === 'LCL' ? limit.lcl : limit.ucl;
-        return value !== undefined && value !== null;
+        if (value === undefined || value === null) return false;
+        
+        // Check if the limit value is within the current Y domain (zoom boundaries)
+        const [yMin, yMax] = yScale.domain();
+        return value >= yMin && value <= yMax;
       })
       .sort((a, b) => new Date(a.effective_date).getTime() - new Date(b.effective_date).getTime());
 
@@ -68,45 +72,23 @@ export default function LimitLine({
     const innerStartX = Array.isArray(xRange) ? Math.min(...xRange) : 0;
     const innerEndX = Array.isArray(xRange) ? Math.max(...xRange) : 100;
     
-    // Start at the inner chart area (Y-axis position) and extend to right edge
-    const startX = innerStartX; // Don't extend past the Y-axis
-    const endX = innerEndX;     // Use inner end to stay within chart bounds
+    // Bypass the 30px margins - extend lines fully to the axes
+    // Start at the Y-axis (0) and extend to the full width
+    const startX = 0; // Start at the left Y-axis
+    const endX = innerEndX; // Extend to the right edge (or secondary Y-axis)
 
-    // Create step function path
-    const pathSegments: string[] = [];
+    // For SPC limits, we typically want simple horizontal lines across the full width
+    // Use only the most recent (last) limit value to avoid complexity
+    const mostRecentLimit = relevantLimits[relevantLimits.length - 1];
+    const value = type === 'CL' ? mostRecentLimit.cl! : type === 'LCL' ? mostRecentLimit.lcl! : mostRecentLimit.ucl!;
+    const yPos = yScale(value);
     
-    for (let i = 0; i < relevantLimits.length; i++) {
-      const limit = relevantLimits[i];
-      const value = type === 'CL' ? limit.cl! : type === 'LCL' ? limit.lcl! : limit.ucl!;
-      const effectiveDate = new Date(limit.effective_date);
-      
-      // Convert effective date to X coordinate, clamped to chart boundaries
-      const rawXPos = typeof xScale === 'function' ? xScale(effectiveDate as any) : startX;
-      const xPos = Math.max(startX, Math.min(endX, rawXPos)); // Clamp to chart boundaries
-      const yPos = yScale(value);
-
-      if (i === 0) {
-        // Start from the beginning of the chart
-        pathSegments.push(`M ${startX} ${yPos}`);
-        if (xPos > startX) {
-          pathSegments.push(`L ${xPos} ${yPos}`);
-        }
-      } else {
-        // Step change: horizontal line to the x position, then vertical to new value
-        const prevLimit = relevantLimits[i - 1];
-        const prevValue = type === 'CL' ? prevLimit.cl! : type === 'LCL' ? prevLimit.lcl! : prevLimit.ucl!;
-        const prevYPos = yScale(prevValue);
-        
-        // Horizontal line to step point, then vertical step to new value
-        pathSegments.push(`L ${xPos} ${prevYPos}`);
-        pathSegments.push(`L ${xPos} ${yPos}`);
-      }
-
-      // If this is the last limit, extend to the end of the chart
-      if (i === relevantLimits.length - 1) {
-        pathSegments.push(`L ${endX} ${yPos}`);
-      }
-    }
+    // Create a simple horizontal line from start to end
+    // This eliminates any path complexity that could cause artifacts
+    const pathSegments = [
+      `M ${startX} ${yPos}`,  // Move to start position
+      `L ${endX} ${yPos}`     // Draw horizontal line to end
+    ];
 
     return pathSegments.join(' ');
   }, [limits, type, xScale, yScale]);
@@ -145,6 +127,8 @@ export default function LimitLine({
 
   const lineStyle = getLineStyle();
 
+  // Return the path element directly
+  // Y-coordinates are already constrained by the scale's domain/range
   return (
     <path
       d={pathData}

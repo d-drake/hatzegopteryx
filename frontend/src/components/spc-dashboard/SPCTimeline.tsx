@@ -1,7 +1,8 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Timeline from '@/components/charts/Timeline';
-import { CDDataItem } from '@/services/cdDataService';
+import { CDDataItem, fetchSPCLimits, SPCLimit } from '@/services/cdDataService';
 import LimitLine from './LimitLine';
 
 interface SPCTimelineProps {
@@ -33,6 +34,8 @@ export default function SPCTimeline({
   productType,
   spcMonitorName,
 }: SPCTimelineProps) {
+  const [spcLimits, setSpcLimits] = useState<SPCLimit[]>([]);
+  const [limitsLoading, setLimitsLoading] = useState(false);
   // Apply SPC-specific defaults
   // For bias fields, use bias coloring
   const effectiveColorField = yField.toString().includes('bias') ? yField : colorField;
@@ -54,6 +57,41 @@ export default function SPCTimeline({
 
   const chartName = getChartName(yField);
 
+  // Fetch SPC limits when parameters change
+  useEffect(() => {
+    if (!processType || !productType || !spcMonitorName) {
+      setSpcLimits([]);
+      return;
+    }
+
+    const fetchLimits = async () => {
+      try {
+        setLimitsLoading(true);
+        const limitsData = await fetchSPCLimits({
+          process_type: processType,
+          product_type: productType,
+          spc_monitor_name: spcMonitorName,
+          spc_chart_name: chartName
+        });
+        setSpcLimits(limitsData);
+      } catch (error) {
+        console.error('Error fetching SPC limits:', error);
+        setSpcLimits([]);
+      } finally {
+        setLimitsLoading(false);
+      }
+    };
+
+    fetchLimits();
+  }, [processType, productType, spcMonitorName, chartName]);
+
+  // Create tooltip metadata with current SPC limits
+  const tooltipMetadata = spcLimits.length > 0 ? {
+    cl: spcLimits[0]?.cl,
+    lcl: spcLimits[0]?.lcl,
+    ucl: spcLimits[0]?.ucl
+  } : undefined;
+
   return (
     <Timeline<CDDataItem>
       data={data}
@@ -66,6 +104,7 @@ export default function SPCTimeline({
       width={width}
       height={height}
       margin={margin}
+      tooltipMetadata={tooltipMetadata}
       renderOverlays={(scales) => {
         // Only render SPC limits if metadata is available
         if (!processType || !productType || !spcMonitorName) {

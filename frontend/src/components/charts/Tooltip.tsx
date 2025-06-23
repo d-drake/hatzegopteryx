@@ -61,11 +61,19 @@ export function useTooltip() {
   return { showTooltip, hideTooltip };
 }
 
-export function formatTooltipContent(data: Record<string, any>, fields: string[]): string {
-  return fields
+export function formatTooltipContent(
+  data: Record<string, any>, 
+  fields: string[], 
+  metadata?: Record<string, any>
+): string {
+  const dataContent = fields
     .map(field => {
       const value = data[field];
       const formattedField = formatFieldName(field);
+      
+      if (value === null || value === undefined) {
+        return null; // Skip null/undefined values
+      }
       
       if (typeof value === 'number') {
         return `<strong>${formattedField}:</strong> ${value.toFixed(2)}`;
@@ -75,7 +83,31 @@ export function formatTooltipContent(data: Record<string, any>, fields: string[]
         return `<strong>${formattedField}:</strong> ${value}`;
       }
     })
+    .filter(Boolean) // Remove null entries
     .join('<br/>');
+  
+  // Add metadata content if available
+  if (metadata) {
+    const limitParts: string[] = [];
+    
+    // Add SPC limits if available - display in a single line with pipe separators
+    if (metadata.cl !== undefined && metadata.cl !== null) {
+      limitParts.push(`<strong>CL:</strong> ${metadata.cl.toFixed(2)}`);
+    }
+    if (metadata.lcl !== undefined && metadata.lcl !== null) {
+      limitParts.push(`<strong>LCL:</strong> ${metadata.lcl.toFixed(2)}`);
+    }
+    if (metadata.ucl !== undefined && metadata.ucl !== null) {
+      limitParts.push(`<strong>UCL:</strong> ${metadata.ucl.toFixed(2)}`);
+    }
+    
+    if (limitParts.length > 0) {
+      const limitsLine = limitParts.join(' | ');
+      return dataContent + '<br/><br/>' + limitsLine;
+    }
+  }
+  
+  return dataContent;
 }
 
 function formatFieldName(field: string): string {
