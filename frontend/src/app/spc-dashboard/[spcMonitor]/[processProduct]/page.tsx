@@ -64,7 +64,10 @@ function SPCDashboardContent() {
       setData(dataResponse);
       setError(null);
     } catch (err) {
-      setError('Failed to load filtered data');
+      const errorMessage = err instanceof Error && err.message.includes('JSON') 
+        ? 'Connection issue detected. Please refresh the page to try again.'
+        : 'Failed to load filtered data. Please try again.';
+      setError(errorMessage);
       console.error('Error loading filtered data:', err);
     } finally {
       setLoading(false);
@@ -74,13 +77,13 @@ function SPCDashboardContent() {
   // Initialize filters from URL query params on mount
   useEffect(() => {
     const urlFilters: FilterState = {
-      entity: searchParams.get('entity') || '',
+      entity: searchParams.get('entity') || 'FAKE_TOOL1', // Always ensure entity has a value
       startDate: searchParams.get('startDate') || '',
       endDate: searchParams.get('endDate') || ''
     };
 
-    // Check if we have any filters from URL
-    const hasUrlFilters = Object.values(urlFilters).some(filter => filter !== '');
+    // Check if we have any non-entity filters from URL
+    const hasUrlFilters = urlFilters.startDate !== '' || urlFilters.endDate !== '';
 
     if (hasUrlFilters) {
       setFilters(urlFilters);
@@ -176,7 +179,16 @@ function SPCDashboardContent() {
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+            <div className="flex justify-between items-center">
+              <span>{error}</span>
+              <button
+                onClick={() => loadFilteredData()}
+                className="ml-4 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                disabled={loading}
+              >
+                {loading ? 'Retrying...' : 'Retry'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -191,6 +203,7 @@ function SPCDashboardContent() {
                   data={data}
                   xField="date_process"
                   yField="cd_att"
+                  y2Field="duration_subseq_process_step"
                   colorField="bias"
                   shapeField="fake_property1"
                   width={800}

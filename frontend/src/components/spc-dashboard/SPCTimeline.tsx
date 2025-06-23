@@ -7,6 +7,7 @@ interface SPCTimelineProps {
   data: CDDataItem[];
   xField: keyof CDDataItem;
   yField: keyof CDDataItem;
+  y2Field?: keyof CDDataItem; // Secondary Y-axis field
   colorField?: keyof CDDataItem;
   shapeField?: keyof CDDataItem;
   width?: number;
@@ -18,6 +19,7 @@ export default function SPCTimeline({
   data,
   xField,
   yField,
+  y2Field,
   colorField = 'entity',
   shapeField,
   width = 800,
@@ -36,6 +38,7 @@ export default function SPCTimeline({
       data={data}
       xField={xField}
       yField={yField}
+      y2Field={y2Field}
       colorField={effectiveColorField}
       shapeField={effectiveShapeField}
       lineGroupField="entity"

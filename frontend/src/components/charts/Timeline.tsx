@@ -22,6 +22,7 @@ interface TimelineProps<T extends Record<string, any>> {
   data: T[];
   xField: keyof T;
   yField: keyof T;
+  y2Field?: keyof T; // Secondary Y-axis field
   colorField?: keyof T;
   shapeField?: keyof T;
   lineGroupField?: keyof T;
@@ -34,6 +35,7 @@ export default function Timeline<T extends Record<string, any>>({
   data,
   xField,
   yField,
+  y2Field,
   colorField = 'entity',
   shapeField,
   lineGroupField,
@@ -50,6 +52,7 @@ export default function Timeline<T extends Record<string, any>>({
   // Zoom state
   const [xDomain, setXDomain] = useState<[any, any] | null>(null);
   const [yDomain, setYDomain] = useState<[any, any] | null>(null);
+  const [y2Domain, setY2Domain] = useState<[any, any] | null>(null);
 
   // Get original extents
   const originalXExtent = useMemo(() => {
@@ -63,10 +66,16 @@ export default function Timeline<T extends Record<string, any>>({
   }, [data, xField]);
 
   const originalYExtent = useMemo(() => getNumericExtent(data, yField), [data, yField]);
+  
+  const originalY2Extent = useMemo(() => 
+    y2Field ? getNumericExtent(data, y2Field) : [0, 1] as [number, number], 
+    [data, y2Field]
+  );
 
   // Use zoomed domains if available, otherwise use original extents
   const currentXExtent = xDomain || originalXExtent;
   const currentYExtent = yDomain || originalYExtent;
+  const currentY2Extent = y2Domain || originalY2Extent;
 
   // Create scales - axes connect at origin, data maintains 30px margins
   const xScale = useMemo(() => {
@@ -85,6 +94,12 @@ export default function Timeline<T extends Record<string, any>>({
     [currentYExtent, innerHeight]
   );
 
+  // Secondary Y-axis scale (positioned on the right)
+  const y2Scale = useMemo(
+    () => y2Field ? createLinearScale(currentY2Extent, [innerHeight, 0]) : null,
+    [y2Field, currentY2Extent, innerHeight]
+  );
+
   // Create data scales with margins for positioning data points
   const xDataScale = useMemo(() => {
     if (data.length > 0) {
@@ -99,6 +114,11 @@ export default function Timeline<T extends Record<string, any>>({
   const yDataScale = useMemo(
     () => createLinearScale(currentYExtent, [innerHeight - 30, 30]),
     [currentYExtent, innerHeight]
+  );
+
+  const y2DataScale = useMemo(
+    () => y2Field ? createLinearScale(currentY2Extent, [innerHeight - 30, 30]) : null,
+    [y2Field, currentY2Extent, innerHeight]
   );
 
   const colorCategories = useMemo(
@@ -149,6 +169,7 @@ export default function Timeline<T extends Record<string, any>>({
     }
   };
   const yAccessor = (d: T) => yDataScale(Number(d[yField]));
+  const y2Accessor = y2Field && y2DataScale ? (d: T) => y2DataScale(Number(d[y2Field])) : undefined;
   const colorAccessor = (d: T) => String(d[colorField]);
   const shapeAccessor = shapeField ? (d: T) => String(d[shapeField]) : undefined;
   const lineGroupAccessor = (d: T) => String(d[lineGroupField || colorField]);
@@ -158,14 +179,17 @@ export default function Timeline<T extends Record<string, any>>({
     return data.filter(d => {
       const x = xAccessor(d);
       const y = yAccessor(d);
+      const y2 = y2Accessor ? y2Accessor(d) : null;
 
       // Check if point is within the clipped area (30px margins on all sides)
       const xInBounds = x >= 30 && x <= innerWidth - 30;
       const yInBounds = y >= 30 && y <= innerHeight - 30;
+      const y2InBounds = y2 === null || (y2 >= 30 && y2 <= innerHeight - 30);
 
-      return xInBounds && yInBounds;
+      // Point is visible if X is in bounds AND either Y or Y2 is in bounds
+      return xInBounds && (yInBounds || y2InBounds);
     });
-  }, [data, xAccessor, yAccessor, innerWidth, innerHeight]);
+  }, [data, xAccessor, yAccessor, y2Accessor, innerWidth, innerHeight]);
 
   // Handle hover
   const handleHover = (event: MouseEvent, datum: T | null) => {
@@ -207,8 +231,12 @@ export default function Timeline<T extends Record<string, any>>({
       const isOverYAxis = mouseX >= 0 && mouseX <= margin.left &&
         mouseY >= margin.top && mouseY <= margin.top + innerHeight;
 
+      // Check if mouse is over secondary y-axis area (to the right of the chart, when y2Field exists)
+      const isOverY2Axis = y2Field && mouseX >= margin.left + innerWidth && mouseX <= width &&
+        mouseY >= margin.top && mouseY <= margin.top + innerHeight;
+
       // Only prevent default and handle zoom if we're in a zoom area
-      if (isOverXAxis || isOverYAxis) {
+      if (isOverXAxis || isOverYAxis || isOverY2Axis) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -248,6 +276,16 @@ export default function Timeline<T extends Record<string, any>>({
 
           setYDomain([center - newRange * 0.5, center + newRange * 0.5]);
         }
+
+        if (isOverY2Axis) {
+          // Zoom secondary Y-axis by updating the domain state
+          const [min, max] = currentY2Extent;
+          const range = max - min;
+          const center = min + range * 0.5;
+          const newRange = range / scale;
+
+          setY2Domain([center - newRange * 0.5, center + newRange * 0.5]);
+        }
       }
     };
 
@@ -257,12 +295,13 @@ export default function Timeline<T extends Record<string, any>>({
     return () => {
       container.removeEventListener('wheel', handleWheel);
     };
-  }, [currentXExtent, currentYExtent, innerWidth, innerHeight, margin, clipPathId, height]);
+  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, clipPathId, height, y2Field, width]);
 
   // Reset zoom function
   const resetZoom = () => {
     setXDomain(null);
     setYDomain(null);
+    setY2Domain(null);
   };
 
   // Calculate zoom levels for display
@@ -274,6 +313,7 @@ export default function Timeline<T extends Record<string, any>>({
 
   const xZoomLevel = xDomain ? getZoomLevel(originalXExtent, xDomain) : 1;
   const yZoomLevel = yDomain ? getZoomLevel(originalYExtent, yDomain) : 1;
+  const y2ZoomLevel = y2Domain ? getZoomLevel(originalY2Extent, y2Domain) : 1;
 
   return (
     <div
@@ -284,6 +324,7 @@ export default function Timeline<T extends Record<string, any>>({
       <ZoomControls 
         xZoomLevel={xZoomLevel}
         yZoomLevel={yZoomLevel}
+        y2ZoomLevel={y2Field ? y2ZoomLevel : undefined}
         onResetZoom={resetZoom}
       />
 
@@ -324,6 +365,17 @@ export default function Timeline<T extends Record<string, any>>({
             labelOffset={{ x: -innerHeight / 2, y: -50 }}
           />
 
+          {/* Secondary Y-axis (right side) */}
+          {y2Field && y2Scale && (
+            <Axis
+              scale={y2Scale}
+              orientation="right"
+              transform={`translate(${innerWidth},0)`}
+              label={formatFieldName(String(y2Field))}
+              labelOffset={{ x: innerHeight / 2, y: 50 }}
+            />
+          )}
+
           {/* Data points - use Circles or Symbols based on shapeField */}
           <g clipPath={`url(#${clipPathId})`}>
             {shapeField && shapeScale ? (
@@ -348,23 +400,36 @@ export default function Timeline<T extends Record<string, any>>({
               />
             )}
 
-            {/* Connection lines by group field */}
+            {/* Primary Y-axis connection lines by group field */}
             <Line
               data={visibleData}
               xAccessor={xAccessor}
               yAccessor={yAccessor}
               groupBy={lineGroupAccessor}
-              stroke="#666666"
+              stroke="#000000"
               strokeWidth={1}
-              strokeOpacity={0.4}
+              strokeOpacity={0.3}
             />
+
+            {/* Secondary Y-axis line for y2 data */}
+            {y2Field && y2Accessor && (
+              <Line
+                data={visibleData}
+                xAccessor={xAccessor}
+                yAccessor={y2Accessor}
+                groupBy={lineGroupAccessor}
+                stroke="#cccccc"
+                strokeWidth={1}
+                strokeOpacity={0.6}
+              />
+            )}
           </g>
 
-          {/* Legends */}
+          {/* Legends - adjust position when secondary Y-axis is present */}
           <Legend
             title={formatFieldName(String(colorField))}
             items={colorLegendItems}
-            x={innerWidth + 20}
+            x={innerWidth + (y2Field ? 70 : 20)}
             y={20}
           />
 
@@ -372,7 +437,7 @@ export default function Timeline<T extends Record<string, any>>({
             <Legend
               title={formatFieldName(String(shapeField!))}
               items={shapeLegendItems}
-              x={innerWidth + 20}
+              x={innerWidth + (y2Field ? 70 : 20)}
               y={40 + colorLegendItems.length * 20}
             />
           )}
@@ -397,6 +462,18 @@ export default function Timeline<T extends Record<string, any>>({
             fill="transparent"
             style={{ cursor: 'ew-resize' }}
           />
+
+          {/* Secondary Y-axis zoom area (right side) */}
+          {y2Field && (
+            <rect
+              x={innerWidth}
+              y={0}
+              width={margin.right}
+              height={innerHeight}
+              fill="transparent"
+              style={{ cursor: 'ew-resize' }}
+            />
+          )}
 
         </g>
       </ChartContainer>

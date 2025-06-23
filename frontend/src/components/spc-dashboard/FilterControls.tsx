@@ -48,7 +48,7 @@ export default function FilterControls({
 
   const clearFilters = () => {
     onFiltersChange({
-      entity: '',
+      entity: entities.length > 0 ? entities[0] : filters.entity, // Keep current entity or use first available
       startDate: '',
       endDate: ''
     });
@@ -72,7 +72,7 @@ export default function FilterControls({
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium text-gray-900">Data Filters</h3>
+        <h3 className="text-xl font-semibold text-gray-900">Data Filters</h3>
         <button
           onClick={clearFilters}
           className="text-sm text-gray-600 hover:text-gray-800 underline"
@@ -91,10 +91,10 @@ export default function FilterControls({
           <select
             value={filters.entity}
             onChange={(e) => handleFilterChange('entity', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
             disabled={loading}
+            required
           >
-            <option value="">All Entities</option>
             {entities.map((entity) => (
               <option key={entity} value={entity}>
                 {entity}
@@ -112,7 +112,7 @@ export default function FilterControls({
             type="date"
             value={filters.startDate}
             onChange={(e) => handleFilterChange('startDate', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
             disabled={loading}
           />
         </div>
@@ -126,40 +126,11 @@ export default function FilterControls({
             type="date"
             value={filters.endDate}
             onChange={(e) => handleFilterChange('endDate', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
             disabled={loading}
           />
         </div>
       </div>
-
-      {/* Active Filters Summary */}
-      {Object.values(filters).some(filter => filter !== '') && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm text-gray-600">Active filters:</span>
-            {Object.entries(filters).map(([key, value]) => 
-              value && (
-                <span
-                  key={key}
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                >
-                  {key}: {value}
-                  <button
-                    type="button"
-                    className="ml-1 inline-flex h-4 w-4 rounded-full text-blue-400 hover:bg-blue-200 hover:text-blue-500 focus:outline-none"
-                    onClick={() => handleFilterChange(key as keyof FilterState, '')}
-                  >
-                    <span className="sr-only">Remove filter</span>
-                    <svg className="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
-                      <path strokeLinecap="round" strokeWidth="1.5" d="m1 1 6 6m0-6L1 7" />
-                    </svg>
-                  </button>
-                </span>
-              )
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

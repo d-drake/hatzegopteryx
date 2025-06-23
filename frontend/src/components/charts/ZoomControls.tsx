@@ -3,16 +3,18 @@
 interface ZoomControlsProps {
   xZoomLevel: number;
   yZoomLevel: number;
+  y2ZoomLevel?: number;
   onResetZoom: () => void;
 }
 
 export default function ZoomControls({ 
   xZoomLevel, 
   yZoomLevel, 
+  y2ZoomLevel,
   onResetZoom 
 }: ZoomControlsProps) {
-  // Only show when zoom is not at default (1x for both axes)
-  if (xZoomLevel === 1 && yZoomLevel === 1) {
+  // Only show when zoom is not at default (1x for all axes)
+  if (xZoomLevel === 1 && yZoomLevel === 1 && (!y2ZoomLevel || y2ZoomLevel === 1)) {
     return null;
   }
 
@@ -40,7 +42,7 @@ export default function ZoomControls({
           color: '#6b7280', // Same color as instruction text
           fontWeight: '500'
         }}>
-          <strong>Zoom:</strong> X: {xZoomLevel.toFixed(1)}x, Y: {yZoomLevel.toFixed(1)}x
+          <strong>Zoom:</strong> X: {xZoomLevel.toFixed(1)}x, Y: {yZoomLevel.toFixed(1)}x{y2ZoomLevel !== undefined ? `, Y2: ${y2ZoomLevel.toFixed(1)}x` : ''}
         </span>
         <button
           onClick={onResetZoom}

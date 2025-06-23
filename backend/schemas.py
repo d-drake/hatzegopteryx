@@ -30,6 +30,7 @@ class CDDataBase(BaseModel):
     cd_att: float
     cd_x_y: float
     cd_6sig: float
+    duration_subseq_process_step: float
     entity: str
     fake_property1: str
     fake_property2: str

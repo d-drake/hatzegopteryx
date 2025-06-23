@@ -2,6 +2,119 @@ import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// Configure axios with better defaults for reliability
+const apiClient = axios.create({
+  baseURL: API_URL,
+  timeout: 10000, // 10 second timeout
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add request interceptor for debugging
+apiClient.interceptors.request.use(
+  (config) => {
+    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    if (config.params) {
+      console.log('Request params:', config.params);
+    }
+    return config;
+  },
+  (error) => {
+    console.error('Request interceptor error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle errors better
+apiClient.interceptors.response.use(
+  (response) => {
+    // Log successful responses for debugging
+    console.log(`✅ API Success: ${response.config.method?.toUpperCase()} ${response.config.url} - Status: ${response.status}`);
+    
+    // Validate JSON response content
+    if (response.headers['content-type']?.includes('application/json')) {
+      try {
+        // Check if response data is valid JSON by trying to stringify it
+        JSON.stringify(response.data);
+        console.log('Response data validation: ✅ Valid JSON');
+      } catch (e) {
+        console.error('Response data validation: ❌ Invalid JSON structure');
+        console.error('Problematic response data:', response.data);
+        throw new Error('Invalid JSON response from server');
+      }
+    }
+    
+    return response;
+  },
+  (error) => {
+    // Enhanced error logging
+    const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
+    const url = error.config?.url || 'unknown';
+    
+    if (error.code === 'ECONNABORTED') {
+      console.error(`❌ Request timeout: ${method} ${url}`);
+    } else if (error.response?.status >= 500) {
+      console.error(`❌ Server error: ${method} ${url} - Status: ${error.response.status}`);
+      console.error('Response data:', error.response.data);
+    } else if (!error.response) {
+      console.error(`❌ Network error: ${method} ${url} - ${error.message}`);
+    } else {
+      console.error(`❌ API Error: ${method} ${url} - Status: ${error.response.status}`);
+      console.error('Response data:', error.response.data);
+    }
+    
+    // Log the raw response if it's a JSON parsing issue
+    if (error.message?.includes('JSON')) {
+      console.error('Raw response that failed to parse:', error.response?.data);
+      console.error('Response headers:', error.response?.headers);
+      console.error('Response status:', error.response?.status);
+      console.error('Response content-type:', error.response?.headers['content-type']);
+      
+      // Check if we got HTML instead of JSON (common in server errors)
+      if (typeof error.response?.data === 'string' && error.response.data.includes('<html>')) {
+        console.error('⚠️ Received HTML response instead of JSON - likely a server error page');
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+// Retry helper function
+async function retryRequest<T>(
+  requestFn: () => Promise<T>,
+  maxRetries: number = 2,
+  delay: number = 1000
+): Promise<T> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await requestFn();
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      // Only retry on network errors, timeouts, 5xx server errors, or JSON parsing errors
+      const shouldRetry = axios.isAxiosError(error) && 
+          (error.code === 'ECONNABORTED' || 
+           !error.response || 
+           error.response.status >= 500 ||
+           error.message?.includes('JSON') ||
+           error.message?.includes('Invalid JSON response'));
+           
+      if (shouldRetry) {
+        console.warn(`Request failed (attempt ${attempt + 1}/${maxRetries + 1}): ${error.message}, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        delay *= 2; // Exponential backoff
+      } else {
+        throw error; // Don't retry client errors
+      }
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+
 export interface CDDataItem {
   lot: string;
   date_process: string;
@@ -41,7 +154,7 @@ export interface CDDataStats {
 }
 
 export async function fetchCDData(filters?: CDDataFilters): Promise<CDDataItem[]> {
-  try {
+  return retryRequest(async () => {
     const params = new URLSearchParams();
     
     if (filters) {
@@ -55,15 +168,12 @@ export async function fetchCDData(filters?: CDDataFilters): Promise<CDDataItem[]
       if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
     }
 
-    const response = await axios.get<CDDataItem[]>(`${API_URL}/api/cd-data/`, {
+    const response = await apiClient.get<CDDataItem[]>('/api/cd-data/', {
       params: params.toString() ? params : undefined,
     });
     
     return response.data;
-  } catch (error) {
-    console.error('Error fetching CD data:', error);
-    throw error;
-  }
+  });
 }
 
 export async function fetchCDDataStats(filters?: CDDataFilters): Promise<CDDataStats> {
@@ -136,11 +246,8 @@ export interface ProcessProductCombination {
 }
 
 export async function fetchProcessProductCombinations(): Promise<ProcessProductCombination[]> {
-  try {
-    const response = await axios.get<ProcessProductCombination[]>(`${API_URL}/api/cd-data/process-product-combinations`);
+  return retryRequest(async () => {
+    const response = await apiClient.get<ProcessProductCombination[]>('/api/cd-data/process-product-combinations');
     return response.data;
-  } catch (error) {
-    console.error('Error fetching process-product combinations:', error);
-    throw error;
-  }
+  });
 }
