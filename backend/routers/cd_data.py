@@ -139,3 +139,32 @@ def get_process_product_combinations(db: Session = Depends(get_db)):
     sorted_combinations = sorted(combinations, key=lambda x: (int(x[0]), x[1]))
     
     return [{"process_type": pt, "product_type": pdt} for pt, pdt in sorted_combinations]
+
+@router.get("/spc-limits", response_model=List[schemas.SPCLimits])
+def get_spc_limits(
+    process_type: Optional[str] = None,
+    product_type: Optional[str] = None,
+    spc_monitor_name: Optional[str] = None,
+    spc_chart_name: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Get SPC limits filtered by parameters."""
+    query = db.query(models.SPCLimits)
+    
+    # Apply filters
+    filters = []
+    if process_type:
+        filters.append(models.SPCLimits.process_type == process_type)
+    if product_type:
+        filters.append(models.SPCLimits.product_type == product_type)
+    if spc_monitor_name:
+        filters.append(models.SPCLimits.spc_monitor_name == spc_monitor_name)
+    if spc_chart_name:
+        filters.append(models.SPCLimits.spc_chart_name == spc_chart_name)
+    
+    if filters:
+        query = query.filter(and_(*filters))
+    
+    # Order by effective_date to get chronological limits
+    spc_limits = query.order_by(models.SPCLimits.effective_date).all()
+    return spc_limits

@@ -29,6 +29,11 @@ interface TimelineProps<T extends Record<string, any>> {
   width?: number;
   height?: number;
   margin?: { top: number; right: number; bottom: number; left: number };
+  renderOverlays?: (scales: {
+    xScale: any;
+    yScale: any;
+    y2Scale?: any;
+  }) => React.ReactNode;
 }
 
 export default function Timeline<T extends Record<string, any>>({
@@ -42,6 +47,7 @@ export default function Timeline<T extends Record<string, any>>({
   width = 800,
   height = 500,
   margin = { top: 20, right: 150, bottom: 60, left: 70 },
+  renderOverlays,
 }: TimelineProps<T>) {
   const { innerWidth, innerHeight } = useChartDimensions(width, height, margin);
   const { showTooltip, hideTooltip } = useTooltip();
@@ -424,6 +430,13 @@ export default function Timeline<T extends Record<string, any>>({
               />
             )}
           </g>
+
+          {/* Render overlay components (like SPC limit lines) outside clipped area */}
+          {renderOverlays && renderOverlays({
+            xScale,
+            yScale,
+            y2Scale
+          })}
 
           {/* Legends - adjust position when secondary Y-axis is present */}
           <Legend

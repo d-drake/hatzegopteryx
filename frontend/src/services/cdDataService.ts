@@ -245,9 +245,47 @@ export interface ProcessProductCombination {
   product_type: string;
 }
 
+export interface SPCLimit {
+  id: number;
+  process_type: string;
+  product_type: string;
+  spc_monitor_name: string;
+  spc_chart_name: string;
+  cl?: number;
+  lcl?: number;
+  ucl?: number;
+  effective_date: string;
+}
+
+export interface SPCLimitsFilters {
+  process_type?: string;
+  product_type?: string;
+  spc_monitor_name?: string;
+  spc_chart_name?: string;
+}
+
 export async function fetchProcessProductCombinations(): Promise<ProcessProductCombination[]> {
   return retryRequest(async () => {
     const response = await apiClient.get<ProcessProductCombination[]>('/api/cd-data/process-product-combinations');
+    return response.data;
+  });
+}
+
+export async function fetchSPCLimits(filters?: SPCLimitsFilters): Promise<SPCLimit[]> {
+  return retryRequest(async () => {
+    const params = new URLSearchParams();
+    
+    if (filters) {
+      if (filters.process_type) params.append('process_type', filters.process_type);
+      if (filters.product_type) params.append('product_type', filters.product_type);
+      if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
+      if (filters.spc_chart_name) params.append('spc_chart_name', filters.spc_chart_name);
+    }
+
+    const response = await apiClient.get<SPCLimit[]>('/api/cd-data/spc-limits', {
+      params: params.toString() ? params : undefined,
+    });
+    
     return response.data;
   });
 }

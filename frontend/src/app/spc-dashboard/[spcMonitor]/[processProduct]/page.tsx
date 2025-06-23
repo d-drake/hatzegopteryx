@@ -209,6 +209,9 @@ function SPCDashboardContent() {
                   width={800}
                   height={400}
                   margin={{ top: 20, right: 150, bottom: 60, left: 70 }}
+                  processType={processType}
+                  productType={productType}
+                  spcMonitorName={spcMonitor}
                 />
               </div>
 
@@ -223,6 +226,9 @@ function SPCDashboardContent() {
                   width={800}
                   height={400}
                   margin={{ top: 20, right: 150, bottom: 60, left: 70 }}
+                  processType={processType}
+                  productType={productType}
+                  spcMonitorName={spcMonitor}
                 />
               </div>
 
@@ -236,6 +242,9 @@ function SPCDashboardContent() {
                   width={800}
                   height={400}
                   margin={{ top: 20, right: 150, bottom: 60, left: 70 }}
+                  processType={processType}
+                  productType={productType}
+                  spcMonitorName={spcMonitor}
                 />
               </div>
             </div>
