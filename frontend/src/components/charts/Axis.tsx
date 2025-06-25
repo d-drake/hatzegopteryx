@@ -85,7 +85,6 @@ export default function Axis({
         .style('fill', '#64748b'); // slate-500 color
     }
 
-
     if (label && !gridLines) {
       const isVertical = orientation === 'left' || orientation === 'right';
 

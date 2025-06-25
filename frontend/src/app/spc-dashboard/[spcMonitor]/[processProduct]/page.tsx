@@ -217,7 +217,7 @@ function SPCDashboardContent() {
 
               {/* CD X/Y vs Date */}
               <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="text-lg font-medium mb-3 text-center text-black">CD X/Y vs Date</h4>
+                <h4 className="text-lg font-medium mb-3 text-center text-black">CD X-Y vs Date</h4>
                 <SPCTimeline
                   data={data}
                   xField="date_process"

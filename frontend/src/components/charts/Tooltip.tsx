@@ -62,19 +62,19 @@ export function useTooltip() {
 }
 
 export function formatTooltipContent(
-  data: Record<string, any>, 
-  fields: string[], 
+  data: Record<string, any>,
+  fields: string[],
   metadata?: Record<string, any>
 ): string {
   const dataContent = fields
     .map(field => {
       const value = data[field];
       const formattedField = formatFieldName(field);
-      
+
       if (value === null || value === undefined) {
         return null; // Skip null/undefined values
       }
-      
+
       if (typeof value === 'number') {
         return `<strong>${formattedField}:</strong> ${value.toFixed(2)}`;
       } else if (field === 'date_process' && typeof value === 'string') {
@@ -85,11 +85,11 @@ export function formatTooltipContent(
     })
     .filter(Boolean) // Remove null entries
     .join('<br/>');
-  
+
   // Add metadata content if available
   if (metadata) {
     const limitParts: string[] = [];
-    
+
     // Add SPC limits if available - display in a single line with pipe separators
     if (metadata.cl !== undefined && metadata.cl !== null) {
       limitParts.push(`<strong>CL:</strong> ${metadata.cl.toFixed(2)}`);
@@ -100,13 +100,13 @@ export function formatTooltipContent(
     if (metadata.ucl !== undefined && metadata.ucl !== null) {
       limitParts.push(`<strong>UCL:</strong> ${metadata.ucl.toFixed(2)}`);
     }
-    
+
     if (limitParts.length > 0) {
       const limitsLine = limitParts.join(' | ');
       return dataContent + '<br/><br/>' + limitsLine;
     }
   }
-  
+
   return dataContent;
 }
 
@@ -117,7 +117,7 @@ function formatFieldName(field: string): string {
     .replace('Cd', 'CD')
     .replace('Att', 'ATT')
     .replace('Sig', 'Sig')
-    .replace('X Y', 'X/Y')
-    .replace('Date Process', 'Date/Time')
-    .replace('Fake Property', 'Property');
+    .replace('X Y', 'X-Y')
+  // .replace('Date Process', 'Date/Time')
+  // .replace('Fake Property', 'Property');
 }

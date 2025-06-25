@@ -1,27 +1,32 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
+
 
 class ItemBase(BaseModel):
     title: str
     description: Optional[str] = None
     completed: bool = False
 
+
 class ItemCreate(ItemBase):
     pass
+
 
 class ItemUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     completed: Optional[bool] = None
 
+
 class Item(ItemBase):
     id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
-    
+
     class Config:
         from_attributes = True
+
 
 class CDDataBase(BaseModel):
     date_process: datetime
@@ -38,14 +43,17 @@ class CDDataBase(BaseModel):
     product_type: str
     spc_monitor_name: str
 
+
 class CDDataCreate(CDDataBase):
     lot: str
 
+
 class CDData(CDDataBase):
     lot: str
-    
+
     class Config:
         from_attributes = True
+
 
 # SPC Limits Schemas
 class SPCLimitsBase(BaseModel):
@@ -57,12 +65,14 @@ class SPCLimitsBase(BaseModel):
     lcl: Optional[int] = None
     ucl: Optional[int] = None
 
+
 class SPCLimitsCreate(SPCLimitsBase):
     pass
+
 
 class SPCLimits(SPCLimitsBase):
     id: int
     effective_date: datetime
-    
+
     class Config:
         from_attributes = True

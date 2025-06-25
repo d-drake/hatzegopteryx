@@ -18,6 +18,7 @@ import {
   getNumericExtent,
   getDateExtent,
 } from '@/lib/charts/scales';
+import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
 interface TimelineProps<T extends Record<string, any>> {
   data: T[];
   xField: keyof T;
@@ -37,6 +38,7 @@ interface TimelineProps<T extends Record<string, any>> {
   }) => React.ReactNode;
   tooltipMetadata?: Record<string, any>; // Additional metadata for tooltips
 }
+
 
 export default function Timeline<T extends Record<string, any>>({
   data,
@@ -545,7 +547,7 @@ export default function Timeline<T extends Record<string, any>>({
             width={innerWidth}
             height={margin.bottom}
             fill="transparent"
-            style={{ cursor: 'ns-resize' }}
+            style={{ cursor: 'ew-resize' }}
           />
 
           {/* Y-axis zoom area */}
@@ -555,7 +557,7 @@ export default function Timeline<T extends Record<string, any>>({
             width={margin.left}
             height={innerHeight}
             fill="transparent"
-            style={{ cursor: 'ew-resize' }}
+            style={{ cursor: 'ns-resize' }}
           />
 
           {/* Secondary Y-axis zoom area (right side) */}
@@ -566,7 +568,7 @@ export default function Timeline<T extends Record<string, any>>({
               width={75} // 50% of original margin.right (150px)
               height={innerHeight}
               fill="transparent"
-              style={{ cursor: 'ew-resize' }}
+              style={{ cursor: 'ns-resize' }}
             />
           )}
 
@@ -577,7 +579,30 @@ export default function Timeline<T extends Record<string, any>>({
 }
 
 function formatFieldName(field: string): string {
+  // look up units from frontend lib
+  console.log(Object.keys(SpcCDUnits))
+  if (Object.keys(SpcCDUnits).includes(field as SpcCDUnits)) {
+    field = field + ` (${SpcCDUnits[field as keyof typeof SpcCDUnits]})`
+  }
+
+  field = field.replace(/_/g, ' ')
+  if (field.includes("x_y")) {
+    field = field.replace("x_y", "x-y")
+  }
+  // abbreviate long field names rendered on the Timeline
+  if (field.length > 15) {
+    field = field
+      .split(' ')
+      .map((word: string) => {
+        if (word.length <= 4) {
+          return word;
+        }
+        else {
+          return word.slice(0, 4) + '.';
+        }
+      })
+      .join(' ');
+
+  }
   return field
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, l => l.toUpperCase());
 }
