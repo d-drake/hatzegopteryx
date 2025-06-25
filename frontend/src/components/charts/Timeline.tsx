@@ -579,8 +579,6 @@ export default function Timeline<T extends Record<string, any>>({
 }
 
 function formatFieldName(field: string): string {
-  // look up units from frontend lib
-  console.log(Object.keys(SpcCDUnits))
   if (Object.keys(SpcCDUnits).includes(field as SpcCDUnits)) {
     field = field + ` (${SpcCDUnits[field as keyof typeof SpcCDUnits]})`
   }
