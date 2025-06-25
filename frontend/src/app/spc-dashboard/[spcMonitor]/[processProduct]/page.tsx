@@ -64,7 +64,7 @@ function SPCDashboardContent() {
       setData(dataResponse);
       setError(null);
     } catch (err) {
-      const errorMessage = err instanceof Error && err.message.includes('JSON') 
+      const errorMessage = err instanceof Error && err.message.includes('JSON')
         ? 'Connection issue detected. Please refresh the page to try again.'
         : 'Failed to load filtered data. Please try again.';
       setError(errorMessage);
@@ -136,7 +136,7 @@ function SPCDashboardContent() {
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold">Hatzegopteryx</h1>
           <p className="text-slate-300 mt-2">
-            Fullstack application with PostgreSQL, FastAPI, and Next.js - Hello
+            Fullstack application with PostgreSQL, FastAPI, and Next.js
           </p>
         </div>
       </header>
@@ -208,7 +208,7 @@ function SPCDashboardContent() {
                   shapeField="fake_property1"
                   width={800}
                   height={400}
-                  margin={{ top: 20, right: 150, bottom: 60, left: 70 }}
+                  margin={{ top: 60, right: 200, bottom: 60, left: 70 }}
                   processType={processType}
                   productType={productType}
                   spcMonitorName={spcMonitor}
@@ -225,7 +225,7 @@ function SPCDashboardContent() {
                   colorField="bias_x_y"
                   width={800}
                   height={400}
-                  margin={{ top: 20, right: 150, bottom: 60, left: 70 }}
+                  margin={{ top: 60, right: 200, bottom: 60, left: 70 }}
                   processType={processType}
                   productType={productType}
                   spcMonitorName={spcMonitor}
@@ -241,7 +241,7 @@ function SPCDashboardContent() {
                   yField="cd_6sig"
                   width={800}
                   height={400}
-                  margin={{ top: 20, right: 150, bottom: 60, left: 70 }}
+                  margin={{ top: 60, right: 200, bottom: 60, left: 70 }}
                   processType={processType}
                   productType={productType}
                   spcMonitorName={spcMonitor}

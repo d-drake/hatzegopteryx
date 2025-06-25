@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useEffect, useState, useId } from 'react';
+import { useMemo, useRef, useEffect, useState, useId, useCallback } from 'react';
 import ChartContainer, { useChartDimensions } from './ChartContainer';
 import Axis from './Axis';
 import Circles from './Circles';
@@ -48,7 +48,7 @@ export default function Timeline<T extends Record<string, any>>({
   lineGroupField,
   width = 800,
   height = 500,
-  margin = { top: 20, right: 150, bottom: 60, left: 70 },
+  margin = { top: 60, right: 200, bottom: 60, left: 70 },
   renderOverlays,
   tooltipMetadata,
 }: TimelineProps<T>) {
@@ -63,6 +63,10 @@ export default function Timeline<T extends Record<string, any>>({
   const [yDomain, setYDomain] = useState<[any, any] | null>(null);
   const [y2Domain, setY2Domain] = useState<[any, any] | null>(null);
 
+  // Legend selection state
+  const [selectedColorItems, setSelectedColorItems] = useState<Set<string>>(new Set());
+  const [selectedShapeItems, setSelectedShapeItems] = useState<Set<string>>(new Set());
+
   // Get original extents
   const originalXExtent = useMemo(() => {
     if (data.length > 0) {
@@ -75,9 +79,9 @@ export default function Timeline<T extends Record<string, any>>({
   }, [data, xField]);
 
   const originalYExtent = useMemo(() => getNumericExtent(data, yField), [data, yField]);
-  
-  const originalY2Extent = useMemo(() => 
-    y2Field ? getNumericExtent(data, y2Field) : [0, 1] as [number, number], 
+
+  const originalY2Extent = useMemo(() =>
+    y2Field ? getNumericExtent(data, y2Field) : [0, 1] as [number, number],
     [data, y2Field]
   );
 
@@ -169,19 +173,26 @@ export default function Timeline<T extends Record<string, any>>({
   );
 
   // Accessor functions - use data scales for positioning data points
-  const xAccessor = (d: T) => {
+  const xAccessor = useCallback((d: T) => {
     const value = d[xField];
     if ((value as any) instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value as string)))) {
       return (xDataScale as any)(new Date(String(value)));
     } else {
       return (xDataScale as any)(Number(value));
     }
-  };
-  const yAccessor = (d: T) => yDataScale(Number(d[yField]));
-  const y2Accessor = y2Field && y2DataScale ? (d: T) => y2DataScale(Number(d[y2Field])) : undefined;
-  const colorAccessor = (d: T) => String(d[colorField]);
-  const shapeAccessor = shapeField ? (d: T) => String(d[shapeField]) : undefined;
-  const lineGroupAccessor = (d: T) => String(d[lineGroupField || colorField]);
+  }, [xField, xDataScale]);
+
+  const yAccessor = useCallback((d: T) => yDataScale(Number(d[yField])), [yField, yDataScale]);
+
+  const y2Accessor = useMemo(() => {
+    return y2Field && y2DataScale ? (d: T) => y2DataScale(Number(d[y2Field])) : undefined;
+  }, [y2Field, y2DataScale]);
+
+  const colorAccessor = useCallback((d: T) => String(d[colorField]), [colorField]);
+  const shapeAccessor = useMemo(() => {
+    return shapeField ? (d: T) => String(d[shapeField]) : undefined;
+  }, [shapeField]);
+  const lineGroupAccessor = useCallback((d: T) => String(d[lineGroupField || colorField]), [lineGroupField, colorField]);
 
   // Filter data to only show points within the visible chart area (respecting 30px margins)
   const visibleData = useMemo(() => {
@@ -232,7 +243,7 @@ export default function Timeline<T extends Record<string, any>>({
       const xAxisLineY = margin.top + innerHeight;
       const xAxisZoneStart = xAxisLineY;  // Start exactly at the X-axis line
       const xAxisZoneEnd = height;        // End at the bottom of the entire SVG
-      
+
       // Check if mouse is over x-axis area (from X-axis line to bottom of chart)
       const isOverXAxis = mouseY >= xAxisZoneStart && mouseY <= xAxisZoneEnd &&
         mouseX >= margin.left && mouseX <= margin.left + innerWidth;
@@ -242,7 +253,7 @@ export default function Timeline<T extends Record<string, any>>({
         mouseY >= margin.top && mouseY <= margin.top + innerHeight;
 
       // Check if mouse is over secondary y-axis area (to the right of the chart, when y2Field exists)
-      const isOverY2Axis = y2Field && mouseX >= margin.left + innerWidth && mouseX <= width &&
+      const isOverY2Axis = y2Field && mouseX >= margin.left + innerWidth && mouseX <= margin.left + innerWidth + 75 &&
         mouseY >= margin.top && mouseY <= margin.top + innerHeight;
 
       // Only prevent default and handle zoom if we're in a zoom area
@@ -325,18 +336,53 @@ export default function Timeline<T extends Record<string, any>>({
   const yZoomLevel = yDomain ? getZoomLevel(originalYExtent, yDomain) : 1;
   const y2ZoomLevel = y2Domain ? getZoomLevel(originalY2Extent, y2Domain) : 1;
 
+  // Handle legend item clicks
+  const handleColorLegendClick = (label: string) => {
+    setSelectedColorItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  };
+
+  const handleShapeLegendClick = (label: string) => {
+    setSelectedShapeItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  };
+
+  // Reset legend selections
+  const resetLegendSelections = () => {
+    setSelectedColorItems(new Set());
+    setSelectedShapeItems(new Set());
+  };
+
+  // Check if any legend items are selected
+  const hasSelections = selectedColorItems.size > 0 || selectedShapeItems.size > 0;
+
   return (
     <div
       style={{ position: 'relative' }}
       data-chart-id={clipPathId}
     >
       {/* Zoom controls */}
-      <ZoomControls 
+      <ZoomControls
         xZoomLevel={xZoomLevel}
         yZoomLevel={yZoomLevel}
         y2ZoomLevel={y2Field ? y2ZoomLevel : undefined}
         onResetZoom={resetZoom}
       />
+
 
       <ChartContainer width={width} height={height} margin={margin} ref={svgRef}>
         <defs>
@@ -345,21 +391,6 @@ export default function Timeline<T extends Record<string, any>>({
           </clipPath>
         </defs>
         <g ref={chartRef}>
-          {/* Grid lines */}
-          <Axis
-            scale={xScale}
-            orientation="bottom"
-            transform={`translate(0,${innerHeight})`}
-            gridLines
-            gridLineLength={-innerHeight}
-          />
-          <Axis
-            scale={yScale}
-            orientation="left"
-            gridLines
-            gridLineLength={-innerWidth}
-          />
-
           {/* Axes */}
           <Axis
             scale={xScale}
@@ -382,7 +413,7 @@ export default function Timeline<T extends Record<string, any>>({
               orientation="right"
               transform={`translate(${innerWidth},0)`}
               label={formatFieldName(String(y2Field))}
-              labelOffset={{ x: innerHeight / 2, y: 50 }}
+              labelOffset={{ x: -innerHeight / 2, y: 60 }}
             />
           )}
 
@@ -398,6 +429,8 @@ export default function Timeline<T extends Record<string, any>>({
                 colorScale={colorScale}
                 shapeScale={shapeScale}
                 onHover={handleHover}
+                selectedColorItems={selectedColorItems}
+                selectedShapeItems={selectedShapeItems}
               />
             ) : (
               <Circles
@@ -407,6 +440,7 @@ export default function Timeline<T extends Record<string, any>>({
                 colorAccessor={colorAccessor}
                 colorScale={colorScale}
                 onHover={handleHover}
+                selectedColorItems={selectedColorItems}
               />
             )}
 
@@ -443,20 +477,63 @@ export default function Timeline<T extends Record<string, any>>({
             clipPathId
           })}
 
+          {/* Reset button aligned with middle of ZoomControls */}
+          {hasSelections && (
+            <g
+              transform={`translate(${innerWidth + (y2Field ? 85 : 20)}, -40)`}
+              onClick={resetLegendSelections}
+              style={{ cursor: 'pointer' }}
+            >
+              <rect
+                x={0}
+                y={0}
+                width={100}
+                height={20}
+                rx={3}
+                fill="#f9fafb"
+                stroke="#6b7280"
+                strokeWidth={1}
+                onMouseEnter={(e) => {
+                  e.currentTarget.setAttribute('fill', '#f3f4f6');
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.setAttribute('fill', '#f9fafb');
+                }}
+              />
+              <text
+                x={50}
+                y={13}
+                textAnchor="middle"
+                fontSize={11}
+                fill="#374151"
+                fontWeight="500"
+                style={{ pointerEvents: 'none' }}
+              >
+                Reset Selections
+              </text>
+            </g>
+          )}
+
           {/* Legends - adjust position when secondary Y-axis is present */}
           <Legend
             title={formatFieldName(String(colorField))}
             items={colorLegendItems}
-            x={innerWidth + (y2Field ? 70 : 20)}
-            y={20}
+            x={innerWidth + (y2Field ? 85 : 20)}
+            y={0}
+            selectedItems={selectedColorItems}
+            onItemClick={handleColorLegendClick}
+            hasOtherSelections={selectedShapeItems.size > 0}
           />
 
           {shapeLegendItems.length > 0 && (
             <Legend
               title={formatFieldName(String(shapeField!))}
               items={shapeLegendItems}
-              x={innerWidth + (y2Field ? 70 : 20)}
-              y={40 + colorLegendItems.length * 20}
+              x={innerWidth + (y2Field ? 85 : 20)}
+              y={20 + colorLegendItems.length * 20}
+              selectedItems={selectedShapeItems}
+              onItemClick={handleShapeLegendClick}
+              hasOtherSelections={selectedColorItems.size > 0}
             />
           )}
 
@@ -486,7 +563,7 @@ export default function Timeline<T extends Record<string, any>>({
             <rect
               x={innerWidth}
               y={0}
-              width={margin.right}
+              width={75} // 50% of original margin.right (150px)
               height={innerHeight}
               fill="transparent"
               style={{ cursor: 'ew-resize' }}

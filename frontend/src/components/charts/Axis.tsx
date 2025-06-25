@@ -8,7 +8,7 @@ interface AxisProps {
   orientation: 'bottom' | 'left' | 'top' | 'right';
   transform?: string;
   label?: string;
-  labelOffset?: { x: number; y: number };
+  labelOffset: { x: number; y: number }
   gridLines?: boolean;
   gridLineLength?: number;
 }
@@ -42,21 +42,21 @@ export default function Axis({
       // Auto-reduce tick density to prevent overlapping labels
       const isHorizontal = orientation === 'bottom' || orientation === 'top';
       const isVertical = orientation === 'left' || orientation === 'right';
-      
-      const availableSpace = isHorizontal 
+
+      const availableSpace = isHorizontal
         ? (scale as any).range()[1] - (scale as any).range()[0]
-        : isVertical 
-        ? Math.abs((scale as any).range()[0] - (scale as any).range()[1])
-        : 0;
+        : isVertical
+          ? Math.abs((scale as any).range()[0] - (scale as any).range()[1])
+          : 0;
 
       if (availableSpace > 0) {
         // Estimate label dimensions with extra padding to prevent overlap
-        const estimatedLabelSize = isHorizontal 
+        const estimatedLabelSize = isHorizontal
           ? 100  // Width for date labels like "May 25" with padding
           : 25;  // Height for numeric labels like "100" with padding
-        
+
         const maxTicks = Math.floor(availableSpace / estimatedLabelSize);
-        
+
         // Ensure we have at least 2 ticks but not more than would cause overlap
         const tickCount = Math.max(2, Math.min(10, maxTicks));
         axis = axis.ticks(tickCount);
@@ -85,9 +85,10 @@ export default function Axis({
         .style('fill', '#64748b'); // slate-500 color
     }
 
+
     if (label && !gridLines) {
       const isVertical = orientation === 'left' || orientation === 'right';
-      
+
       axisGroup
         .append('text')
         .attr('transform', isVertical ? 'rotate(-90)' : null)
@@ -98,7 +99,7 @@ export default function Axis({
         .style('font-size', '14px')
         .text(label);
     }
-  }, [scale, orientation, label, labelOffset, gridLines, gridLineLength]);
+  }, [scale, gridLines, gridLineLength]);
 
   return <g ref={axisRef} transform={transform} className="axis" />;
 }

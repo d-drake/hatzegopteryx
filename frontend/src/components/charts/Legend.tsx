@@ -16,6 +16,9 @@ interface LegendProps {
   y?: number;
   itemHeight?: number;
   symbolSize?: number;
+  selectedItems?: Set<string>;
+  onItemClick?: (label: string) => void;
+  hasOtherSelections?: boolean;
 }
 
 export default function Legend({
@@ -25,6 +28,9 @@ export default function Legend({
   y = 0,
   itemHeight = 20,
   symbolSize = 40,
+  selectedItems,
+  onItemClick,
+  hasOtherSelections = false,
 }: LegendProps) {
   const gRef = useRef<SVGGElement>(null);
 
@@ -51,25 +57,39 @@ export default function Legend({
       .enter()
       .append('g')
       .attr('class', 'legend-item')
-      .attr('transform', (d, i) => `translate(0, ${15 + i * itemHeight})`);
+      .attr('transform', (d, i) => `translate(0, ${15 + i * itemHeight})`)
+      .style('cursor', onItemClick ? 'pointer' : 'default')
+      .on('click', function(event, d) {
+        if (onItemClick) {
+          onItemClick(d.label);
+        }
+      });
 
     // Add symbols or circles
     legendItems.each(function(d) {
       const item = d3.select(this);
+      
+      // Determine if this item should be transparent
+      const hasSelections = selectedItems && selectedItems.size > 0;
+      const isSelected = selectedItems && selectedItems.has(d.label);
+      const shouldBeTransparent = (hasSelections && !isSelected) || hasOtherSelections;
+      const opacity = shouldBeTransparent ? 0.3 : 1;
       
       if (d.shape) {
         item
           .append('path')
           .attr('transform', 'translate(5, 0)')
           .attr('d', d3.symbol().type(d.shape).size(symbolSize)())
-          .style('fill', d.color || 'gray');
+          .style('fill', d.color || 'gray')
+          .style('opacity', opacity);
       } else {
         item
           .append('circle')
           .attr('cx', 5)
           .attr('cy', 0)
           .attr('r', 4)
-          .style('fill', d.color || 'gray');
+          .style('fill', d.color || 'gray')
+          .style('opacity', opacity);
       }
 
       item
@@ -77,9 +97,10 @@ export default function Legend({
         .attr('x', 15)
         .attr('y', 4)
         .style('font-size', '12px')
+        .style('opacity', opacity)
         .text(d.label);
     });
-  }, [title, items, itemHeight, symbolSize]);
+  }, [title, items, itemHeight, symbolSize, selectedItems, onItemClick, hasOtherSelections]);
 
   return <g ref={gRef} transform={`translate(${x}, ${y})`} className="legend" />;
 }

@@ -14,6 +14,7 @@ interface CirclesProps<T> {
   strokeWidth?: number;
   strokeColor?: string;
   onHover?: (event: MouseEvent, datum: T | null) => void;
+  selectedColorItems?: Set<string>;
 }
 
 export default function Circles<T>({
@@ -27,6 +28,7 @@ export default function Circles<T>({
   strokeWidth = 0.5,
   strokeColor = 'white',
   onHover,
+  selectedColorItems,
 }: CirclesProps<T>) {
   const gRef = useRef<SVGGElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -55,7 +57,14 @@ export default function Circles<T>({
         }
         return '#3b82f6'; // default blue
       })
-      .style('opacity', opacity)
+      .style('opacity', d => {
+        // Apply selection transparency
+        if (selectedColorItems && selectedColorItems.size > 0 && colorAccessor) {
+          const colorValue = colorAccessor(d);
+          return selectedColorItems.has(colorValue) ? opacity : opacity * 0.3;
+        }
+        return opacity;
+      })
       .style('stroke', strokeColor)
       .style('stroke-width', strokeWidth)
       .style('cursor', 'pointer');
@@ -72,16 +81,23 @@ export default function Circles<T>({
           .style('opacity', 1);
         if (onHover) onHover(event, d);
       })
-      .on('mouseout', function(event) {
+      .on('mouseout', function(event, d) {
         setHoveredIndex(null);
         d3.select(this)
           .transition()
           .duration(100)
           .attr('r', radius)
-          .style('opacity', opacity);
+          .style('opacity', () => {
+            // Restore the selection-based opacity
+            if (selectedColorItems && selectedColorItems.size > 0 && colorAccessor) {
+              const colorValue = colorAccessor(d);
+              return selectedColorItems.has(colorValue) ? opacity : opacity * 0.3;
+            }
+            return opacity;
+          });
         if (onHover) onHover(event, null);
       });
-  }, [data, xAccessor, yAccessor, colorAccessor, colorScale, radius, opacity, strokeWidth, strokeColor, onHover]);
+  }, [data, xAccessor, yAccessor, colorAccessor, colorScale, radius, opacity, strokeWidth, strokeColor, onHover, selectedColorItems]);
 
   return <g ref={gRef} className="circles" />;
 }

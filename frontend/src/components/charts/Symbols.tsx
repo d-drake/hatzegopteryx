@@ -14,6 +14,8 @@ interface SymbolsProps<T> {
   size?: number;
   opacity?: number;
   onHover?: (event: MouseEvent, datum: T | null) => void;
+  selectedColorItems?: Set<string>;
+  selectedShapeItems?: Set<string>;
 }
 
 export default function Symbols<T>({
@@ -27,6 +29,8 @@ export default function Symbols<T>({
   size = 64,
   opacity = 0.7,
   onHover,
+  selectedColorItems,
+  selectedShapeItems,
 }: SymbolsProps<T>) {
   const gRef = useRef<SVGGElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -59,7 +63,31 @@ export default function Symbols<T>({
         }
         return '#3b82f6'; // default blue
       })
-      .style('opacity', opacity)
+      .style('opacity', d => {
+        // Apply selection transparency
+        const hasColorSelections = selectedColorItems && selectedColorItems.size > 0;
+        const hasShapeSelections = selectedShapeItems && selectedShapeItems.size > 0;
+        
+        if (hasColorSelections || hasShapeSelections) {
+          let isVisible = true;
+          
+          // Check color selection
+          if (hasColorSelections && colorAccessor) {
+            const colorValue = colorAccessor(d);
+            isVisible = isVisible && selectedColorItems.has(colorValue);
+          }
+          
+          // Check shape selection
+          if (hasShapeSelections && shapeAccessor) {
+            const shapeValue = shapeAccessor(d);
+            isVisible = isVisible && selectedShapeItems.has(shapeValue);
+          }
+          
+          return isVisible ? opacity : opacity * 0.3;
+        }
+        
+        return opacity;
+      })
       .style('stroke', 'white')
       .style('stroke-width', 0.5)
       .style('cursor', 'pointer');
@@ -71,12 +99,36 @@ export default function Symbols<T>({
         d3.select(this).style('opacity', 1);
         if (onHover) onHover(event, d);
       })
-      .on('mouseout', function(event) {
+      .on('mouseout', function(event, d) {
         setHoveredIndex(null);
-        d3.select(this).style('opacity', opacity);
+        d3.select(this).style('opacity', () => {
+          // Restore the selection-based opacity
+          const hasColorSelections = selectedColorItems && selectedColorItems.size > 0;
+          const hasShapeSelections = selectedShapeItems && selectedShapeItems.size > 0;
+          
+          if (hasColorSelections || hasShapeSelections) {
+            let isVisible = true;
+            
+            // Check color selection
+            if (hasColorSelections && colorAccessor) {
+              const colorValue = colorAccessor(d);
+              isVisible = isVisible && selectedColorItems.has(colorValue);
+            }
+            
+            // Check shape selection
+            if (hasShapeSelections && shapeAccessor) {
+              const shapeValue = shapeAccessor(d);
+              isVisible = isVisible && selectedShapeItems.has(shapeValue);
+            }
+            
+            return isVisible ? opacity : opacity * 0.3;
+          }
+          
+          return opacity;
+        });
         if (onHover) onHover(event, null);
       });
-  }, [data, xAccessor, yAccessor, colorAccessor, shapeAccessor, colorScale, shapeScale, size, opacity, onHover]);
+  }, [data, xAccessor, yAccessor, colorAccessor, shapeAccessor, colorScale, shapeScale, size, opacity, onHover, selectedColorItems, selectedShapeItems]);
 
   return <g ref={gRef} className="symbols" />;
 }

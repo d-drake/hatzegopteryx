@@ -29,7 +29,7 @@ export default function SPCTimeline({
   shapeField,
   width = 800,
   height = 500,
-  margin = { top: 20, right: 150, bottom: 60, left: 70 },
+  margin = { top: 60, right: 200, bottom: 60, left: 70 },
   processType,
   productType,
   spcMonitorName,
