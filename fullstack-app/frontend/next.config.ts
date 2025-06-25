@@ -1,11 +1,13 @@
 import type { NextConfig } from 'next'
-import { withSentryConfig } from '@sentry/nextjs'
+// import { withSentryConfig } from '@sentry/nextjs'
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  // output: 'standalone', // Commented out for development - this interferes with dev mode
 }
 
-export default withSentryConfig(nextConfig, {
+export default nextConfig
+// Sentry temporarily disabled - causing hanging requests in development
+/* export default withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options
 
@@ -25,11 +27,13 @@ export default withSentryConfig(nextConfig, {
   tunnelRoute: '/monitoring',
 
   // Hides source maps from generated client bundles
-  hideSourceMaps: true,
+  sourcemaps: {
+    disable: true,
+  },
 
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
 
   // Enable automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
   automaticVercelMonitors: true,
-})
+}) */

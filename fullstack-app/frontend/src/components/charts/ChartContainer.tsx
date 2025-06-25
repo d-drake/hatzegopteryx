@@ -16,11 +16,13 @@ const ChartContainer = forwardRef<SVGSVGElement, ChartContainerProps>(
     const innerHeight = height - margin.top - margin.bottom;
 
     return (
-      <svg ref={ref} width={width} height={height} onWheel={onWheel}>
-        <g transform={`translate(${margin.left},${margin.top})`}>
-          {children}
-        </g>
-      </svg>
+      <div data-testid="chart-container" className="chart-container">
+        <svg ref={ref} width={width} height={height} onWheel={onWheel}>
+          <g transform={`translate(${margin.left},${margin.top})`}>
+            {children}
+          </g>
+        </svg>
+      </div>
     );
   }
 );

@@ -54,16 +54,27 @@ export default function Timeline<T extends Record<string, any>>({
   renderOverlays,
   tooltipMetadata,
 }: TimelineProps<T>) {
+  // Chart rendering with data validation
+  if (!data || data.length === 0) {
+    console.warn('Timeline component: No data provided for rendering');
+  }
+  
+  // All hooks must be called at the top level
   const { innerWidth, innerHeight } = useChartDimensions(width, height, margin);
   const { showTooltip, hideTooltip } = useTooltip();
   const svgRef = useRef<SVGSVGElement>(null);
   const chartRef = useRef<SVGGElement>(null);
   const clipPathId = useId();
+  const chartId = useId();
 
   // Zoom state
   const [xDomain, setXDomain] = useState<[any, any] | null>(null);
   const [yDomain, setYDomain] = useState<[any, any] | null>(null);
   const [y2Domain, setY2Domain] = useState<[any, any] | null>(null);
+
+  // Zoom limits
+  const MIN_ZOOM = 0.1;
+  const MAX_ZOOM = 50.0;
 
   // Legend selection state
   const [selectedColorItems, setSelectedColorItems] = useState<Set<string>>(new Set());
@@ -71,21 +82,23 @@ export default function Timeline<T extends Record<string, any>>({
 
   // Get original extents
   const originalXExtent = useMemo(() => {
-    if (data.length > 0) {
-      const firstValue = data[0][xField];
-      if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
-        return getDateExtent(data, xField);
-      }
+    if (!data || data.length === 0) return [0, 1]; // Default extent for empty data
+    const firstValue = data[0][xField];
+    if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
+      return getDateExtent(data, xField);
     }
     return getNumericExtent(data, xField);
   }, [data, xField]);
 
-  const originalYExtent = useMemo(() => getNumericExtent(data, yField), [data, yField]);
+  const originalYExtent = useMemo(() => {
+    if (!data || data.length === 0) return [0, 1]; // Default extent for empty data
+    return getNumericExtent(data, yField);
+  }, [data, yField]);
 
-  const originalY2Extent = useMemo(() =>
-    y2Field ? getNumericExtent(data, y2Field) : [0, 1] as [number, number],
-    [data, y2Field]
-  );
+  const originalY2Extent = useMemo(() => {
+    if (!data || data.length === 0) return [0, 1] as [number, number]; // Default extent for empty data
+    return y2Field ? getNumericExtent(data, y2Field) : [0, 1] as [number, number];
+  }, [data, y2Field]);
 
   // Use zoomed domains if available, otherwise use original extents
   const currentXExtent = xDomain || originalXExtent;
@@ -95,49 +108,59 @@ export default function Timeline<T extends Record<string, any>>({
   // Create scales - axes connect at origin, data maintains 30px margins
   const xScale = useMemo(() => {
     // Check if the first data point's xField value is a date
-    if (data.length > 0) {
-      const firstValue = data[0][xField];
-      if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
-        return createTimeScale(currentXExtent, [0, innerWidth]);
-      }
+    if (!data || data.length === 0) return createLinearScale([0, 1], [0, innerWidth]);
+    const firstValue = data[0][xField];
+    if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
+      // Ensure we have date extents for time scale
+      const [min, max] = currentXExtent;
+      const dateExtent: [Date, Date] = [
+        min instanceof Date ? min : new Date(min),
+        max instanceof Date ? max : new Date(max)
+      ];
+      return createTimeScale(dateExtent, [0, innerWidth]);
     }
-    return createLinearScale(currentXExtent, [0, innerWidth]);
+    return createLinearScale(currentXExtent as [number, number], [0, innerWidth]);
   }, [data, xField, innerWidth, currentXExtent]);
 
   const yScale = useMemo(
-    () => createLinearScale(currentYExtent, [innerHeight, 0]),
+    () => createLinearScale(currentYExtent as [number, number], [innerHeight, 0]),
     [currentYExtent, innerHeight]
   );
 
   // Secondary Y-axis scale (positioned on the right)
   const y2Scale = useMemo(
-    () => y2Field ? createLinearScale(currentY2Extent, [innerHeight, 0]) : null,
+    () => y2Field ? createLinearScale(currentY2Extent as [number, number], [innerHeight, 0]) : null,
     [y2Field, currentY2Extent, innerHeight]
   );
 
   // Create data scales with margins for positioning data points
   const xDataScale = useMemo(() => {
-    if (data.length > 0) {
-      const firstValue = data[0][xField];
-      if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
-        return createTimeScale(currentXExtent, [30, innerWidth - 30]);
-      }
+    if (!data || data.length === 0) return createLinearScale([0, 1], [30, innerWidth - 30]);
+    const firstValue = data[0][xField];
+    if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
+      // Ensure we have date extents for time scale
+      const [min, max] = currentXExtent;
+      const dateExtent: [Date, Date] = [
+        min instanceof Date ? min : new Date(min),
+        max instanceof Date ? max : new Date(max)
+      ];
+      return createTimeScale(dateExtent, [30, innerWidth - 30]);
     }
-    return createLinearScale(currentXExtent, [30, innerWidth - 30]);
+    return createLinearScale(currentXExtent as [number, number], [30, innerWidth - 30]);
   }, [data, xField, innerWidth, currentXExtent]);
 
   const yDataScale = useMemo(
-    () => createLinearScale(currentYExtent, [innerHeight - 30, 30]),
+    () => createLinearScale(currentYExtent as [number, number], [innerHeight, 0]),
     [currentYExtent, innerHeight]
   );
 
   const y2DataScale = useMemo(
-    () => y2Field ? createLinearScale(currentY2Extent, [innerHeight - 30, 30]) : null,
+    () => y2Field ? createLinearScale(currentY2Extent as [number, number], [innerHeight, 0]) : null,
     [y2Field, currentY2Extent, innerHeight]
   );
 
   const colorCategories = useMemo(
-    () => getUniqueValues(data, colorField),
+    () => (!data || data.length === 0) ? [] : getUniqueValues(data, colorField),
     [data, colorField]
   );
 
@@ -147,7 +170,7 @@ export default function Timeline<T extends Record<string, any>>({
   );
 
   const shapeCategories = useMemo(
-    () => (shapeField ? getUniqueValues(data, shapeField) : []),
+    () => (shapeField && data && data.length > 0 ? getUniqueValues(data, shapeField) : []),
     [data, shapeField]
   );
 
@@ -176,13 +199,14 @@ export default function Timeline<T extends Record<string, any>>({
 
   // Accessor functions - use data scales for positioning data points
   const xAccessor = useCallback((d: T) => {
+    if (!data || data.length === 0) return 0;
     const value = d[xField];
     if ((value as any) instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value as string)))) {
       return (xDataScale as any)(new Date(String(value)));
     } else {
       return (xDataScale as any)(Number(value));
     }
-  }, [xField, xDataScale]);
+  }, [xField, xDataScale, data]);
 
   const yAccessor = useCallback((d: T) => yDataScale(Number(d[yField])), [yField, yDataScale]);
 
@@ -198,38 +222,25 @@ export default function Timeline<T extends Record<string, any>>({
 
   // Filter data to only show points within the visible chart area (respecting 30px margins)
   const visibleData = useMemo(() => {
+    if (!data || data.length === 0) return [];
     return data.filter(d => {
       const x = xAccessor(d);
       const y = yAccessor(d);
       const y2 = y2Accessor ? y2Accessor(d) : null;
 
-      // Check if point is within the clipped area (30px margins on all sides)
+      // Check if point is within the clipped area (30px margins on left/right, full height)
       const xInBounds = x >= 30 && x <= innerWidth - 30;
-      const yInBounds = y >= 30 && y <= innerHeight - 30;
-      const y2InBounds = y2 === null || (y2 >= 30 && y2 <= innerHeight - 30);
+      const yInBounds = y >= 0 && y <= innerHeight;
+      const y2InBounds = y2 === null || (y2 >= 0 && y2 <= innerHeight);
 
       // Point is visible if X is in bounds AND either Y or Y2 is in bounds
       return xInBounds && (yInBounds || y2InBounds);
     });
   }, [data, xAccessor, yAccessor, y2Accessor, innerWidth, innerHeight]);
 
-  // Handle hover
-  const handleHover = (event: MouseEvent, datum: T | null) => {
-    if (datum) {
-      const tooltipFields = [xField, yField];
-      if (y2Field) tooltipFields.push(y2Field);
-      if (colorField) tooltipFields.push(colorField);
-      if (shapeField) tooltipFields.push(shapeField);
-
-      const content = formatTooltipContent(datum as any, tooltipFields as string[], tooltipMetadata);
-      showTooltip(content, event.pageX, event.pageY);
-    } else {
-      hideTooltip();
-    }
-  };
-
   // Set up wheel event listener with non-passive option
   useEffect(() => {
+    if (!data || data.length === 0) return; // Skip if no data
     const container = document.querySelector(`[data-chart-id="${clipPathId}"]`) as HTMLElement;
     if (!container) return;
 
@@ -255,7 +266,10 @@ export default function Timeline<T extends Record<string, any>>({
         mouseY >= margin.top && mouseY <= margin.top + innerHeight;
 
       // Check if mouse is over secondary y-axis area (to the right of the chart, when y2Field exists)
-      const isOverY2Axis = y2Field && mouseX >= margin.left + innerWidth && mouseX <= margin.left + innerWidth + 75 &&
+      // Calculate legend position and extend Y2 region accordingly
+      const legendStartX = innerWidth + margin.left + 85;
+      const isOverY2Axis = y2Field && 
+        mouseX >= margin.left + innerWidth && mouseX <= legendStartX &&
         mouseY >= margin.top && mouseY <= margin.top + innerHeight;
 
       // Only prevent default and handle zoom if we're in a zoom area
@@ -270,6 +284,7 @@ export default function Timeline<T extends Record<string, any>>({
         if (isOverXAxis) {
           // Zoom X-axis by updating the domain state
           const [min, max] = currentXExtent;
+          let newDomain: [any, any];
 
           // Handle dates differently from numbers
           if (min instanceof Date && max instanceof Date) {
@@ -279,14 +294,20 @@ export default function Timeline<T extends Record<string, any>>({
             const center = minTime + range * 0.5;
             const newRange = range / scale;
 
-            setXDomain([new Date(center - newRange * 0.5), new Date(center + newRange * 0.5)]);
+            newDomain = [new Date(center - newRange * 0.5), new Date(center + newRange * 0.5)];
           } else {
             // Handle numeric values
             const range = max - min;
             const center = min + range * 0.5;
             const newRange = range / scale;
 
-            setXDomain([center - newRange * 0.5, center + newRange * 0.5]);
+            newDomain = [center - newRange * 0.5, center + newRange * 0.5];
+          }
+
+          // Apply zoom limits
+          const limitedDomain = applyZoomLimits(newDomain, originalXExtent);
+          if (limitedDomain) {
+            setXDomain(limitedDomain);
           }
         }
 
@@ -297,7 +318,13 @@ export default function Timeline<T extends Record<string, any>>({
           const center = min + range * 0.5;
           const newRange = range / scale;
 
-          setYDomain([center - newRange * 0.5, center + newRange * 0.5]);
+          const newDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
+          
+          // Apply zoom limits
+          const limitedDomain = applyZoomLimits(newDomain, originalYExtent);
+          if (limitedDomain) {
+            setYDomain(limitedDomain);
+          }
         }
 
         if (isOverY2Axis) {
@@ -307,18 +334,103 @@ export default function Timeline<T extends Record<string, any>>({
           const center = min + range * 0.5;
           const newRange = range / scale;
 
-          setY2Domain([center - newRange * 0.5, center + newRange * 0.5]);
+          const newDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
+          
+          // Apply zoom limits
+          const limitedDomain = applyZoomLimits(newDomain, originalY2Extent);
+          if (limitedDomain) {
+            setY2Domain(limitedDomain);
+          }
         }
       }
     };
 
-    // Add non-passive event listener
+    // Add mouse move event listener for dynamic cursor feedback
+    const handleMouseMove = (event: MouseEvent) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+
+      const rect = svg.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+
+      // X-axis zone should be from the X-axis line to the bottom of the SVG
+      const xAxisLineY = margin.top + innerHeight;
+      const xAxisZoneStart = xAxisLineY;  // Start exactly at the X-axis line
+      const xAxisZoneEnd = height;        // End at the bottom of the entire SVG
+
+      // Check if mouse is over x-axis area (from X-axis line to bottom of chart)
+      const isOverXAxis = mouseY >= xAxisZoneStart && mouseY <= xAxisZoneEnd &&
+        mouseX >= margin.left && mouseX <= margin.left + innerWidth;
+
+      // Check if mouse is over y-axis area (to the left of the chart, in the margin area)
+      const isOverYAxis = mouseX >= 0 && mouseX <= margin.left &&
+        mouseY >= margin.top && mouseY <= margin.top + innerHeight;
+
+      // Calculate legend position and extend Y2 region accordingly
+      const legendStartX = innerWidth + margin.left + 85;
+      const isOverY2Axis = y2Field && 
+        mouseX >= margin.left + innerWidth && mouseX <= legendStartX &&
+        mouseY >= margin.top && mouseY <= margin.top + innerHeight;
+
+      // Set appropriate cursor
+      if (isOverXAxis) {
+        container.style.cursor = 'ew-resize';
+      } else if (isOverYAxis || isOverY2Axis) {
+        container.style.cursor = 'ns-resize';
+      } else {
+        container.style.cursor = 'default';
+      }
+    };
+
+    // Add non-passive event listener for wheel events
     container.addEventListener('wheel', handleWheel, { passive: false });
+    // Add mousemove event listener for cursor feedback
+    container.addEventListener('mousemove', handleMouseMove);
 
     return () => {
       container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, clipPathId, height, y2Field, width]);
+  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, chartId, height, y2Field, width, data]);
+
+  // Early return for empty data with basic chart structure
+  if (!data || data.length === 0) {
+    console.log(`📊 No data provided - rendering empty chart container`);
+    return (
+      <div
+        style={{ position: 'relative' }}
+        data-chart-id={`chart-${chartId}`}
+      >
+        <ChartContainer width={width} height={height} margin={margin}>
+          <text 
+            x={innerWidth / 2} 
+            y={innerHeight / 2} 
+            textAnchor="middle" 
+            fill="#6b7280"
+            fontSize="14"
+          >
+            No data available
+          </text>
+        </ChartContainer>
+      </div>
+    );
+  }
+
+  // Handle hover
+  const handleHover = (event: MouseEvent, datum: T | null) => {
+    if (datum) {
+      const tooltipFields = [xField, yField];
+      if (y2Field) tooltipFields.push(y2Field);
+      if (colorField) tooltipFields.push(colorField);
+      if (shapeField) tooltipFields.push(shapeField);
+
+      const content = formatTooltipContent(datum as any, tooltipFields as string[], tooltipMetadata);
+      showTooltip(content, event.pageX, event.pageY);
+    } else {
+      hideTooltip();
+    }
+  };
 
   // Reset zoom function
   const resetZoom = () => {
@@ -334,9 +446,18 @@ export default function Timeline<T extends Record<string, any>>({
     return originalRange / currentRange;
   };
 
-  const xZoomLevel = xDomain ? getZoomLevel(originalXExtent, xDomain) : 1;
-  const yZoomLevel = yDomain ? getZoomLevel(originalYExtent, yDomain) : 1;
-  const y2ZoomLevel = y2Domain ? getZoomLevel(originalY2Extent, y2Domain) : 1;
+  // Apply zoom limits to prevent excessive zooming
+  const applyZoomLimits = (newDomain: [any, any], originalExtent: [any, any]) => {
+    const zoomLevel = getZoomLevel(originalExtent, newDomain);
+    if (zoomLevel < MIN_ZOOM || zoomLevel > MAX_ZOOM) {
+      return null; // Reject zoom
+    }
+    return newDomain;
+  };
+
+  const xZoomLevel = xDomain ? getZoomLevel(originalXExtent as [any, any], xDomain) : 1;
+  const yZoomLevel = yDomain ? getZoomLevel(originalYExtent as [any, any], yDomain) : 1;
+  const y2ZoomLevel = y2Domain ? getZoomLevel(originalY2Extent as [any, any], y2Domain) : 1;
 
   // Handle legend item clicks
   const handleColorLegendClick = (label: string) => {
@@ -389,7 +510,7 @@ export default function Timeline<T extends Record<string, any>>({
       <ChartContainer width={width} height={height} margin={margin} ref={svgRef}>
         <defs>
           <clipPath id={clipPathId}>
-            <rect x={30} y={30} width={innerWidth - 60} height={innerHeight - 60} />
+            <rect x={30} y={0} width={innerWidth - 60} height={innerHeight} />
           </clipPath>
         </defs>
         <g ref={chartRef}>
@@ -560,12 +681,12 @@ export default function Timeline<T extends Record<string, any>>({
             style={{ cursor: 'ns-resize' }}
           />
 
-          {/* Secondary Y-axis zoom area (right side) */}
+          {/* Secondary Y-axis zoom area (right side) - extended to legend panels */}
           {y2Field && (
             <rect
               x={innerWidth}
               y={0}
-              width={75} // 50% of original margin.right (150px)
+              width={85} // Extended to match legend start position
               height={innerHeight}
               fill="transparent"
               style={{ cursor: 'ns-resize' }}

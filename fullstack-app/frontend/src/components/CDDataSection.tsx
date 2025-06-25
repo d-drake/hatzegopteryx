@@ -50,15 +50,18 @@ export default function CDDataSection() {
 
   const fetchInitialData = useCallback(async () => {
     try {
+      console.log('🚀 Starting initial data fetch...');
       const [entitiesData] = await Promise.all([
         cdDataApi.getEntities(),
       ]);
+      console.log('✅ Entities fetched:', entitiesData.length, 'entities');
       setEntities(entitiesData);
       await fetchCDData();
       await fetchStats();
+      console.log('✅ Initial data fetch completed');
     } catch (err) {
       setError('Failed to fetch initial data');
-      console.error(err);
+      console.error('❌ Initial data fetch failed:', err);
     }
   }, [fetchCDData, fetchStats]);
 

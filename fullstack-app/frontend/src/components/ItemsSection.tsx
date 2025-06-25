@@ -12,18 +12,21 @@ export default function ItemsSection() {
   const [newItemDescription, setNewItemDescription] = useState('');
 
   useEffect(() => {
+    console.log('🚀 ItemsSection mounted, starting fetchItems...');
     fetchItems();
   }, []);
 
   const fetchItems = async () => {
     try {
+      console.log('🔄 Fetching items...');
       setLoading(true);
       const data = await itemsApi.getAll();
+      console.log('✅ Items fetched successfully:', data.length, 'items');
       setItems(data);
       setError(null);
     } catch (err) {
       setError('Failed to fetch items');
-      console.error(err);
+      console.error('❌ Failed to fetch items:', err);
     } finally {
       setLoading(false);
     }
