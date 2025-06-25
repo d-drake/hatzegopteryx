@@ -98,7 +98,17 @@ export default function Axis({
         .style('font-size', '14px')
         .text(label);
     }
-  }, [scale, gridLines, gridLineLength]);
+  }, [scale, gridLines, gridLineLength, label, labelOffset.x, labelOffset.y, orientation]);
 
-  return <g ref={axisRef} transform={transform} className="axis" />;
+  const getCssClass = () => {
+    switch (orientation) {
+      case 'bottom': return 'axis x-axis';
+      case 'top': return 'axis x-axis';
+      case 'left': return 'axis y-axis';
+      case 'right': return 'axis y-axis y2-axis'; // Add y2-axis class for secondary axis
+      default: return 'axis';
+    }
+  };
+
+  return <g ref={axisRef} transform={transform} className={getCssClass()} />;
 }

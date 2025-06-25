@@ -3,6 +3,13 @@ import { Item, CreateItem, UpdateItem, CDData, CDDataStats } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// Debug logging
+console.log('🔧 API Configuration:', {
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  API_BASE_URL,
+  timestamp: new Date().toISOString()
+});
+
 const api = axios.create({
   baseURL: API_BASE_URL,
 });

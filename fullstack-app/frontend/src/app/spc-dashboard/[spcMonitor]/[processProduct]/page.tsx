@@ -16,7 +16,7 @@ function SPCDashboardContent() {
   // Extract URL parameters
   const spcMonitor = decodeURIComponent(params.spcMonitor as string);
   const processProduct = decodeURIComponent(params.processProduct as string);
-  const [processType, productType] = processProduct.split('-');
+  const [processType, productType] = processProduct.split(/[-_]/); // Support both - and _ separators
 
   const [data, setData] = useState<CDDataItem[]>([]);
   const [loading, setLoading] = useState(true);
