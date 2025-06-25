@@ -10,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appuser} -d ${POSTGRES_DB:-appdb}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appuser} -d ${POSTGRES_DB:-appdb}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
 
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
@@ -31,7 +31,7 @@ services:
         condition: service_healthy
     command: bash startup.sh
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:8000/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -58,22 +58,28 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - NODE_ENV=development
+      # - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true # FOR DEV HOT RELOAD
     depends_on:
       backend:
         condition: service_healthy
+    volumes:
+      - ./frontend:/app
+      # - /app/node_modules
+      # - /app/.next
     stop_grace_period: 10s
     stop_signal: SIGTERM
     restart: unless-stopped
-    develop:
-      watch:
-        - action: sync+restart
-          path: ./frontend
-          target: /app
-          ignore:
-            - node_modules/
-            - .next/
-        - action: rebuild
-          path: ./frontend/package.json
+    # develop:
+    #   watch:
+    #     - action: sync+restart
+    #       path: ./frontend
+    #       target: /app
+    #       ignore:
+    #         - node_modules/
+    #         - .next/
+    #     - action: rebuild
+    #       path: ./frontend/package.json
 
   adminer:
     image: adminer:4.8.1
