@@ -64,6 +64,8 @@ export default function Axis({
     }
 
     const axisGroup = d3.select(axisRef.current);
+    // Clear existing content to prevent stacking
+    axisGroup.selectAll('*').remove();
     axisGroup.call(axis);
 
     if (gridLines) {

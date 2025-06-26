@@ -21,8 +21,8 @@ export default function ZoomControls({
   return (
     <div style={{
       position: 'absolute',
-      top: -50, // Position much higher up, well above the chart area
-      left: 10, // Position just inside the chart area, above y-axis
+      top: -60, // Position above the chart SVG but below tabs
+      left: 80, // Position to the right of the left axis
       zIndex: 10,
       background: 'rgba(255,255,255,0.95)',
       padding: '6px 8px',
