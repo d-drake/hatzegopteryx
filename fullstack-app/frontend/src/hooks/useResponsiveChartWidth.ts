@@ -11,7 +11,7 @@ interface UseResponsiveChartWidthOptions {
  * Ensures chart is always smaller than its container
  */
 export function useResponsiveChartWidth(
-  containerRef: RefObject<HTMLElement>,
+  containerRef: RefObject<HTMLElement | null>,
   options: UseResponsiveChartWidthOptions = {}
 ) {
   const { 
