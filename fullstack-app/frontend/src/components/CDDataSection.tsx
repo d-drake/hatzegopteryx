@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CDData, CDDataStats } from '@/types';
 import { cdDataApi } from '@/lib/api';
+import VariabilityChart from './charts/VariabilityChart';
 
 export default function CDDataSection() {
   const [cdData, setCdData] = useState<CDData[]>([]);
@@ -173,6 +174,34 @@ export default function CDDataSection() {
               </p>
               <p className="text-sm text-gray-600">CD ATT Range</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Box Plot Visualizations */}
+      {cdData.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold mb-4">CD ATT Variability by Entity</h2>
+            <VariabilityChart
+              data={cdData}
+              yField="cd_att"
+              groupField="entity"
+              width={400}
+              height={300}
+              margin={{ top: 20, right: 120, bottom: 60, left: 70 }}
+            />
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold mb-4">CD 6σ Variability by Entity</h2>
+            <VariabilityChart
+              data={cdData}
+              yField="cd_6sig"
+              groupField="entity"
+              width={400}
+              height={300}
+              margin={{ top: 20, right: 120, bottom: 60, left: 70 }}
+            />
           </div>
         </div>
       )}
