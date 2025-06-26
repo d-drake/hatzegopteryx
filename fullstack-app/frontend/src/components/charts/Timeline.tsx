@@ -127,12 +127,12 @@ export default function Timeline<T extends Record<string, any>>({
   }, [data, xField, innerWidth, currentXExtent]);
 
   const yDataScale = useMemo(
-    () => createLinearScale(currentYExtent, [innerHeight - 30, 30]),
+    () => createLinearScale(currentYExtent, [innerHeight, 0]),
     [currentYExtent, innerHeight]
   );
 
   const y2DataScale = useMemo(
-    () => y2Field ? createLinearScale(currentY2Extent, [innerHeight - 30, 30]) : null,
+    () => y2Field ? createLinearScale(currentY2Extent, [innerHeight, 0]) : null,
     [y2Field, currentY2Extent, innerHeight]
   );
 
@@ -203,10 +203,10 @@ export default function Timeline<T extends Record<string, any>>({
       const y = yAccessor(d);
       const y2 = y2Accessor ? y2Accessor(d) : null;
 
-      // Check if point is within the clipped area (30px margins on all sides)
+      // Check if point is within the clipped area (30px margins on left/right, full height)
       const xInBounds = x >= 30 && x <= innerWidth - 30;
-      const yInBounds = y >= 30 && y <= innerHeight - 30;
-      const y2InBounds = y2 === null || (y2 >= 30 && y2 <= innerHeight - 30);
+      const yInBounds = y >= 0 && y <= innerHeight;
+      const y2InBounds = y2 === null || (y2 >= 0 && y2 <= innerHeight);
 
       // Point is visible if X is in bounds AND either Y or Y2 is in bounds
       return xInBounds && (yInBounds || y2InBounds);
@@ -389,7 +389,7 @@ export default function Timeline<T extends Record<string, any>>({
       <ChartContainer width={width} height={height} margin={margin} ref={svgRef}>
         <defs>
           <clipPath id={clipPathId}>
-            <rect x={30} y={30} width={innerWidth - 60} height={innerHeight - 60} />
+            <rect x={30} y={0} width={innerWidth - 60} height={innerHeight} />
           </clipPath>
         </defs>
         <g ref={chartRef}>

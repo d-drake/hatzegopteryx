@@ -7,6 +7,8 @@ import FilterControls, { FilterState } from '@/components/spc-dashboard/FilterCo
 import SPCTabs from '@/components/spc-dashboard/SPCTabs';
 import AppTabs from '@/components/AppTabs';
 import ResponsiveChartWrapper from '@/components/charts/ResponsiveChartWrapper';
+import SPCChartWrapper from '@/components/spc-dashboard/SPCChartWrapper';
+import VariabilityChartPlaceholder from '@/components/spc-dashboard/VariabilityChartPlaceholder';
 import { fetchCDData, CDDataItem } from '@/services/cdDataService';
 
 function SPCDashboardContent() {
@@ -198,68 +200,107 @@ function SPCDashboardContent() {
             <h3 className="text-xl font-semibold mb-6">CD Measurement Analysis</h3>
             <div className="space-y-8">
               {/* CD ATT vs Date */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="text-lg font-medium mb-3 text-center text-black">CD ATT vs Date</h4>
-                <ResponsiveChartWrapper>
-                  {(width) => (
-                    <SPCTimeline
-                      data={data}
-                      xField="date_process"
-                      yField="cd_att"
-                      y2Field="duration_subseq_process_step"
-                      colorField="bias"
-                      shapeField="fake_property1"
-                      width={width}
-                      height={400}
-                      margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
-                      processType={processType}
-                      productType={productType}
-                      spcMonitorName={spcMonitor}
-                    />
-                  )}
-                </ResponsiveChartWrapper>
-              </div>
+              <SPCChartWrapper
+                title="CD ATT vs Date"
+                tabs={[
+                  {
+                    id: 'timeline',
+                    label: 'Timeline',
+                    content: (
+                      <ResponsiveChartWrapper>
+                        {(width) => (
+                          <SPCTimeline
+                            data={data}
+                            xField="date_process"
+                            yField="cd_att"
+                            y2Field="duration_subseq_process_step"
+                            colorField="bias"
+                            shapeField="fake_property1"
+                            width={width}
+                            height={400}
+                            margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
+                            processType={processType}
+                            productType={productType}
+                            spcMonitorName={spcMonitor}
+                          />
+                        )}
+                      </ResponsiveChartWrapper>
+                    )
+                  },
+                  {
+                    id: 'variability',
+                    label: 'Variability',
+                    content: <VariabilityChartPlaceholder />
+                  }
+                ]}
+              />
 
               {/* CD X/Y vs Date */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="text-lg font-medium mb-3 text-center text-black">CD X-Y vs Date</h4>
-                <ResponsiveChartWrapper>
-                  {(width) => (
-                    <SPCTimeline
-                      data={data}
-                      xField="date_process"
-                      yField="cd_x_y"
-                      colorField="bias_x_y"
-                      width={width}
-                      height={400}
-                      margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
-                      processType={processType}
-                      productType={productType}
-                      spcMonitorName={spcMonitor}
-                    />
-                  )}
-                </ResponsiveChartWrapper>
-              </div>
+              <SPCChartWrapper
+                title="CD X-Y vs Date"
+                tabs={[
+                  {
+                    id: 'timeline',
+                    label: 'Timeline',
+                    content: (
+                      <ResponsiveChartWrapper>
+                        {(width) => (
+                          <SPCTimeline
+                            data={data}
+                            xField="date_process"
+                            yField="cd_x_y"
+                            colorField="bias_x_y"
+                            width={width}
+                            height={400}
+                            margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
+                            processType={processType}
+                            productType={productType}
+                            spcMonitorName={spcMonitor}
+                          />
+                        )}
+                      </ResponsiveChartWrapper>
+                    )
+                  },
+                  {
+                    id: 'variability',
+                    label: 'Variability',
+                    content: <VariabilityChartPlaceholder />
+                  }
+                ]}
+              />
 
               {/* CD 6-Sigma vs Date */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="text-lg font-medium mb-3 text-center text-black">CD 6-Sigma vs Date</h4>
-                <ResponsiveChartWrapper>
-                  {(width) => (
-                    <SPCTimeline
-                      data={data}
-                      xField="date_process"
-                      yField="cd_6sig"
-                      width={width}
-                      height={400}
-                      margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
-                      processType={processType}
-                      productType={productType}
-                      spcMonitorName={spcMonitor}
-                    />
-                  )}
-                </ResponsiveChartWrapper>
-              </div>
+              <SPCChartWrapper
+                title="CD 6-Sigma vs Date"
+                tabs={[
+                  {
+                    id: 'timeline',
+                    label: 'Timeline',
+                    content: (
+                      <ResponsiveChartWrapper>
+                        {(width) => (
+                          <SPCTimeline
+                            data={data}
+                            xField="date_process"
+                            yField="cd_6sig"
+                            width={width}
+                            height={400}
+                            margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
+                            processType={processType}
+                            productType={productType}
+                            spcMonitorName={spcMonitor}
+                          />
+                        )}
+                      </ResponsiveChartWrapper>
+                    )
+                  },
+                  {
+                    id: 'variability',
+                    label: 'Variability',
+                    content: <VariabilityChartPlaceholder />
+                  }
+                ]}
+              />
             </div>
           </div>
         )}
