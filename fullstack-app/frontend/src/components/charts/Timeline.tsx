@@ -50,7 +50,7 @@ export default function Timeline<T extends Record<string, any>>({
   lineGroupField,
   width = 800,
   height = 500,
-  margin = { top: 60, right: 200, bottom: 60, left: 70 },
+  margin = { top: 60, right: 240, bottom: 60, left: 70 },
   renderOverlays,
   tooltipMetadata,
 }: TimelineProps<T>) {

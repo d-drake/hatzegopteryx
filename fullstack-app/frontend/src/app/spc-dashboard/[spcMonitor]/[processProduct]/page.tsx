@@ -6,6 +6,7 @@ import SPCTimeline from '@/components/spc-dashboard/SPCTimeline';
 import FilterControls, { FilterState } from '@/components/spc-dashboard/FilterControls';
 import SPCTabs from '@/components/spc-dashboard/SPCTabs';
 import AppTabs from '@/components/AppTabs';
+import ResponsiveChartWrapper from '@/components/charts/ResponsiveChartWrapper';
 import { fetchCDData, CDDataItem } from '@/services/cdDataService';
 
 function SPCDashboardContent() {
@@ -199,53 +200,65 @@ function SPCDashboardContent() {
               {/* CD ATT vs Date */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <h4 className="text-lg font-medium mb-3 text-center text-black">CD ATT vs Date</h4>
-                <SPCTimeline
-                  data={data}
-                  xField="date_process"
-                  yField="cd_att"
-                  y2Field="duration_subseq_process_step"
-                  colorField="bias"
-                  shapeField="fake_property1"
-                  width={800}
-                  height={400}
-                  margin={{ top: 60, right: 200, bottom: 60, left: 70 }}
-                  processType={processType}
-                  productType={productType}
-                  spcMonitorName={spcMonitor}
-                />
+                <ResponsiveChartWrapper>
+                  {(width) => (
+                    <SPCTimeline
+                      data={data}
+                      xField="date_process"
+                      yField="cd_att"
+                      y2Field="duration_subseq_process_step"
+                      colorField="bias"
+                      shapeField="fake_property1"
+                      width={width}
+                      height={400}
+                      margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
+                      processType={processType}
+                      productType={productType}
+                      spcMonitorName={spcMonitor}
+                    />
+                  )}
+                </ResponsiveChartWrapper>
               </div>
 
               {/* CD X/Y vs Date */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <h4 className="text-lg font-medium mb-3 text-center text-black">CD X-Y vs Date</h4>
-                <SPCTimeline
-                  data={data}
-                  xField="date_process"
-                  yField="cd_x_y"
-                  colorField="bias_x_y"
-                  width={800}
-                  height={400}
-                  margin={{ top: 60, right: 200, bottom: 60, left: 70 }}
-                  processType={processType}
-                  productType={productType}
-                  spcMonitorName={spcMonitor}
-                />
+                <ResponsiveChartWrapper>
+                  {(width) => (
+                    <SPCTimeline
+                      data={data}
+                      xField="date_process"
+                      yField="cd_x_y"
+                      colorField="bias_x_y"
+                      width={width}
+                      height={400}
+                      margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
+                      processType={processType}
+                      productType={productType}
+                      spcMonitorName={spcMonitor}
+                    />
+                  )}
+                </ResponsiveChartWrapper>
               </div>
 
               {/* CD 6-Sigma vs Date */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <h4 className="text-lg font-medium mb-3 text-center text-black">CD 6-Sigma vs Date</h4>
-                <SPCTimeline
-                  data={data}
-                  xField="date_process"
-                  yField="cd_6sig"
-                  width={800}
-                  height={400}
-                  margin={{ top: 60, right: 200, bottom: 60, left: 70 }}
-                  processType={processType}
-                  productType={productType}
-                  spcMonitorName={spcMonitor}
-                />
+                <ResponsiveChartWrapper>
+                  {(width) => (
+                    <SPCTimeline
+                      data={data}
+                      xField="date_process"
+                      yField="cd_6sig"
+                      width={width}
+                      height={400}
+                      margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
+                      processType={processType}
+                      productType={productType}
+                      spcMonitorName={spcMonitor}
+                    />
+                  )}
+                </ResponsiveChartWrapper>
               </div>
             </div>
           </div>
