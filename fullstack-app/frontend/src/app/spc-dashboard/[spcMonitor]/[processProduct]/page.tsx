@@ -3,10 +3,85 @@
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import SPCTimeline from '@/components/spc-dashboard/SPCTimeline';
+import SPCVariabilityChart from '@/components/spc-dashboard/SPCVariabilityChart';
+import SPCChartLayout from '@/components/spc-dashboard/SPCChartLayout';
 import FilterControls, { FilterState } from '@/components/spc-dashboard/FilterControls';
 import SPCTabs from '@/components/spc-dashboard/SPCTabs';
 import AppTabs from '@/components/AppTabs';
 import { fetchCDData, CDDataItem } from '@/services/cdDataService';
+import { useSharedYScale } from '@/hooks/useSharedYScale';
+
+interface CDAnalysisSectionProps {
+  data: CDDataItem[];
+  yField: 'cd_att' | 'cd_x_y' | 'cd_6sig';
+  title: string;
+  y2Field?: keyof CDDataItem;
+  colorField?: keyof CDDataItem;
+  shapeField?: keyof CDDataItem;
+  processType: string;
+  productType: string;
+  spcMonitorName: string;
+  filters: FilterState;
+}
+
+function CDAnalysisSection({
+  data,
+  yField,
+  title,
+  y2Field,
+  colorField,
+  shapeField,
+  processType,
+  productType,
+  spcMonitorName,
+  filters,
+}: CDAnalysisSectionProps) {
+  // Convert filter dates to Date objects for variability chart
+  const startDate = filters.startDate ? new Date(filters.startDate) : undefined;
+  const endDate = filters.endDate ? new Date(filters.endDate) : undefined;
+
+  // Create shared Y-axis scale between Timeline and Variability charts
+  const sharedYScale = useSharedYScale(data, data, yField, 450);
+
+  // Create Timeline component with shared Y scale
+  const timelineComponent = (
+    <SPCTimeline
+      data={data}
+      xField="date_process"
+      yField={yField}
+      y2Field={y2Field}
+      colorField={colorField}
+      shapeField={shapeField}
+      yScale={sharedYScale}
+      processType={processType}
+      productType={productType}
+      spcMonitorName={spcMonitorName}
+    />
+  );
+
+  // Create Variability component with shared scale and date filtering
+  const variabilityComponent = (
+    <SPCVariabilityChart
+      data={data}
+      yField={yField}
+      startDate={startDate}
+      endDate={endDate}
+      yScale={sharedYScale}
+      width={400}
+      height={450}
+    />
+  );
+
+  return (
+    <div>
+      <h4 className="text-lg font-medium mb-4 text-center text-black">{title}</h4>
+      <SPCChartLayout
+        timelineComponent={timelineComponent}
+        variabilityComponent={variabilityComponent}
+      />
+    </div>
+  );
+}
 
 function SPCDashboardContent() {
   const router = useRouter();
@@ -196,57 +271,42 @@ function SPCDashboardContent() {
           <div className="mt-8">
             <h3 className="text-xl font-semibold mb-6">CD Measurement Analysis</h3>
             <div className="space-y-8">
-              {/* CD ATT vs Date */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="text-lg font-medium mb-3 text-center text-black">CD ATT vs Date</h4>
-                <SPCTimeline
-                  data={data}
-                  xField="date_process"
-                  yField="cd_att"
-                  y2Field="duration_subseq_process_step"
-                  colorField="bias"
-                  shapeField="fake_property1"
-                  width={800}
-                  height={400}
-                  margin={{ top: 60, right: 200, bottom: 60, left: 70 }}
-                  processType={processType}
-                  productType={productType}
-                  spcMonitorName={spcMonitor}
-                />
-              </div>
+              {/* CD ATT Analysis */}
+              <CDAnalysisSection
+                data={data}
+                yField="cd_att"
+                title="CD ATT Analysis"
+                y2Field="duration_subseq_process_step"
+                colorField="bias"
+                shapeField="fake_property1"
+                processType={processType}
+                productType={productType}
+                spcMonitorName={spcMonitor}
+                filters={filters}
+              />
 
-              {/* CD X/Y vs Date */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="text-lg font-medium mb-3 text-center text-black">CD X-Y vs Date</h4>
-                <SPCTimeline
-                  data={data}
-                  xField="date_process"
-                  yField="cd_x_y"
-                  colorField="bias_x_y"
-                  width={800}
-                  height={400}
-                  margin={{ top: 60, right: 200, bottom: 60, left: 70 }}
-                  processType={processType}
-                  productType={productType}
-                  spcMonitorName={spcMonitor}
-                />
-              </div>
+              {/* CD X/Y Analysis */}
+              <CDAnalysisSection
+                data={data}
+                yField="cd_x_y"
+                title="CD X-Y Analysis"
+                colorField="bias_x_y"
+                processType={processType}
+                productType={productType}
+                spcMonitorName={spcMonitor}
+                filters={filters}
+              />
 
-              {/* CD 6-Sigma vs Date */}
-              <div className="bg-white p-4 rounded-lg shadow">
-                <h4 className="text-lg font-medium mb-3 text-center text-black">CD 6-Sigma vs Date</h4>
-                <SPCTimeline
-                  data={data}
-                  xField="date_process"
-                  yField="cd_6sig"
-                  width={800}
-                  height={400}
-                  margin={{ top: 60, right: 200, bottom: 60, left: 70 }}
-                  processType={processType}
-                  productType={productType}
-                  spcMonitorName={spcMonitor}
-                />
-              </div>
+              {/* CD 6-Sigma Analysis */}
+              <CDAnalysisSection
+                data={data}
+                yField="cd_6sig"
+                title="CD 6-Sigma Analysis"
+                processType={processType}
+                productType={productType}
+                spcMonitorName={spcMonitor}
+                filters={filters}
+              />
             </div>
           </div>
         )}

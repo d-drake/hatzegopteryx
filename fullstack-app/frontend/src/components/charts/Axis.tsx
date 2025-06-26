@@ -27,6 +27,10 @@ export default function Axis({
   useEffect(() => {
     if (!axisRef.current) return;
 
+    const axisGroup = d3.select(axisRef.current);
+    // Clear previous content to avoid duplicating elements
+    axisGroup.selectAll('*').remove();
+
     const axisGenerator = {
       bottom: d3.axisBottom,
       left: d3.axisLeft,
@@ -63,7 +67,6 @@ export default function Axis({
       }
     }
 
-    const axisGroup = d3.select(axisRef.current);
     axisGroup.call(axis);
 
     if (gridLines) {

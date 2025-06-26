@@ -27,6 +27,7 @@ interface TimelineProps<T extends Record<string, any>> {
   colorField?: keyof T;
   shapeField?: keyof T;
   lineGroupField?: keyof T;
+  yScale?: any; // Optional shared Y-axis scale
   width?: number;
   height?: number;
   margin?: { top: number; right: number; bottom: number; left: number };
@@ -37,6 +38,7 @@ interface TimelineProps<T extends Record<string, any>> {
     clipPathId?: string;
   }) => React.ReactNode;
   tooltipMetadata?: Record<string, any>; // Additional metadata for tooltips
+  isNarrowViewport?: boolean; // For responsive legend positioning
 }
 
 
@@ -48,11 +50,13 @@ export default function Timeline<T extends Record<string, any>>({
   colorField = 'entity',
   shapeField,
   lineGroupField,
+  yScale: providedYScale,
   width = 800,
   height = 500,
   margin = { top: 60, right: 200, bottom: 60, left: 70 },
   renderOverlays,
   tooltipMetadata,
+  isNarrowViewport = false,
 }: TimelineProps<T>) {
   // Chart rendering with data validation
   if (!data || data.length === 0) {
@@ -122,10 +126,12 @@ export default function Timeline<T extends Record<string, any>>({
     return createLinearScale(currentXExtent as [number, number], [0, innerWidth]);
   }, [data, xField, innerWidth, currentXExtent]);
 
-  const yScale = useMemo(
-    () => createLinearScale(currentYExtent as [number, number], [innerHeight, 0]),
-    [currentYExtent, innerHeight]
-  );
+  const yScale = useMemo(() => {
+    if (providedYScale) {
+      return providedYScale;
+    }
+    return createLinearScale(currentYExtent as [number, number], [innerHeight, 0]);
+  }, [providedYScale, currentYExtent, innerHeight]);
 
   // Secondary Y-axis scale (positioned on the right)
   const y2Scale = useMemo(
@@ -305,7 +311,7 @@ export default function Timeline<T extends Record<string, any>>({
           }
 
           // Apply zoom limits
-          const limitedDomain = applyZoomLimits(newDomain, originalXExtent);
+          const limitedDomain = applyZoomLimits(newDomain, originalXExtent as [any, any]);
           if (limitedDomain) {
             setXDomain(limitedDomain);
           }
@@ -321,7 +327,7 @@ export default function Timeline<T extends Record<string, any>>({
           const newDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
           
           // Apply zoom limits
-          const limitedDomain = applyZoomLimits(newDomain, originalYExtent);
+          const limitedDomain = applyZoomLimits(newDomain, originalYExtent as [any, any]);
           if (limitedDomain) {
             setYDomain(limitedDomain);
           }
@@ -493,6 +499,20 @@ export default function Timeline<T extends Record<string, any>>({
   // Check if any legend items are selected
   const hasSelections = selectedColorItems.size > 0 || selectedShapeItems.size > 0;
 
+  // Calculate responsive legend position based on viewport width
+  const getResponsiveLegendPosition = (hasY2Axis: boolean) => {
+    if (isNarrowViewport) {
+      // Move legend below chart to prevent overflow at narrow widths
+      return { x: 20, y: innerHeight + 40 };
+    } else {
+      // Standard right position for wider viewports
+      return { x: innerWidth + (hasY2Axis ? 85 : 20), y: 0 };
+    }
+  };
+
+  const legendPosition = getResponsiveLegendPosition(!!y2Field);
+  const legendSpacing = isNarrowViewport ? 10 : 20; // Tighter spacing on narrow viewports
+
   return (
     <div
       style={{ position: 'relative' }}
@@ -526,7 +546,7 @@ export default function Timeline<T extends Record<string, any>>({
             scale={yScale}
             orientation="left"
             label={formatFieldName(String(yField))}
-            labelOffset={{ x: -innerHeight / 2, y: -50 }}
+            labelOffset={{ x: -innerHeight / 2, y: -(margin.left - 15) }}
           />
 
           {/* Secondary Y-axis (right side) */}
@@ -536,7 +556,7 @@ export default function Timeline<T extends Record<string, any>>({
               orientation="right"
               transform={`translate(${innerWidth},0)`}
               label={formatFieldName(String(y2Field))}
-              labelOffset={{ x: -innerHeight / 2, y: 60 }}
+              labelOffset={{ x: -innerHeight / 2, y: margin.right > 150 ? 60 : 40 }}
             />
           )}
 
@@ -600,10 +620,10 @@ export default function Timeline<T extends Record<string, any>>({
             clipPathId
           })}
 
-          {/* Reset button aligned with middle of ZoomControls */}
+          {/* Reset button - responsive positioning */}
           {hasSelections && (
             <g
-              transform={`translate(${innerWidth + (y2Field ? 85 : 20)}, -40)`}
+              transform={`translate(${legendPosition.x}, ${legendPosition.y - 40})`}
               onClick={resetLegendSelections}
               style={{ cursor: 'pointer' }}
             >
@@ -637,12 +657,12 @@ export default function Timeline<T extends Record<string, any>>({
             </g>
           )}
 
-          {/* Legends - adjust position when secondary Y-axis is present */}
+          {/* Legends - responsive positioning based on viewport width */}
           <Legend
             title={formatFieldName(String(colorField))}
             items={colorLegendItems}
-            x={innerWidth + (y2Field ? 85 : 20)}
-            y={0}
+            x={legendPosition.x}
+            y={legendPosition.y}
             selectedItems={selectedColorItems}
             onItemClick={handleColorLegendClick}
             hasOtherSelections={selectedShapeItems.size > 0}
@@ -652,8 +672,8 @@ export default function Timeline<T extends Record<string, any>>({
             <Legend
               title={formatFieldName(String(shapeField!))}
               items={shapeLegendItems}
-              x={innerWidth + (y2Field ? 85 : 20)}
-              y={20 + colorLegendItems.length * 20}
+              x={legendPosition.x}
+              y={legendPosition.y + legendSpacing + colorLegendItems.length * legendSpacing}
               selectedItems={selectedShapeItems}
               onItemClick={handleShapeLegendClick}
               hasOtherSelections={selectedColorItems.size > 0}
@@ -681,8 +701,8 @@ export default function Timeline<T extends Record<string, any>>({
             style={{ cursor: 'ns-resize' }}
           />
 
-          {/* Secondary Y-axis zoom area (right side) - extended to legend panels */}
-          {y2Field && (
+          {/* Secondary Y-axis zoom area (right side) - responsive width */}
+          {y2Field && !isNarrowViewport && (
             <rect
               x={innerWidth}
               y={0}
