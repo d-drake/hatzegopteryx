@@ -218,7 +218,7 @@ function SPCDashboardContent() {
                             shapeField="fake_property1"
                             width={width}
                             height={400}
-                            margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
+                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
                             processType={processType}
                             productType={productType}
                             spcMonitorName={spcMonitor}
@@ -252,7 +252,7 @@ function SPCDashboardContent() {
                             colorField="bias_x_y"
                             width={width}
                             height={400}
-                            margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
+                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
                             processType={processType}
                             productType={productType}
                             spcMonitorName={spcMonitor}
@@ -285,7 +285,7 @@ function SPCDashboardContent() {
                             yField="cd_6sig"
                             width={width}
                             height={400}
-                            margin={{ top: 60, right: 240, bottom: 60, left: 70 }}
+                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
                             processType={processType}
                             productType={productType}
                             spcMonitorName={spcMonitor}
