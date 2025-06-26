@@ -44,12 +44,12 @@ export default function SPCChartWrapper({
   return (
     <div className="bg-white rounded-lg shadow">
       {/* Title Section - above everything */}
-      <div className="px-4 pt-4 pb-2">
+      <div className="px-4 pt-4 pb-1">
         <h4 className="text-lg font-medium text-center text-black">{title}</h4>
       </div>
       
       {/* Tabs Section */}
-      <div className="px-4 pb-2">
+      <div className="px-4 pb-0">
         <div className="flex border-b border-gray-200">
           {tabs.map((tab) => (
             <button
@@ -71,7 +71,7 @@ export default function SPCChartWrapper({
       </div>
       
       {/* Tab Content Area - contains the chart which has zoom controls */}
-      <div className="p-4">
+      <div className="p-4 pt-16">
         {tabs.find(tab => tab.id === activeTab)?.content || children}
       </div>
     </div>
