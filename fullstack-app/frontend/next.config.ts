@@ -24,8 +24,10 @@ export default withSentryConfig(nextConfig, {
   // Route browser requests to Sentry through a Next.js route to circumvent ad-blockers. (increases server load)
   tunnelRoute: '/monitoring',
 
-  // Hides source maps from generated client bundles
-  hideSourceMaps: true,
+  // Hides source maps from generated client bundles  
+  sourcemaps: {
+    disable: true
+  },
 
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
