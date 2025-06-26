@@ -22,7 +22,7 @@ jobs:
     - name: Build and push Backend
       uses: docker/build-push-action@v5
       with:
-        context: ./backend
+        context: ./fullstack-app/backend
         push: true
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/hatzegopteryx-backend:latest
@@ -31,7 +31,7 @@ jobs:
     - name: Build and push Frontend
       uses: docker/build-push-action@v5
       with:
-        context: ./frontend
+        context: ./fullstack-app/frontend
         push: true
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/hatzegopteryx-frontend:latest
