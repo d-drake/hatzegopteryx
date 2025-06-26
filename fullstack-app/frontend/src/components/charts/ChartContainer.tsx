@@ -16,7 +16,7 @@ const ChartContainer = forwardRef<SVGSVGElement, ChartContainerProps>(
     const innerHeight = height - margin.top - margin.bottom;
 
     return (
-      <svg ref={ref} width={width} height={height} onWheel={onWheel}>
+      <svg ref={ref} width={width} height={height} onWheel={onWheel} style={{ overflow: 'visible' }}>
         <g transform={`translate(${margin.left},${margin.top})`}>
           {children}
         </g>
