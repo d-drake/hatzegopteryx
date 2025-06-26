@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Timeline from '@/components/charts/Timeline';
+import ResponsiveTimeline from '@/components/charts/ResponsiveTimeline';
 import { CDDataItem, fetchSPCLimits, SPCLimit } from '@/services/cdDataService';
 import LimitLine from './LimitLine';
 
@@ -12,12 +12,12 @@ interface SPCTimelineProps {
   y2Field?: keyof CDDataItem; // Secondary Y-axis field
   colorField?: keyof CDDataItem;
   shapeField?: keyof CDDataItem;
-  width?: number;
-  height?: number;
-  margin?: { top: number; right: number; bottom: number; left: number };
+  yScale?: any; // Optional shared Y-axis scale
   processType?: string;
   productType?: string;
   spcMonitorName?: string;
+  minWidth?: number;
+  className?: string;
 }
 
 export default function SPCTimeline({
@@ -27,12 +27,12 @@ export default function SPCTimeline({
   y2Field,
   colorField = 'entity',
   shapeField,
-  width = 800,
-  height = 500,
-  margin = { top: 60, right: 200, bottom: 60, left: 70 },
+  yScale,
   processType,
   productType,
   spcMonitorName,
+  minWidth = 375,
+  className,
 }: SPCTimelineProps) {
   const [spcLimits, setSpcLimits] = useState<SPCLimit[]>([]);
   const [limitsLoading, setLimitsLoading] = useState(false);
@@ -93,7 +93,7 @@ export default function SPCTimeline({
   } : undefined;
 
   return (
-    <Timeline<CDDataItem>
+    <ResponsiveTimeline<CDDataItem>
       data={data}
       xField={xField}
       yField={yField}
@@ -101,10 +101,10 @@ export default function SPCTimeline({
       colorField={effectiveColorField}
       shapeField={effectiveShapeField}
       lineGroupField="entity"
-      width={width}
-      height={height}
-      margin={margin}
+      yScale={yScale}
       tooltipMetadata={tooltipMetadata}
+      minWidth={minWidth}
+      className={className}
       renderOverlays={(scales) => {
         // Only render SPC limits if metadata is available
         if (!processType || !productType || !spcMonitorName) {
