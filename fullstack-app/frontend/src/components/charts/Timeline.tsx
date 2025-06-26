@@ -19,6 +19,49 @@ import {
   getDateExtent,
 } from '@/lib/charts/scales';
 import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
+
+// Custom hook to prevent unnecessary scale recalculation for minor extent changes
+function useStableExtent(extent: [any, any], threshold: number = 0.001): [any, any] {
+  const stableExtentRef = useRef<[any, any]>(extent);
+  
+  return useMemo(() => {
+    if (!stableExtentRef.current) {
+      stableExtentRef.current = extent;
+      return extent;
+    }
+
+    // For date extents, compare timestamps
+    if (extent[0] instanceof Date && extent[1] instanceof Date) {
+      const currentRange = extent[1].getTime() - extent[0].getTime();
+      const stableRange = stableExtentRef.current[1].getTime() - stableExtentRef.current[0].getTime();
+      const percentChange = Math.abs(currentRange - stableRange) / stableRange;
+      
+      if (percentChange > threshold) {
+        stableExtentRef.current = extent;
+        return extent;
+      }
+      return stableExtentRef.current;
+    }
+    
+    // For numeric extents
+    if (typeof extent[0] === 'number' && typeof extent[1] === 'number') {
+      const currentRange = extent[1] - extent[0];
+      const stableRange = (stableExtentRef.current[1] as number) - (stableExtentRef.current[0] as number);
+      const percentChange = Math.abs(currentRange - stableRange) / Math.abs(stableRange);
+      
+      if (percentChange > threshold) {
+        stableExtentRef.current = extent;
+        return extent;
+      }
+      return stableExtentRef.current;
+    }
+    
+    // Fallback for other types
+    stableExtentRef.current = extent;
+    return extent;
+  }, [extent, threshold]);
+}
+
 interface TimelineProps<T extends Record<string, any>> {
   data: T[];
   xField: keyof T;
@@ -105,9 +148,10 @@ export default function Timeline<T extends Record<string, any>>({
   }, [data, y2Field]);
 
   // Use zoomed domains if available, otherwise use original extents
-  const currentXExtent = xDomain || originalXExtent;
-  const currentYExtent = yDomain || originalYExtent;
-  const currentY2Extent = y2Domain || originalY2Extent;
+  // Apply stable extent to prevent unnecessary scale recalculation
+  const currentXExtent = useStableExtent((xDomain || originalXExtent) as [any, any]);
+  const currentYExtent = useStableExtent((yDomain || originalYExtent) as [any, any]);
+  const currentY2Extent = useStableExtent((y2Domain || originalY2Extent) as [any, any]);
 
   // Create scales - axes connect at origin, data maintains 30px margins
   const xScale = useMemo(() => {
@@ -398,7 +442,7 @@ export default function Timeline<T extends Record<string, any>>({
       container.removeEventListener('wheel', handleWheel);
       container.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, chartId, height, y2Field, width, data]);
+  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin.top, margin.left, height, y2Field, clipPathId, data]);
 
   // Early return for empty data with basic chart structure
   if (!data || data.length === 0) {
