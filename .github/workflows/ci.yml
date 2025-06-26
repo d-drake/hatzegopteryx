@@ -67,7 +67,7 @@ jobs:
     
     - name: Run tests
       working-directory: ./fullstack-app/frontend
-      run: npm test -- --watchAll=false
+      run: npm run test:unit -- --watchAll=false
     
     - name: Build
       working-directory: ./fullstack-app/frontend
