@@ -84,17 +84,19 @@ jobs:
       uses: docker/setup-buildx-action@v3
     
     - name: Build Docker images
+      working-directory: ./fullstack-app
       run: |
         docker compose build
     
     - name: Test Docker compose  
       timeout-minutes: 10
+      working-directory: ./fullstack-app
       run: |
         echo "=== Testing Docker Compose Build and Basic Startup ==="
         
         # Create minimal environment file for CI
         echo "Creating CI environment..."
-        cat > fullstack-app/.env << EOF
+        cat > .env << EOF
         POSTGRES_USER=testuser
         POSTGRES_PASSWORD=testpass
         POSTGRES_DB=testdb
