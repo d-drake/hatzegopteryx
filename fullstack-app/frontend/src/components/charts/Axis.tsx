@@ -28,8 +28,12 @@ export default function Axis({
     if (!axisRef.current) return;
 
     const axisGroup = d3.select(axisRef.current);
-    // Clear previous content to avoid duplicating elements
-    axisGroup.selectAll('*').remove();
+    
+    // Enhanced cleanup: Remove all child elements and clear any pending animations
+    axisGroup.selectAll('*').interrupt().remove();
+    
+    // Clear any additional D3 data bindings that might persist
+    axisGroup.datum(null);
 
     const axisGenerator = {
       bottom: d3.axisBottom,
@@ -101,6 +105,15 @@ export default function Axis({
         .style('font-size', '14px')
         .text(label);
     }
+
+    // Cleanup function to prevent memory leaks and race conditions
+    return () => {
+      if (axisRef.current) {
+        const axisGroup = d3.select(axisRef.current);
+        axisGroup.selectAll('*').interrupt().remove();
+        axisGroup.datum(null);
+      }
+    };
   }, [scale, gridLines, gridLineLength, label, labelOffset.x, labelOffset.y, orientation]);
 
   const getCssClass = () => {
