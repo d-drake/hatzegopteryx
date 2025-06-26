@@ -48,7 +48,7 @@ export default function SPCChartWrapper({
         <h4 className="text-lg font-medium text-center text-black">{title}</h4>
       </div>
       
-      {/* Tabs Section - where zoom controls used to be */}
+      {/* Tabs Section */}
       <div className="px-4 pb-2">
         <div className="flex border-b border-gray-200">
           {tabs.map((tab) => (
@@ -70,13 +70,8 @@ export default function SPCChartWrapper({
         </div>
       </div>
       
-      {/* Zoom Controls Area - between tabs and chart */}
-      <div className="px-4 pt-2 pb-4" style={{ position: 'relative', minHeight: '60px' }}>
-        {/* Zoom controls will be positioned here via absolute positioning from chart */}
-      </div>
-      
-      {/* Tab Content Area */}
-      <div className="p-4 pt-0">
+      {/* Tab Content Area - contains the chart which has zoom controls */}
+      <div className="p-4">
         {tabs.find(tab => tab.id === activeTab)?.content || children}
       </div>
     </div>
