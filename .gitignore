@@ -80,6 +80,5 @@ screenshots/
 tokens/
 *.tk
 
-# Plans and issues (development only)
+# plans (development only)
 plans/
-issues/
