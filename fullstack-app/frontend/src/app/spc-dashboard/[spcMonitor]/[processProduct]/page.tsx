@@ -8,7 +8,7 @@ import SPCTabs from '@/components/spc-dashboard/SPCTabs';
 import AppTabs from '@/components/AppTabs';
 import ResponsiveChartWrapper from '@/components/charts/ResponsiveChartWrapper';
 import SPCChartWrapper from '@/components/spc-dashboard/SPCChartWrapper';
-import VariabilityChartPlaceholder from '@/components/spc-dashboard/VariabilityChartPlaceholder';
+import { SPCVariabilityChart } from '@/components/spc-dashboard/SPCVariabilityChart';
 import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
 import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
 
@@ -125,7 +125,19 @@ function SPCDashboardInner() {
                   {
                     id: 'variability',
                     label: 'Variability',
-                    content: <VariabilityChartPlaceholder />
+                    content: (
+                      <ResponsiveChartWrapper>
+                        {(width) => (
+                          <SPCVariabilityChart
+                            data={data}
+                            chartMeasurement="cd_att"
+                            width={width}
+                            height={400}
+                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
+                          />
+                        )}
+                      </ResponsiveChartWrapper>
+                    )
                   }
                 ]}
               />
@@ -159,7 +171,19 @@ function SPCDashboardInner() {
                   {
                     id: 'variability',
                     label: 'Variability',
-                    content: <VariabilityChartPlaceholder />
+                    content: (
+                      <ResponsiveChartWrapper>
+                        {(width) => (
+                          <SPCVariabilityChart
+                            data={data}
+                            chartMeasurement="cd_x_y"
+                            width={width}
+                            height={400}
+                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
+                          />
+                        )}
+                      </ResponsiveChartWrapper>
+                    )
                   }
                 ]}
               />
@@ -192,7 +216,19 @@ function SPCDashboardInner() {
                   {
                     id: 'variability',
                     label: 'Variability',
-                    content: <VariabilityChartPlaceholder />
+                    content: (
+                      <ResponsiveChartWrapper>
+                        {(width) => (
+                          <SPCVariabilityChart
+                            data={data}
+                            chartMeasurement="cd_6sig"
+                            width={width}
+                            height={400}
+                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
+                          />
+                        )}
+                      </ResponsiveChartWrapper>
+                    )
                   }
                 ]}
               />

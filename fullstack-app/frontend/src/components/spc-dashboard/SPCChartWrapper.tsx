@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, cloneElement, ReactElement, isValidElement } from 'react';
+import * as d3 from 'd3';
 
 interface TabConfig {
   id: string;
@@ -22,6 +23,11 @@ export default function SPCChartWrapper({
   children
 }: SPCChartWrapperProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
+  const [sharedYScale, setSharedYScale] = useState<d3.ScaleLinear<number, number> | null>(null);
+  
+  const handleYScaleChange = useCallback((scale: d3.ScaleLinear<number, number>) => {
+    setSharedYScale(scale.copy());
+  }, []);
 
   // If no tabs provided, just render children with improved layout
   if (!tabs) {
@@ -72,7 +78,35 @@ export default function SPCChartWrapper({
       
       {/* Tab Content Area - contains the chart which has zoom controls */}
       <div className="p-4 pt-16">
-        {tabs.find(tab => tab.id === activeTab)?.content || children}
+        {tabs.map((tab) => {
+          if (tab.id !== activeTab) return null;
+          
+          // Inject yScale and onYScaleChange props if the content is a ReactElement
+          const content = tab.content;
+          if (isValidElement(content)) {
+            // Check if it's a ResponsiveChartWrapper by looking for a render prop pattern
+            const contentProps = content.props as any;
+            if (contentProps.children && typeof contentProps.children === 'function') {
+              // Clone the wrapper and modify its children function
+              return cloneElement(content, {
+                key: tab.id,
+                children: (width: number) => {
+                  const child = contentProps.children(width);
+                  if (isValidElement(child)) {
+                    // Inject the scale props into the chart component
+                    return cloneElement(child, {
+                      yScale: sharedYScale,
+                      onYScaleChange: handleYScaleChange,
+                    } as any);
+                  }
+                  return child;
+                }
+              } as any);
+            }
+          }
+          
+          return <div key={tab.id}>{content}</div>;
+        })}
       </div>
     </div>
   );
