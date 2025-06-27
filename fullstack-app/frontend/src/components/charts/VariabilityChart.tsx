@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import * as d3 from 'd3';
 import Axis from './Axis';
+import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
 
 interface DataPoint {
   [key: string]: any;
@@ -71,6 +72,7 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [hoveredData, setHoveredData] = useState<any>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
+  const [yDomain, setYDomain] = useState<[number, number] | null>(null);
 
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
@@ -127,61 +129,89 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
       .padding(0.2);
   }, [boxPlotData, chartWidth]);
 
+  // Get original Y extent
+  const originalYExtent = useMemo(() => {
+    const allValues = boxPlotData.flatMap(d => d.values);
+    if (allValues.length === 0) {
+      return [0, 1] as [number, number];
+    }
+    const extent = d3.extent(allValues) as [number, number];
+    const padding = (extent[1] - extent[0]) * 0.1;
+    return [extent[0] - padding, extent[1] + padding] as [number, number];
+  }, [boxPlotData]);
+
+  // Use zoomed domain if available, otherwise use original extent
+  const currentYExtent = yDomain || originalYExtent;
+
   const yScale = useMemo(() => {
     if (externalYScale) {
       return externalYScale.copy().range([chartHeight, 0]);
     }
-
-    const allValues = boxPlotData.flatMap(d => d.values);
-    if (allValues.length === 0) {
-      return d3.scaleLinear().domain([0, 1]).range([chartHeight, 0]);
-    }
-
-    const extent = d3.extent(allValues) as [number, number];
-    const padding = (extent[1] - extent[0]) * 0.1;
     
     return d3.scaleLinear()
-      .domain([extent[0] - padding, extent[1] + padding])
+      .domain(currentYExtent)
       .range([chartHeight, 0])
       .nice();
-  }, [boxPlotData, chartHeight, externalYScale]);
+  }, [currentYExtent, chartHeight, externalYScale]);
 
-  // Handle Y-axis zoom
+  // Notify parent of initial scale creation
   useEffect(() => {
-    if (!svgRef.current || !onYScaleChange) return;
+    if (!externalYScale && onYScaleChange && yScale) {
+      onYScaleChange(yScale);
+    }
+  }, [yScale, externalYScale, onYScaleChange]);
 
-    // Add a timeout to ensure the axis is rendered
-    const timeoutId = setTimeout(() => {
-      const svg = d3.select(svgRef.current);
-      const yAxisGroup = svg.select('.axis.axis-left');
+  // Handle Y-axis zoom with event listener
+  useEffect(() => {
+    const container = svgRef.current?.parentElement;
+    if (!container) return;
 
-      const handleWheel = (event: WheelEvent) => {
+    const handleWheel = (event: WheelEvent) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+
+      const rect = svg.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+
+      // Check if mouse is over y-axis area (to the left of the chart, in the margin area)
+      const isOverYAxis = mouseX >= 0 && mouseX <= margin.left &&
+        mouseY >= margin.top && mouseY <= margin.top + chartHeight;
+
+      if (isOverYAxis) {
         event.preventDefault();
-        
-        const scaleFactor = event.deltaY > 0 ? 1.1 : 0.9;
-        const currentDomain = yScale.domain();
-        const center = (currentDomain[0] + currentDomain[1]) / 2;
-        const newExtent = (currentDomain[1] - currentDomain[0]) * scaleFactor / 2;
-        
-        const newDomain: [number, number] = [center - newExtent, center + newExtent];
-        yScale.domain(newDomain);
-        
-        if (onYScaleChange) {
-          onYScaleChange(yScale);
-        }
-      };
+        event.stopPropagation();
 
-      const yAxisNode = yAxisGroup.node() as SVGGElement | null;
-      if (yAxisNode) {
-        yAxisNode.addEventListener('wheel', handleWheel, { passive: false });
-        yAxisNode.style.cursor = 'ns-resize';
+        const zoomFactor = 1.2;
+        const zoomIn = event.deltaY < 0;
+        const scale = zoomIn ? zoomFactor : 1 / zoomFactor;
+
+        // Zoom Y-axis by updating the domain state
+        const [min, max] = currentYExtent;
+        const range = max - min;
+        const center = min + range * 0.5;
+        const newRange = range / scale;
+
+        setYDomain([center - newRange * 0.5, center + newRange * 0.5]);
+        
+        // Notify parent component of scale change
+        if (onYScaleChange) {
+          const newScale = d3.scaleLinear()
+            .domain([center - newRange * 0.5, center + newRange * 0.5])
+            .range([chartHeight, 0])
+            .nice();
+          onYScaleChange(newScale);
+        }
       }
-    }, 100);
+    };
+
+    // Add non-passive event listener
+    container.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
-      clearTimeout(timeoutId);
+      container.removeEventListener('wheel', handleWheel);
     };
-  }, [yScale, onYScaleChange]);
+  }, [currentYExtent, chartHeight, margin, onYScaleChange]);
 
   // Render D3 elements
   useEffect(() => {
@@ -381,15 +411,25 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
             scale={yScale}
             orientation="left"
             transform={`translate(0,0)`}
-            label="Value"
-            labelOffset={{ x: -50, y: chartHeight / 2 }}
+            label={formatFieldName(valueColumn)}
+            labelOffset={{ x: -chartHeight / 2, y: -50 }}
           />
           <Axis
             scale={xScale}
             orientation="bottom"
             transform={`translate(0,${chartHeight})`}
-            label="Category"
-            labelOffset={{ x: chartWidth / 2, y: 50 }}
+            label={formatFieldName(categoricalColumn)}
+            labelOffset={{ x: chartWidth / 2, y: 45 }}
+          />
+          
+          {/* Y-axis zoom area */}
+          <rect
+            x={-margin.left}
+            y={0}
+            width={margin.left}
+            height={chartHeight}
+            fill="transparent"
+            style={{ cursor: 'ns-resize' }}
           />
         </g>
       </svg>
@@ -427,3 +467,31 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
     </div>
   );
 };
+
+// Format field names for axis labels (matching Timeline implementation)
+function formatFieldName(field: string): string {
+  if (Object.keys(SpcCDUnits).includes(field as keyof typeof SpcCDUnits)) {
+    field = field + ` (${SpcCDUnits[field as keyof typeof SpcCDUnits]})`
+  }
+
+  field = field.replace(/_/g, ' ')
+  if (field.includes("x_y")) {
+    field = field.replace("x_y", "x-y")
+  }
+  // abbreviate long field names rendered on the Timeline
+  if (field.length > 15) {
+    field = field
+      .split(' ')
+      .map((word: string) => {
+        if (word.length <= 4) {
+          return word;
+        }
+        else {
+          return word.slice(0, 4) + '.';
+        }
+      })
+      .join(' ');
+
+  }
+  return field
+}
