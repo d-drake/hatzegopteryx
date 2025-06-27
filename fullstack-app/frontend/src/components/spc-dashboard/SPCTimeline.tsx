@@ -4,6 +4,7 @@ import Timeline from '@/components/charts/Timeline';
 import { CDDataItem, SPCLimit } from '@/services/cdDataService';
 import LimitLine from './LimitLine';
 import { useSPCLimits } from '@/contexts/SPCLimitsContext';
+import * as d3 from 'd3';
 
 interface SPCTimelineProps {
   data: CDDataItem[];
@@ -18,6 +19,9 @@ interface SPCTimelineProps {
   processType?: string;
   productType?: string;
   spcMonitorName?: string;
+  yScale?: d3.ScaleLinear<number, number>; // External Y scale for synchronization
+  onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Callback when Y scale changes
+  allData?: CDDataItem[]; // All data for scale calculation
 }
 
 export default function SPCTimeline({
@@ -33,6 +37,9 @@ export default function SPCTimeline({
   processType,
   productType,
   spcMonitorName,
+  yScale,
+  onYScaleChange,
+  allData,
 }: SPCTimelineProps) {
   // Use SPC limits from context instead of fetching independently
   const { getLimitsForChart, isLoading: limitsLoading } = useSPCLimits();
@@ -80,6 +87,9 @@ export default function SPCTimeline({
       height={height}
       margin={margin}
       tooltipMetadata={tooltipMetadata}
+      yScale={yScale}
+      onYScaleChange={onYScaleChange}
+      allData={allData}
       renderOverlays={(scales) => {
         // Only render SPC limits if metadata is available
         if (!processType || !productType || !spcMonitorName) {

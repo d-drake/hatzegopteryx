@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo, useState } from 'react';
+import React, { useEffect, useRef, useMemo, useState, useId } from 'react';
 import * as d3 from 'd3';
 import Axis from './Axis';
+import { Tooltip } from './Tooltip';
 import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
 
 interface DataPoint {
@@ -135,24 +136,20 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
     if (allValues.length === 0) {
       return [0, 1] as [number, number];
     }
-    const extent = d3.extent(allValues) as [number, number];
-    const padding = (extent[1] - extent[0]) * 0.1;
-    return [extent[0] - padding, extent[1] + padding] as [number, number];
+    return d3.extent(allValues) as [number, number];
   }, [boxPlotData]);
 
-  // Use zoomed domain if available, otherwise use original extent
-  const currentYExtent = yDomain || originalYExtent;
+  // Use zoomed domain if available, otherwise use external scale domain if provided, otherwise use original extent
+  const currentYExtent = yDomain || (externalYScale ? externalYScale.domain() as [number, number] : originalYExtent);
 
   const yScale = useMemo(() => {
-    if (externalYScale) {
-      return externalYScale.copy().range([chartHeight, 0]);
-    }
-    
-    return d3.scaleLinear()
+    // Always create a scale with the current extent (which includes zoom)
+    const scale = d3.scaleLinear()
       .domain(currentYExtent)
       .range([chartHeight, 0])
       .nice();
-  }, [currentYExtent, chartHeight, externalYScale]);
+    return scale;
+  }, [currentYExtent, chartHeight]);
 
   // Notify parent of initial scale creation
   useEffect(() => {
@@ -163,16 +160,16 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
 
   // Handle Y-axis zoom with event listener
   useEffect(() => {
-    const container = svgRef.current?.parentElement;
-    if (!container) return;
+    const svg = svgRef.current;
+    if (!svg) return;
 
     const handleWheel = (event: WheelEvent) => {
-      const svg = svgRef.current;
       if (!svg) return;
 
       const rect = svg.getBoundingClientRect();
       const mouseX = event.clientX - rect.left;
       const mouseY = event.clientY - rect.top;
+      
 
       // Check if mouse is over y-axis area (to the left of the chart, in the margin area)
       const isOverYAxis = mouseX >= 0 && mouseX <= margin.left &&
@@ -192,12 +189,13 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
         const center = min + range * 0.5;
         const newRange = range / scale;
 
-        setYDomain([center - newRange * 0.5, center + newRange * 0.5]);
+        const newDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
+        setYDomain(newDomain);
         
         // Notify parent component of scale change
         if (onYScaleChange) {
           const newScale = d3.scaleLinear()
-            .domain([center - newRange * 0.5, center + newRange * 0.5])
+            .domain(newDomain)
             .range([chartHeight, 0])
             .nice();
           onYScaleChange(newScale);
@@ -205,11 +203,11 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
       }
     };
 
-    // Add non-passive event listener
-    container.addEventListener('wheel', handleWheel, { passive: false });
+    // Add non-passive event listener directly to the SVG element
+    svg.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
-      container.removeEventListener('wheel', handleWheel);
+      svg.removeEventListener('wheel', handleWheel);
     };
   }, [currentYExtent, chartHeight, margin, onYScaleChange]);
 
@@ -397,9 +395,11 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
     });
   }, [data, boxPlotData, categoricalColumn, valueColumn, xScale, yScale, chartHeight]);
 
+  const chartId = useId();
+
   return (
-    <div className="variability-chart-container">
-      <svg ref={svgRef} width={width} height={height}>
+    <div className="variability-chart-container" data-chart-id={chartId}>
+      <svg ref={svgRef} width={width} height={height} className="variability-chart">
         <defs>
           <clipPath id="variability-clip">
             <rect x={0} y={0} width={chartWidth} height={chartHeight} />

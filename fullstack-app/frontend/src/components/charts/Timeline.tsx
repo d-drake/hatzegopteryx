@@ -19,6 +19,7 @@ import {
   getDateExtent,
 } from '@/lib/charts/scales';
 import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
+import * as d3 from 'd3';
 interface TimelineProps<T extends Record<string, any>> {
   data: T[];
   xField: keyof T;
@@ -37,6 +38,9 @@ interface TimelineProps<T extends Record<string, any>> {
     clipPathId?: string;
   }) => React.ReactNode;
   tooltipMetadata?: Record<string, any>; // Additional metadata for tooltips
+  yScale?: d3.ScaleLinear<number, number>; // External Y scale for synchronization
+  onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Callback when Y scale changes
+  allData?: T[]; // All data for scale calculation (may be different from displayed data)
 }
 
 
@@ -53,6 +57,9 @@ export default function Timeline<T extends Record<string, any>>({
   margin = { top: 60, right: 240, bottom: 60, left: 70 },
   renderOverlays,
   tooltipMetadata,
+  yScale: externalYScale,
+  onYScaleChange,
+  allData,
 }: TimelineProps<T>) {
   const { innerWidth, innerHeight } = useChartDimensions(width, height, margin);
   const { showTooltip, hideTooltip } = useTooltip();
@@ -80,7 +87,11 @@ export default function Timeline<T extends Record<string, any>>({
     return getNumericExtent(data, xField);
   }, [data, xField]);
 
-  const originalYExtent = useMemo(() => getNumericExtent(data, yField), [data, yField]);
+  const originalYExtent = useMemo(() => {
+    // Use allData for scale calculation if provided, otherwise use displayed data
+    const dataForScale = allData || data;
+    return getNumericExtent(dataForScale, yField);
+  }, [allData, data, yField]);
 
   const originalY2Extent = useMemo(() =>
     y2Field ? getNumericExtent(data, y2Field) : [0, 1] as [number, number],
@@ -89,7 +100,7 @@ export default function Timeline<T extends Record<string, any>>({
 
   // Use zoomed domains if available, otherwise use original extents
   const currentXExtent = xDomain || originalXExtent;
-  const currentYExtent = yDomain || originalYExtent;
+  const currentYExtent = yDomain || (externalYScale ? externalYScale.domain() as [number, number] : originalYExtent);
   const currentY2Extent = y2Domain || originalY2Extent;
 
   // Create scales - axes connect at origin, data maintains 30px margins
@@ -104,10 +115,12 @@ export default function Timeline<T extends Record<string, any>>({
     return createLinearScale(currentXExtent, [0, innerWidth]);
   }, [data, xField, innerWidth, currentXExtent]);
 
-  const yScale = useMemo(
-    () => createLinearScale(currentYExtent, [innerHeight, 0]),
-    [currentYExtent, innerHeight]
-  );
+  const yScale = useMemo(() => {
+    if (externalYScale) {
+      return externalYScale.copy().range([innerHeight, 0]);
+    }
+    return createLinearScale(currentYExtent, [innerHeight, 0]);
+  }, [externalYScale, currentYExtent, innerHeight]);
 
   // Secondary Y-axis scale (positioned on the right)
   const y2Scale = useMemo(
@@ -126,10 +139,12 @@ export default function Timeline<T extends Record<string, any>>({
     return createLinearScale(currentXExtent, [30, innerWidth - 30]);
   }, [data, xField, innerWidth, currentXExtent]);
 
-  const yDataScale = useMemo(
-    () => createLinearScale(currentYExtent, [innerHeight, 0]),
-    [currentYExtent, innerHeight]
-  );
+  const yDataScale = useMemo(() => {
+    if (externalYScale) {
+      return externalYScale.copy().range([innerHeight, 0]);
+    }
+    return createLinearScale(currentYExtent, [innerHeight, 0]);
+  }, [externalYScale, currentYExtent, innerHeight]);
 
   const y2DataScale = useMemo(
     () => y2Field ? createLinearScale(currentY2Extent, [innerHeight, 0]) : null,
@@ -228,6 +243,13 @@ export default function Timeline<T extends Record<string, any>>({
     }
   };
 
+  // Notify parent of initial scale creation
+  useEffect(() => {
+    if (!externalYScale && onYScaleChange && yScale) {
+      onYScaleChange(yScale);
+    }
+  }, [yScale, externalYScale, onYScaleChange]);
+
   // Set up wheel event listener with non-passive option
   useEffect(() => {
     const container = document.querySelector(`[data-chart-id="${clipPathId}"]`) as HTMLElement;
@@ -297,7 +319,14 @@ export default function Timeline<T extends Record<string, any>>({
           const center = min + range * 0.5;
           const newRange = range / scale;
 
-          setYDomain([center - newRange * 0.5, center + newRange * 0.5]);
+          const newDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
+          setYDomain(newDomain);
+          
+          // Notify parent component of scale change
+          if (onYScaleChange) {
+            const newScale = createLinearScale(newDomain, [innerHeight, 0]);
+            onYScaleChange(newScale);
+          }
         }
 
         if (isOverY2Axis) {
@@ -318,13 +347,19 @@ export default function Timeline<T extends Record<string, any>>({
     return () => {
       container.removeEventListener('wheel', handleWheel);
     };
-  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, clipPathId, height, y2Field, width]);
+  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, clipPathId, height, y2Field, width, onYScaleChange]);
 
   // Reset zoom function
   const resetZoom = () => {
     setXDomain(null);
     setYDomain(null);
     setY2Domain(null);
+    
+    // Notify parent of reset
+    if (onYScaleChange) {
+      const resetScale = createLinearScale(originalYExtent, [innerHeight, 0]);
+      onYScaleChange(resetScale);
+    }
   };
 
   // Calculate zoom levels for display

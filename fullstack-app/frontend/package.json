@@ -23,6 +23,7 @@
     "react-dom": "19.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.53.1",
     "@rollup/rollup-linux-x64-musl": "^4.44.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22",

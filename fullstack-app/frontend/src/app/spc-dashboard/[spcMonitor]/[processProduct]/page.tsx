@@ -9,6 +9,7 @@ import AppTabs from '@/components/AppTabs';
 import ResponsiveChartWrapper from '@/components/charts/ResponsiveChartWrapper';
 import SPCChartWrapper from '@/components/spc-dashboard/SPCChartWrapper';
 import { SPCVariabilityChart } from '@/components/spc-dashboard/SPCVariabilityChart';
+import SPCChartWithSharedData from '@/components/spc-dashboard/SPCChartWithSharedData';
 import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
 import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
 
@@ -95,142 +96,37 @@ function SPCDashboardInner() {
             <h3 className="text-xl font-semibold mb-6">CD Measurement Analysis</h3>
             <div className="space-y-8">
               {/* CD ATT vs Date */}
-              <SPCChartWrapper
+              <SPCChartWithSharedData
                 title="CD ATT vs Date"
-                tabs={[
-                  {
-                    id: 'timeline',
-                    label: 'Timeline',
-                    content: (
-                      <ResponsiveChartWrapper>
-                        {(width) => (
-                          <SPCTimeline
-                            data={data}
-                            xField="date_process"
-                            yField="cd_att"
-                            y2Field="duration_subseq_process_step"
-                            colorField="bias"
-                            shapeField="fake_property1"
-                            width={width}
-                            height={400}
-                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
-                            processType={processType}
-                            productType={productType}
-                            spcMonitorName={spcMonitor}
-                          />
-                        )}
-                      </ResponsiveChartWrapper>
-                    )
-                  },
-                  {
-                    id: 'variability',
-                    label: 'Variability',
-                    content: (
-                      <ResponsiveChartWrapper>
-                        {(width) => (
-                          <SPCVariabilityChart
-                            data={data}
-                            chartMeasurement="cd_att"
-                            width={width}
-                            height={400}
-                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
-                          />
-                        )}
-                      </ResponsiveChartWrapper>
-                    )
-                  }
-                ]}
+                data={data}
+                yField="cd_att"
+                y2Field="duration_subseq_process_step"
+                colorField="bias"
+                shapeField="fake_property1"
+                processType={processType}
+                productType={productType}
+                spcMonitor={spcMonitor}
               />
 
               {/* CD X/Y vs Date */}
-              <SPCChartWrapper
+              <SPCChartWithSharedData
                 title="CD X-Y vs Date"
-                tabs={[
-                  {
-                    id: 'timeline',
-                    label: 'Timeline',
-                    content: (
-                      <ResponsiveChartWrapper>
-                        {(width) => (
-                          <SPCTimeline
-                            data={data}
-                            xField="date_process"
-                            yField="cd_x_y"
-                            colorField="bias_x_y"
-                            width={width}
-                            height={400}
-                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
-                            processType={processType}
-                            productType={productType}
-                            spcMonitorName={spcMonitor}
-                          />
-                        )}
-                      </ResponsiveChartWrapper>
-                    )
-                  },
-                  {
-                    id: 'variability',
-                    label: 'Variability',
-                    content: (
-                      <ResponsiveChartWrapper>
-                        {(width) => (
-                          <SPCVariabilityChart
-                            data={data}
-                            chartMeasurement="cd_x_y"
-                            width={width}
-                            height={400}
-                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
-                          />
-                        )}
-                      </ResponsiveChartWrapper>
-                    )
-                  }
-                ]}
+                data={data}
+                yField="cd_x_y"
+                colorField="bias_x_y"
+                processType={processType}
+                productType={productType}
+                spcMonitor={spcMonitor}
               />
 
               {/* CD 6-Sigma vs Date */}
-              <SPCChartWrapper
+              <SPCChartWithSharedData
                 title="CD 6-Sigma vs Date"
-                tabs={[
-                  {
-                    id: 'timeline',
-                    label: 'Timeline',
-                    content: (
-                      <ResponsiveChartWrapper>
-                        {(width) => (
-                          <SPCTimeline
-                            data={data}
-                            xField="date_process"
-                            yField="cd_6sig"
-                            width={width}
-                            height={400}
-                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
-                            processType={processType}
-                            productType={productType}
-                            spcMonitorName={spcMonitor}
-                          />
-                        )}
-                      </ResponsiveChartWrapper>
-                    )
-                  },
-                  {
-                    id: 'variability',
-                    label: 'Variability',
-                    content: (
-                      <ResponsiveChartWrapper>
-                        {(width) => (
-                          <SPCVariabilityChart
-                            data={data}
-                            chartMeasurement="cd_6sig"
-                            width={width}
-                            height={400}
-                            margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
-                          />
-                        )}
-                      </ResponsiveChartWrapper>
-                    )
-                  }
-                ]}
+                data={data}
+                yField="cd_6sig"
+                processType={processType}
+                productType={productType}
+                spcMonitor={spcMonitor}
               />
             </div>
           </div>
