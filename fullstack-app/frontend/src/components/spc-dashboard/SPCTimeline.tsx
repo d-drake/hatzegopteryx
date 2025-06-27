@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Timeline from '@/components/charts/Timeline';
-import { CDDataItem, fetchSPCLimits, SPCLimit } from '@/services/cdDataService';
+import { CDDataItem, SPCLimit } from '@/services/cdDataService';
 import LimitLine from './LimitLine';
+import { useSPCLimits } from '@/contexts/SPCLimitsContext';
 
 interface SPCTimelineProps {
   data: CDDataItem[];
@@ -34,8 +34,8 @@ export default function SPCTimeline({
   productType,
   spcMonitorName,
 }: SPCTimelineProps) {
-  const [spcLimits, setSpcLimits] = useState<SPCLimit[]>([]);
-  const [limitsLoading, setLimitsLoading] = useState(false);
+  // Use SPC limits from context instead of fetching independently
+  const { getLimitsForChart, isLoading: limitsLoading } = useSPCLimits();
   // Apply SPC-specific defaults
   // For bias fields, use bias coloring
   const effectiveColorField = yField.toString().includes('bias') ? yField : colorField;
@@ -56,34 +56,9 @@ export default function SPCTimeline({
   };
 
   const chartName = getChartName(yField);
-
-  // Fetch SPC limits when parameters change
-  useEffect(() => {
-    if (!processType || !productType || !spcMonitorName) {
-      setSpcLimits([]);
-      return;
-    }
-
-    const fetchLimits = async () => {
-      try {
-        setLimitsLoading(true);
-        const limitsData = await fetchSPCLimits({
-          process_type: processType,
-          product_type: productType,
-          spc_monitor_name: spcMonitorName,
-          spc_chart_name: chartName
-        });
-        setSpcLimits(limitsData);
-      } catch (error) {
-        console.error('Error fetching SPC limits:', error);
-        setSpcLimits([]);
-      } finally {
-        setLimitsLoading(false);
-      }
-    };
-
-    fetchLimits();
-  }, [processType, productType, spcMonitorName, chartName]);
+  
+  // Get limits for this specific chart from the shared context
+  const spcLimits = getLimitsForChart(chartName);
 
   // Create tooltip metadata with current SPC limits
   const tooltipMetadata = spcLimits.length > 0 ? {

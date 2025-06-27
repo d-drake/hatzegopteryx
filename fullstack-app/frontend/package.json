@@ -10,13 +10,7 @@
     "test": "jest",
     "test:unit": "jest tests/unit.test.ts",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:health": "jest tests/frontend-health.test.ts",
-    "test:sentry": "jest tests/sentry-integration.test.ts",
-    "test:plan": "jest tests/plan-verification.test.ts",
-    "test:components": "jest tests/component-specific.test.ts",
-    "test:all": "jest tests/",
-    "test:plan-phases": "jest tests/plan-verification.test.ts --verbose"
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@sentry/nextjs": "^9.32.0",
@@ -39,7 +33,6 @@
     "eslint-config-next": "15.3.4",
     "jest": "^30.0.3",
     "postcss": "^8",
-    "puppeteer": "^24.10.2",
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.4.0",
     "typescript": "^5"

@@ -8,6 +8,8 @@ WORKDIR /app
 
 # Install dependencies
 COPY package.json package-lock.json* ./
+# Note: npm ci may show warnings about deprecated 'inflight' package from transitive dependencies
+# This is a known issue with ts-jest -> glob@7.x dependency chain and only affects build time
 RUN npm ci
 
 # Rebuild the source code only when needed

@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import * as d3 from 'd3';
-import { fetchSPCLimits, SPCLimit } from '@/services/cdDataService';
+import { SPCLimit } from '@/services/cdDataService';
+import { useSPCLimits } from '@/contexts/SPCLimitsContext';
 
 interface LimitLineProps {
   type: 'CL' | 'LCL' | 'UCL';
@@ -23,31 +24,9 @@ export default function LimitLine({
   productType,
   spcMonitorName
 }: LimitLineProps) {
-  const [limits, setLimits] = useState<SPCLimit[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  // Fetch SPC limits data
-  useEffect(() => {
-    const fetchLimits = async () => {
-      try {
-        setLoading(true);
-        const limitsData = await fetchSPCLimits({
-          process_type: processType,
-          product_type: productType,
-          spc_monitor_name: spcMonitorName,
-          spc_chart_name: chartName
-        });
-        setLimits(limitsData);
-      } catch (error) {
-        console.error('Error fetching SPC limits:', error);
-        setLimits([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLimits();
-  }, [processType, productType, spcMonitorName, chartName, type]);
+  // Use SPC limits from context instead of fetching independently
+  const { getLimitsForChart, isLoading: loading } = useSPCLimits();
+  const limits = getLimitsForChart(chartName);
 
   // Process limits data to create step function path
   const pathData = useMemo(() => {

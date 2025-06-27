@@ -1,137 +1,32 @@
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
-import { useRouter, useSearchParams, useParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useParams } from 'next/navigation';
 import SPCTimeline from '@/components/spc-dashboard/SPCTimeline';
-import FilterControls, { FilterState } from '@/components/spc-dashboard/FilterControls';
+import FilterControls from '@/components/spc-dashboard/FilterControls';
 import SPCTabs from '@/components/spc-dashboard/SPCTabs';
 import AppTabs from '@/components/AppTabs';
 import ResponsiveChartWrapper from '@/components/charts/ResponsiveChartWrapper';
 import SPCChartWrapper from '@/components/spc-dashboard/SPCChartWrapper';
 import VariabilityChartPlaceholder from '@/components/spc-dashboard/VariabilityChartPlaceholder';
-import { fetchCDData, CDDataItem } from '@/services/cdDataService';
+import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
+import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
 
-function SPCDashboardContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+function SPCDashboardInner() {
   const params = useParams();
+  const { 
+    data, 
+    isLoading: loading, 
+    error, 
+    filters, 
+    handleFiltersChange, 
+    refetch 
+  } = useCDData();
 
   // Extract URL parameters
   const spcMonitor = decodeURIComponent(params.spcMonitor as string);
   const processProduct = decodeURIComponent(params.processProduct as string);
   const [processType, productType] = processProduct.split('-');
-
-  const [data, setData] = useState<CDDataItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // Create default filters for query string parameters only
-  const getDefaultFilters = (): FilterState => {
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 30);
-
-    const formatDate = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
-    return {
-      entity: 'FAKE_TOOL1',
-      startDate: formatDate(startDate),
-      endDate: formatDate(endDate)
-    };
-  };
-
-  const [filters, setFilters] = useState<FilterState>(getDefaultFilters());
-
-  const loadFilteredData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const filterParams = {
-        limit: 1000,
-        // URL path parameters
-        process_type: processType,
-        product_type: productType,
-        spc_monitor_name: spcMonitor,
-        // Query string parameters
-        ...(filters.entity && { entity: filters.entity }),
-        ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate })
-      };
-
-      const dataResponse = await fetchCDData(filterParams);
-      setData(dataResponse);
-      setError(null);
-    } catch (err) {
-      const errorMessage = err instanceof Error && err.message.includes('JSON')
-        ? 'Connection issue detected. Please refresh the page to try again.'
-        : 'Failed to load filtered data. Please try again.';
-      setError(errorMessage);
-      console.error('Error loading filtered data:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [spcMonitor, processType, productType, filters]);
-
-  // Initialize filters from URL query params on mount
-  useEffect(() => {
-    const urlFilters: FilterState = {
-      entity: searchParams.get('entity') || 'FAKE_TOOL1', // Always ensure entity has a value
-      startDate: searchParams.get('startDate') || '',
-      endDate: searchParams.get('endDate') || ''
-    };
-
-    // Check if we have any non-entity filters from URL
-    const hasUrlFilters = urlFilters.startDate !== '' || urlFilters.endDate !== '';
-
-    if (hasUrlFilters) {
-      setFilters(urlFilters);
-    } else {
-      // If no URL filters, use defaults (which are already set in useState)
-      setFilters(getDefaultFilters());
-    }
-
-    setIsInitialized(true);
-  }, [searchParams]);
-
-  // Load data when initialized or when URL path parameters change
-  useEffect(() => {
-    if (isInitialized && spcMonitor && processType && productType) {
-      loadFilteredData();
-    }
-  }, [isInitialized, spcMonitor, processType, productType, loadFilteredData]);
-
-  // Update URL query string when filters change
-  useEffect(() => {
-    if (isInitialized) {
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) {
-          params.set(key, value);
-        }
-      });
-
-      const queryString = params.toString();
-      const newUrl = `/spc-dashboard/${encodeURIComponent(spcMonitor)}/${encodeURIComponent(processProduct)}${queryString ? `?${queryString}` : ''}`;
-      router.replace(newUrl);
-    }
-  }, [filters, isInitialized, spcMonitor, processProduct, router]);
-
-  const handleFiltersChange = (newFilters: FilterState) => {
-    setFilters(newFilters);
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      entity: '',
-      startDate: '',
-      endDate: ''
-    });
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -185,7 +80,7 @@ function SPCDashboardContent() {
             <div className="flex justify-between items-center">
               <span>{error}</span>
               <button
-                onClick={() => loadFilteredData()}
+                onClick={() => refetch()}
                 className="ml-4 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
                 disabled={loading}
               >
@@ -312,6 +207,32 @@ function SPCDashboardContent() {
         )}
       </main>
     </div>
+  );
+}
+
+function SPCDashboardContent() {
+  const params = useParams();
+  
+  // Extract URL parameters
+  const spcMonitor = decodeURIComponent(params.spcMonitor as string);
+  const processProduct = decodeURIComponent(params.processProduct as string);
+  const [processType, productType] = processProduct.split('-');
+
+  return (
+    <CDDataProvider
+      processType={processType}
+      productType={productType}
+      spcMonitorName={spcMonitor}
+      processProduct={processProduct}
+    >
+      <SPCLimitsProvider 
+        processType={processType} 
+        productType={productType} 
+        spcMonitorName={spcMonitor}
+      >
+        <SPCDashboardInner />
+      </SPCLimitsProvider>
+    </CDDataProvider>
   );
 }
 
