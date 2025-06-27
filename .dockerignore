@@ -99,3 +99,22 @@ logs/
 *.pid
 *.seed
 *.pid.lock
+
+# Project specific
+e2e/
+plans/
+issues/
+tokens/
+CLAUDE.md
+PLAYWRIGHT_TEST_STATUS.md
+
+# Next.js specific
+next-env.d.ts
+tsconfig.tsbuildinfo
+playwright-report/
+
+# TypeScript
+*.tsbuildinfo
+
+# Development scripts
+tests/playwright/

@@ -58,6 +58,28 @@ postgres_data/
 .claude/
 tokens
 
-# test results
+# Next.js specific
+.next/
+out/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# Playwright specific
+playwright-report/
 test-results/
+e2e/screenshots/
 screenshots/
+
+# TypeScript
+*.tsbuildinfo
+
+# Sentry
+.sentryclirc
+
+# Development tokens/secrets (CRITICAL - never commit)
+tokens/
+*.tk
+
+# Plans and issues (development only)
+plans/
+issues/
