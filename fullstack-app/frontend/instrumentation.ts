@@ -8,11 +8,7 @@ export async function register() {
   }
 }
 
-export async function onRequestError(err: unknown, request: {
-  path: string;
-  method: string;
-  headers: { [key: string]: string | string[] | undefined };
-}) {
-  const { captureRequestError } = await import('@sentry/nextjs');
-  captureRequestError(err, request);
+export async function onRequestError(err: unknown, request: any, context: any) {
+  const Sentry = await import('@sentry/nextjs');
+  Sentry.captureRequestError(err, request, context);
 }

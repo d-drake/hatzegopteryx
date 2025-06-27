@@ -100,7 +100,7 @@ export default function Axis({
         .style('font-size', '14px')
         .text(label);
     }
-  }, [scale, gridLines, gridLineLength]);
+  }, [scale, gridLines, gridLineLength, label, labelOffset.x, labelOffset.y, orientation]);
 
   return <g ref={axisRef} transform={transform} className="axis" />;
 }
