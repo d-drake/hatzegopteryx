@@ -58,4 +58,6 @@ postgres_data/
 .claude/
 tokens
 
-# misc
+# test results
+test-results/
+screenshots/
