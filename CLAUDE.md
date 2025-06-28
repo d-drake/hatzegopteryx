@@ -222,10 +222,6 @@ The project uses optimized CI/CD with environment-specific configurations:
 ### Testing Conventions
 
 #### Playwright Test Organization
-- **Test Files**: Save all Playwright test JavaScript files in `/frontend/tests/playwright/{context_name}/`
-  - Example: SPC dashboard tests go in `/frontend/tests/playwright/spc-dashboard/`
-- **Screenshots**: Save all Playwright screenshots in `~/tmp/tests/playwright_png/`
-- **Test Documentation**: Save all Playwright-related markdown notes in `~/tmp/tests/playwright_md/`
 - **Headless Mode**: Use headless mode by default for all tests (`headless: true`)
   - Only use `headless: false` when debugging visual issues
 

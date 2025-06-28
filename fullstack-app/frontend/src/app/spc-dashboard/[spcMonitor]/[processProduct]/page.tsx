@@ -12,6 +12,8 @@ import { SPCVariabilityChart } from '@/components/spc-dashboard/SPCVariabilityCh
 import SPCChartWithSharedData from '@/components/spc-dashboard/SPCChartWithSharedData';
 import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
 import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
+import Header from '@/components/auth/Header';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 function SPCDashboardInner() {
   const params = useParams();
@@ -31,6 +33,7 @@ function SPCDashboardInner() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       <header className="bg-slate-800 text-white">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold">Hatzegopteryx</h1>
@@ -170,8 +173,10 @@ function SPCDashboardContent() {
 
 export default function SPCDashboardPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
-      <SPCDashboardContent />
-    </Suspense>
+    <ProtectedRoute>
+      <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+        <SPCDashboardContent />
+      </Suspense>
+    </ProtectedRoute>
   );
 }
