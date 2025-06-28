@@ -219,6 +219,11 @@ The project uses optimized CI/CD with environment-specific configurations:
 
 ## Development Guidelines
 
+### Documentation Conventions
+- **Documentation Location**: Save all project documentation in the root `/docs/` directory, NOT in `/fullstack-app/docs/`
+  - Example: `/home/dwdra/workspace/hatzegopteryx/docs/` for all markdown documentation
+  - This includes implementation guides, testing reports, API documentation, etc.
+
 ### Testing Conventions
 
 #### Playwright Test Organization
