@@ -67,8 +67,14 @@ tsconfig.tsbuildinfo
 # Playwright specific
 playwright-report/
 test-results/
-e2e/screenshots/
-screenshots/
+
+# Test screenshots
+fullstack-app/screenshots/diff/
+fullstack-app/screenshots/failures/
+fullstack-app/screenshots/debug/
+fullstack-app/tests/screenshots/diff/
+fullstack-app/tests/screenshots/failures/
+fullstack-app/tests/screenshots/debug/
 
 # TypeScript
 *.tsbuildinfo

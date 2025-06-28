@@ -3,11 +3,18 @@
   "version": "1.0.0",
   "description": "Fullstack application with PostgreSQL, FastAPI, and Next.js",
   "scripts": {
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "cd frontend && npm run test:unit",
+    "test:integration": "cd frontend && npm run test:integration",
     "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test tests/e2e/smoke",
+    "test:e2e:spc": "playwright test tests/e2e/spc-dashboard",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
+    "test:visual": "playwright test tests/visual",
+    "test:all": "npm run test && npm run test:e2e:smoke",
     "playwright:install": "playwright install --with-deps"
   },
   "devDependencies": {

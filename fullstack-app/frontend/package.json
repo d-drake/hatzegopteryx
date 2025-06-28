@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest",
-    "test:unit": "jest tests/unit.test.ts",
+    "test": "jest ../tests/unit/frontend",
+    "test:unit": "jest ../tests/unit/frontend",
+    "test:integration": "jest ../tests/integration/frontend",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },

@@ -226,9 +226,83 @@ The project uses optimized CI/CD with environment-specific configurations:
 
 ### Testing Conventions
 
+#### Test File Organization (Updated 2025-06-28)
+- **Primary Test Location**: All tests should be placed under `/fullstack-app/tests/`
+  - E2E tests: `/tests/e2e/` (organized by feature)
+    - `/tests/e2e/smoke/` - Critical path tests
+    - `/tests/e2e/user-journeys/` - Complete workflows
+    - `/tests/e2e/spc-dashboard/` - SPC-specific tests
+  - Integration tests: `/tests/integration/backend/` or `/tests/integration/frontend/`
+  - Unit tests: `/tests/unit/backend/` or `/tests/unit/frontend/`
+  - Visual tests: `/tests/visual/`
+  - Performance tests: `/tests/performance/`
+  - Test helpers: `/tests/helpers/`
+
+#### Test Reorganization Status
+- **Completed**: Major test reorganization on 2025-06-28
+- **Tests Kept**: ~36 files (down from ~90)
+- **Tests Removed**: ~55 outdated files (security tests, duplicates, debug files)
+- **Current Structure**: Clean hierarchical organization under `/tests/`
+
+#### File Naming Conventions
+- E2E tests: `feature-name.e2e.ts` (e.g., `login-flow.e2e.ts`)
+- Integration tests: `feature.integration.test.ts` or `.py`
+- Unit tests: `module.test.ts` or `.py`
+- Visual tests: `component.visual.ts`
+- Performance tests: `scenario.perf.ts`
+
+#### Test Scripts (package.json)
+- `npm run test:e2e` - Run all E2E tests
+- `npm run test:e2e:smoke` - Run critical path tests only
+- `npm run test:e2e:spc` - Run SPC dashboard tests
+- `npm run test:visual` - Run visual regression tests
+- `npm run test:all` - Run all test suites
+
+#### Test Framework Guidelines
+- **E2E Tests**: Use Playwright with TypeScript
+- **Frontend Tests**: Use Jest with TypeScript
+- **Backend Tests**: Use Pytest with Python
+- **Prefer TypeScript** for all new test files (except Python backend tests)
+
 #### Playwright Test Organization
 - **Headless Mode**: Use headless mode by default for all tests (`headless: true`)
   - Only use `headless: false` when debugging visual issues
+
+#### Test Screenshot Organization (Updated 2025-06-28)
+Test-related images should be organized under `/fullstack-app/tests/screenshots/` with the following structure:
+
+```
+/fullstack-app/tests/screenshots/
+├── baseline/              # Visual regression baseline images
+│   ├── desktop/          # Desktop viewport baselines
+│   ├── mobile/           # Mobile viewport baselines
+│   └── tablet/           # Tablet viewport baselines
+├── diff/                 # Visual regression diff images (gitignored)
+├── failures/             # Test failure screenshots (gitignored)
+│   ├── e2e/             # E2E test failures
+│   ├── integration/     # Integration test failures
+│   └── visual/          # Visual test failures
+├── reports/              # Test report screenshots
+│   ├── coverage/        # Coverage report images
+│   └── performance/     # Performance test results
+└── debug/               # Debug/development screenshots (gitignored)
+```
+
+**Important Guidelines:**
+- **Baseline images** (`/baseline/`) should be committed to version control
+- **Temporary images** (`/diff/`, `/failures/`, `/debug/`) should be gitignored
+- **Report images** (`/reports/`) should be selectively committed based on importance
+- **External development screenshots** should go to `~/tmp/tests/` (outside project)
+- **Playwright config** should output failures to `/tests/screenshots/failures/`
+- **Visual regression tools** should use `/tests/screenshots/baseline/` for comparisons
+
+#### Test Organization Principles
+1. Group tests by feature/domain, not by page or component type
+2. Keep E2E and integration tests in centralized `/tests/` directory
+3. Unit tests can be co-located with source code in `__tests__` directories
+4. Separate test utilities in `/tests/helpers/` and fixtures in `/tests/fixtures/`
+
+**Note**: See `/docs/TEST_ORGANIZATION_PROPOSAL.md` for detailed guidelines
 
 ### Code Organization Principles
 - **Component hierarchy**: Chart components are highly reusable and composable

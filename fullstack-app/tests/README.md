@@ -1,236 +1,179 @@
-# Frontend Testing Suite for Plan Verification
+# End-to-End Tests with Playwright
 
-This testing suite provides comprehensive verification for the Frontend Fix Plan implementation using Puppeteer for end-to-end testing.
+This directory contains end-to-end tests for the Hatzegopteryx frontend application using Playwright.
 
-## 📁 **Test File Organization**
+## Test Structure
 
-### **Core Test Files**
-
-#### `plan-verification.test.ts`
-**Purpose**: Systematic verification of each phase in the frontend fix plan  
-**Coverage**: 
-- Phase 1: Root Cause Analysis & Environment Stabilization
-- Phase 2: Component-Specific Fixes  
-- Phase 3: Resource Loading & Performance
-- Phase 4: Sentry Re-integration
-- Comprehensive Integration Tests
-- Accessibility Compliance
-
-**Key Test Categories**:
-- Build process verification
-- API endpoint testing
-- Client-side JavaScript analysis
-- Component rendering validation
-- Performance metrics
-- User journey testing
-
-#### `component-specific.test.ts`
-**Purpose**: Detailed testing of individual React components identified in the fix plan  
-**Coverage**:
-- AppTabs Component (`frontend/src/components/AppTabs.tsx`)
-- Chart Components (`frontend/src/components/charts/`)
-- SPC Dashboard Components (`frontend/src/components/spc-dashboard/`)
-- Page-Level Components
-- Error Boundary and Resilience
-
-**Key Features**:
-- ARIA accessibility validation
-- D3.js chart rendering verification
-- Interactive element testing
-- Component state management
-- Error handling validation
-
-#### `frontend-health.test.ts` (Existing)
-**Purpose**: General application health monitoring  
-**Coverage**: Basic functionality, navigation, API connections
-
-#### `sentry-integration.test.ts` (Existing)
-**Purpose**: Sentry error monitoring verification  
-**Coverage**: Error capture, monitoring integration
-
-## 🧪 **Test Execution Commands**
-
-### **Individual Test Suites**
-```bash
-# Plan verification tests (organized by implementation phases)
-npm run test:plan
-
-# Component-specific detailed tests
-npm run test:components
-
-# General health monitoring
-npm run test:health
-
-# Sentry integration tests
-npm run test:sentry
-
-# All tests
-npm run test:all
+```
+e2e/
+├── README.md                    # This file
+├── frontend-health.spec.ts      # Basic health checks and page loading tests
+├── component-interaction.spec.ts # Component interaction and functionality tests
+├── sentry-integration.spec.ts   # Sentry error tracking verification
+├── visual-regression.spec.ts    # Visual regression tests for charts and layouts
+├── helpers/
+│   └── test-utils.ts           # Common test utilities and helper functions
+└── screenshots/                # Visual regression screenshots (gitignored)
 ```
 
-### **Development Testing**
+## Running Tests
+
+### Prerequisites
+
+Make sure the application is running:
 ```bash
-# Watch mode for continuous testing
-npm run test:watch
+# From the project root
+docker compose up
 
-# Coverage reporting
-npm run test:coverage
-
-# Verbose plan phase testing
-npm run test:plan-phases
+# Or run the frontend separately
+cd fullstack-app/frontend
+npm run dev
 ```
 
-## 🎯 **Plan Phase Verification Mapping**
+### Test Commands
 
-### **Phase 1: Environment Stabilization**
-**Tests**: `plan-verification.test.ts` → "Phase 1" describe block
+```bash
+# Run all e2e tests
+npm run test:e2e
 
-| Task | Test | Success Criteria |
-|------|------|------------------|
-| 1.1: Build Process | `Build Process Verification` | ✅ 200 status, React hydration, no build errors |
-| 1.2: API Endpoints | `API Endpoint Verification` | ✅ All `/api/*` endpoints accessible |
-| 1.3: JavaScript Analysis | `Client-Side JavaScript Analysis` | ✅ React functional, no runtime errors |
+# Run tests in UI mode (recommended for development)
+npm run test:e2e:ui
 
-### **Phase 2: Component Fixes**
-**Tests**: `plan-verification.test.ts` → "Phase 2" + `component-specific.test.ts`
+# Run tests with visible browser
+npm run test:e2e:headed
 
-| Task | Test Files | Success Criteria |
-|------|------------|------------------|
-| 2.1: Tab Navigation | `plan-verification.test.ts` + `component-specific.test.ts` | ✅ `[role="tablist"]` present, ARIA compliant |
-| 2.2: Chart Rendering | `plan-verification.test.ts` + `component-specific.test.ts` | ✅ SVG elements, data points, interactivity |
-| 2.3: API Data Flow | `plan-verification.test.ts` | ✅ No `net::ERR_ABORTED`, successful data fetching |
+# Debug a specific test
+npm run test:e2e:debug
 
-### **Phase 3: Performance & Resources**
-**Tests**: `plan-verification.test.ts` → "Phase 3" describe block
+# Run a specific test file
+npx playwright test e2e/frontend-health.spec.ts
 
-| Task | Test | Success Criteria |
-|------|------|------------------|
-| 3.1: Resource Loading | `Static Resource Loading` | ✅ No 404 errors, fonts loaded |
-| 3.2: Performance | `Performance Optimization` | ✅ Load time < 10s, code splitting active |
+# Run tests for a specific project (browser)
+npx playwright test --project=chromium
+```
 
-### **Phase 4: Sentry Re-integration**
-**Tests**: `plan-verification.test.ts` → "Phase 4" + `sentry-integration.test.ts`
+### Viewing Test Reports
 
-| Task | Test | Success Criteria |
-|------|------|------------------|
-| 4.1: Lightweight Integration | `Lightweight Sentry Integration` | ✅ No build conflicts, error capture working |
+After running tests, view the HTML report:
+```bash
+npm run test:e2e:report
+```
 
-## 🔍 **Component-Specific Test Details**
+## Test Categories
 
-### **AppTabs Component Testing**
+### 1. Frontend Health Checks (`frontend-health.spec.ts`)
+- Page loading without errors
+- Navigation between pages
+- API connectivity
+- Responsive design basics
+
+### 2. Component Interactions (`component-interaction.spec.ts`)
+- Items CRUD operations
+- CD Data display and pagination
+- SPC Dashboard interactions
+- Chart zoom and legend interactions
+- Tooltip functionality
+
+### 3. Sentry Integration (`sentry-integration.spec.ts`)
+- Sentry initialization
+- Error capture verification
+- Performance monitoring
+- Navigation tracking
+
+### 4. Visual Regression (`visual-regression.spec.ts`)
+- Legend rendering at different viewport sizes
+- Chart layout and spacing
+- Control limits visualization
+- Responsive behavior
+- Zoom functionality visual tests
+
+## Writing New Tests
+
+### Basic Test Template
+
 ```typescript
-// Tests verify:
-- Tab container structure ([role="tablist"])
-- Individual tab attributes ([role="tab"], aria-selected)
-- Tab-panel associations (aria-controls, id matching)
-- Tab switching functionality
-- Keyboard navigation support
+import { test, expect } from '@playwright/test';
+import { navigateToSPCDashboard, waitForSPCDashboard } from './helpers/test-utils';
+
+test.describe('Feature Name', () => {
+  test('should do something', async ({ page }) => {
+    // Navigate to page
+    await navigateToSPCDashboard(page);
+    
+    // Perform actions
+    await page.click('button');
+    
+    // Assert results
+    await expect(page.locator('.result')).toBeVisible();
+  });
+});
 ```
 
-### **Chart Component Testing**
-```typescript
-// Tests verify:
-- Timeline component rendering with data
-- Chart axes (x-axis, y-axis) presence
-- Data points rendering (circles, paths, rectangles)
-- Chart interactivity (hover, click, zoom)
-- Legend component functionality
-```
+### Using Test Utilities
 
-### **SPC Dashboard Testing**
-```typescript
-// Tests verify:
-- SPCTimeline with control limits (CL, UCL, LCL)
-- Filter controls (entity selection, date inputs)
-- Filter functionality and chart updates
-- Page layout and component integration
-```
+The `helpers/test-utils.ts` file provides common functions:
 
-## 📊 **Test Result Interpretation**
+- `waitForSPCDashboard()` - Wait for dashboard to fully load
+- `navigateToSPCDashboard()` - Navigate to specific SPC monitor/product
+- `clickLegendItem()` - Interact with legend items
+- `zoomChart()` - Perform zoom actions
+- `takeScreenshot()` - Take consistent screenshots
+- `isFullyVisible()` - Check element visibility
 
-### **Success Indicators**
-- ✅ **All tests passing**: Plan implementation successful
-- ✅ **Phase 1 passing**: Core issues resolved, app functional
-- ✅ **Phase 2 passing**: UI components restored
-- ✅ **Component tests passing**: Individual components working correctly
+## Best Practices
 
-### **Failure Analysis**
-- ❌ **Phase 1 failures**: Critical build/API issues need immediate attention
-- ❌ **Phase 2 failures**: Component-specific problems, check individual components
-- ❌ **Component test failures**: Detailed debugging needed for specific components
-- ⚠️ **Partial failures**: May indicate incomplete implementation
+1. **Use data-testid attributes** for reliable element selection
+2. **Wait for network idle** when testing data-dependent features
+3. **Use page objects** for complex interactions
+4. **Take screenshots** for visual debugging
+5. **Mock external APIs** when testing specific features in isolation
+6. **Run tests in parallel** for faster execution
+7. **Use descriptive test names** that explain what is being tested
 
-### **Common Failure Patterns**
-1. **Timeout errors**: Component not rendering, check data loading
-2. **Selector not found**: Component missing or incorrectly structured
-3. **Console errors**: JavaScript runtime issues, check browser console
-4. **API failures**: Backend connectivity or data structure problems
+## Debugging
 
-## 🔧 **Running Tests During Development**
-
-### **Pre-Implementation Testing**
+### Debug Mode
 ```bash
-# Establish baseline (many tests will fail initially)
-npm run test:plan
-
-# Focus on environment issues first
-npm run test:plan -- --testNamePattern="Phase 1"
+npm run test:e2e:debug
 ```
 
-### **During Implementation**
+### View Browser
 ```bash
-# Test specific phases as you complete them
-npm run test:plan -- --testNamePattern="Phase 2"
-
-# Test specific components as you fix them
-npm run test:components -- --testNamePattern="AppTabs"
+npm run test:e2e:headed
 ```
 
-### **Post-Implementation Verification**
+### Trace Viewer
+Playwright automatically captures traces on failure. View them:
 ```bash
-# Full verification suite
-npm run test:all
-
-# Generate coverage report
-npm run test:coverage
+npx playwright show-trace trace.zip
 ```
 
-## 🚀 **Integration with Development Workflow**
+### VS Code Extension
+Install the Playwright Test for VS Code extension for:
+- Running tests from the editor
+- Debugging with breakpoints
+- Generating tests with codegen
 
-### **Before Starting Plan Implementation**
-1. Run baseline tests to document current state
-2. Identify which tests are currently failing
-3. Use failures as implementation checklist
+## CI/CD Integration
 
-### **During Implementation**
-1. Run relevant test phases after completing each plan phase
-2. Use component-specific tests for detailed debugging
-3. Monitor console output for additional debugging information
+The tests are configured to run in CI with:
+- Headless mode
+- Parallel execution disabled
+- Retry on failure (2 attempts)
+- Artifacts collection on failure
 
-### **After Implementation**
-1. Full test suite execution
-2. Performance verification
-3. Accessibility compliance check
-4. User journey validation
+## Troubleshooting
 
-## 📝 **Test Maintenance**
+### Tests fail with "Target closed"
+- Ensure the application is running on http://localhost:3000
+- Check that all services are healthy: `docker compose ps`
 
-### **Adding New Tests**
-- Follow existing patterns in `plan-verification.test.ts`
-- Add component-specific tests to `component-specific.test.ts`
-- Update this README with new test descriptions
+### Visual tests fail
+- Screenshots are environment-dependent
+- Update baseline screenshots when intentional changes are made
+- Use `--update-snapshots` flag to update baselines
 
-### **Updating Test Criteria**
-- Modify success criteria based on implementation discoveries
-- Update selectors if component structure changes
-- Adjust timeouts based on performance characteristics
-
-### **Test Environment Requirements**
-- All services running (`docker compose up`)
-- Frontend accessible at `http://localhost:3000`
-- Backend API accessible at `http://localhost:8000`
-- Database seeded with test data
-
----
-
-**Note**: These tests are designed to run against a fully functional development environment. Ensure all services are running before executing the test suite.
+### Timeout errors
+- Increase timeout in playwright.config.ts
+- Check network conditions
+- Ensure backend services are responsive
