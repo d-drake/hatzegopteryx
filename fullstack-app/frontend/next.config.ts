@@ -3,6 +3,12 @@ import { withSentryConfig } from '@sentry/nextjs'
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  experimental: {
+    // Reduce memory usage during builds (available from v15.0.0)
+    webpackMemoryOptimizations: true,
+    // Prevent preloading all JS modules on server startup
+    preloadEntriesOnStart: false,
+  },
 }
 
 export default withSentryConfig(nextConfig, {
