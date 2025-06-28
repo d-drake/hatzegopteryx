@@ -279,11 +279,10 @@ export default function Timeline<T extends Record<string, any>>({
 
   // Set up wheel event listener with non-passive option
   useEffect(() => {
-    let container: HTMLElement | null = null;
+    const svg = svgRef.current;
+    if (!svg) return;
     
     const handleWheel = (event: WheelEvent) => {
-      const svg = svgRef.current;
-      if (!svg) return;
 
       const rect = svg.getBoundingClientRect();
       const mouseX = event.clientX - rect.left;
@@ -386,21 +385,11 @@ export default function Timeline<T extends Record<string, any>>({
       }
     };
 
-    // Small delay to ensure DOM is ready
-    const timeoutId = setTimeout(() => {
-      container = svgRef.current?.parentElement || null;
-      if (container) {
-        // Add non-passive event listener
-        container.addEventListener('wheel', handleWheel, { passive: false });
-      }
-    }, 100); // 100ms delay
+    // Add non-passive event listener directly to the SVG element
+    svg.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
-      clearTimeout(timeoutId);
-      // Clean up the event listener if it was added
-      if (container) {
-        container.removeEventListener('wheel', handleWheel);
-      }
+      svg.removeEventListener('wheel', handleWheel);
     };
   }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, clipPathId, height, y2Field, width, onXZoomChange, onYZoomChange, onY2ZoomChange]);
 
