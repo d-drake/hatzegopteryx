@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, cloneElement, ReactElement, isValidElement } from 'react';
-import * as d3 from 'd3';
 
 interface TabConfig {
   id: string;
@@ -23,10 +22,14 @@ export default function SPCChartWrapper({
   children
 }: SPCChartWrapperProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
-  const [sharedYScale, setSharedYScale] = useState<d3.ScaleLinear<number, number> | null>(null);
+  const [yZoomDomain, setYZoomDomain] = useState<[number, number] | null>(null);
   
-  const handleYScaleChange = useCallback((scale: d3.ScaleLinear<number, number>) => {
-    setSharedYScale(scale.copy());
+  const handleYZoomChange = useCallback((domain: [number, number] | null) => {
+    setYZoomDomain(domain);
+  }, []);
+  
+  const handleResetZoom = useCallback(() => {
+    setYZoomDomain(null);
   }, []);
 
   // If no tabs provided, just render children with improved layout
@@ -93,10 +96,11 @@ export default function SPCChartWrapper({
                 children: (width: number) => {
                   const child = contentProps.children(width);
                   if (isValidElement(child)) {
-                    // Inject the scale props into the chart component
+                    // Inject the zoom domain props into the chart component
                     return cloneElement(child, {
-                      yScale: sharedYScale,
-                      onYScaleChange: handleYScaleChange,
+                      yZoomDomain: yZoomDomain,
+                      onYZoomChange: handleYZoomChange,
+                      onResetZoom: handleResetZoom,
                     } as any);
                   }
                   return child;

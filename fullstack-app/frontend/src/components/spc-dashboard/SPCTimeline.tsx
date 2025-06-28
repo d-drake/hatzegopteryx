@@ -19,9 +19,12 @@ interface SPCTimelineProps {
   processType?: string;
   productType?: string;
   spcMonitorName?: string;
-  yScale?: d3.ScaleLinear<number, number>; // External Y scale for synchronization
-  onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Callback when Y scale changes
+  yScale?: d3.ScaleLinear<number, number>; // External Y scale for synchronization (deprecated)
+  onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Callback when Y scale changes (deprecated)
   allData?: CDDataItem[]; // All data for scale calculation
+  yZoomDomain?: [number, number] | null; // Zoom domain from parent
+  onYZoomChange?: (domain: [number, number] | null) => void; // Callback for zoom changes
+  onResetZoom?: () => void; // Callback for reset zoom
 }
 
 export default function SPCTimeline({
@@ -40,6 +43,9 @@ export default function SPCTimeline({
   yScale,
   onYScaleChange,
   allData,
+  yZoomDomain,
+  onYZoomChange,
+  onResetZoom,
 }: SPCTimelineProps) {
   // Use SPC limits from context instead of fetching independently
   const { getLimitsForChart, isLoading: limitsLoading } = useSPCLimits();
@@ -90,6 +96,9 @@ export default function SPCTimeline({
       yScale={yScale}
       onYScaleChange={onYScaleChange}
       allData={allData}
+      yZoomDomain={yZoomDomain}
+      onYZoomChange={onYZoomChange}
+      onResetZoom={onResetZoom}
       renderOverlays={(scales) => {
         // Only render SPC limits if metadata is available
         if (!processType || !productType || !spcMonitorName) {

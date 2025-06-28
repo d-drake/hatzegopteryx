@@ -10,8 +10,11 @@ interface SPCVariabilityChartProps {
   width: number;
   height: number;
   margin?: { top: number; right: number; bottom: number; left: number };
-  yScale?: ScaleLinear<number, number>;
-  onYScaleChange?: (scale: ScaleLinear<number, number>) => void;
+  yScale?: ScaleLinear<number, number>; // Deprecated
+  onYScaleChange?: (scale: ScaleLinear<number, number>) => void; // Deprecated
+  yZoomDomain?: [number, number] | null; // Zoom domain from parent
+  onYZoomChange?: (domain: [number, number] | null) => void; // Callback for zoom changes
+  onResetZoom?: () => void; // Callback for reset zoom
 }
 
 export const SPCVariabilityChart: React.FC<SPCVariabilityChartProps> = ({
@@ -22,6 +25,9 @@ export const SPCVariabilityChart: React.FC<SPCVariabilityChartProps> = ({
   margin = { top: 20, right: 50, bottom: 80, left: 80 },
   yScale,
   onYScaleChange,
+  yZoomDomain,
+  onYZoomChange,
+  onResetZoom,
 }) => {
   // Simply pass through the data - SPCChartWithSharedData handles fetching all entity data
   return (
@@ -34,6 +40,9 @@ export const SPCVariabilityChart: React.FC<SPCVariabilityChartProps> = ({
       margin={margin}
       yScale={yScale}
       onYScaleChange={onYScaleChange}
+      yZoomDomain={yZoomDomain}
+      onYZoomChange={onYZoomChange}
+      onResetZoom={onResetZoom}
     />
   );
 };

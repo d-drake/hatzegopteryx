@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useMemo, useState, useId } from 'react';
 import * as d3 from 'd3';
 import Axis from './Axis';
 import { Tooltip } from './Tooltip';
+import ZoomControls from './ZoomControls';
 import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
 
 interface DataPoint {
@@ -32,8 +33,11 @@ interface VariabilityChartProps {
   width: number;
   height: number;
   margin?: { top: number; right: number; bottom: number; left: number };
-  yScale?: d3.ScaleLinear<number, number>;
-  onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void;
+  yScale?: d3.ScaleLinear<number, number>; // Deprecated
+  onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Deprecated
+  yZoomDomain?: [number, number] | null; // Zoom domain from parent
+  onYZoomChange?: (domain: [number, number] | null) => void; // Callback for zoom changes
+  onResetZoom?: () => void; // Callback for reset zoom
 }
 
 // Simple tooltip component
@@ -69,11 +73,14 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
   margin = { top: 20, right: 50, bottom: 80, left: 80 },
   yScale: externalYScale,
   onYScaleChange,
+  yZoomDomain,
+  onYZoomChange,
+  onResetZoom,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [hoveredData, setHoveredData] = useState<any>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
-  const [yDomain, setYDomain] = useState<[number, number] | null>(null);
+  const [yDomain, setYDomain] = useState<[number, number] | null>(yZoomDomain || null);
 
   const chartWidth = width - margin.left - margin.right;
   const chartHeight = height - margin.top - margin.bottom;
@@ -151,12 +158,17 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
     return scale;
   }, [currentYExtent, chartHeight]);
 
-  // Notify parent of initial scale creation
+  // Notify parent of initial scale creation (deprecated - for backward compatibility)
   useEffect(() => {
     if (!externalYScale && onYScaleChange && yScale) {
       onYScaleChange(yScale);
     }
   }, [yScale, externalYScale, onYScaleChange]);
+
+  // Update local yDomain when prop changes
+  useEffect(() => {
+    setYDomain(yZoomDomain || null);
+  }, [yZoomDomain]);
 
   // Handle Y-axis zoom with event listener
   useEffect(() => {
@@ -192,7 +204,12 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
         const newDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
         setYDomain(newDomain);
         
-        // Notify parent component of scale change
+        // Notify parent component of domain change
+        if (onYZoomChange) {
+          onYZoomChange(newDomain);
+        }
+        
+        // Notify parent component of scale change (deprecated - for backward compatibility)
         if (onYScaleChange) {
           const newScale = d3.scaleLinear()
             .domain(newDomain)
@@ -209,7 +226,7 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
     return () => {
       svg.removeEventListener('wheel', handleWheel);
     };
-  }, [currentYExtent, chartHeight, margin, onYScaleChange]);
+  }, [currentYExtent, chartHeight, margin, onYScaleChange, onYZoomChange]);
 
   // Render D3 elements
   useEffect(() => {
@@ -397,8 +414,30 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
 
   const chartId = useId();
 
+  // Calculate zoom level
+  const yZoomLevel = yDomain ? (originalYExtent[1] - originalYExtent[0]) / (yDomain[1] - yDomain[0]) : 1;
+
+  // Reset zoom function
+  const handleResetZoom = () => {
+    if (onResetZoom) {
+      onResetZoom();
+    } else {
+      // Local reset
+      setYDomain(null);
+      if (onYZoomChange) {
+        onYZoomChange(null);
+      }
+    }
+  };
+
   return (
-    <div className="variability-chart-container" data-chart-id={chartId}>
+    <div className="variability-chart-container" data-chart-id={chartId} style={{ position: 'relative' }}>
+      {/* Zoom controls */}
+      <ZoomControls
+        yZoomLevel={yZoomLevel}
+        onResetZoom={handleResetZoom}
+      />
+      
       <svg ref={svgRef} width={width} height={height} className="variability-chart">
         <defs>
           <clipPath id="variability-clip">

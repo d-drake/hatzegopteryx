@@ -42,7 +42,7 @@ export default function ZoomControls({
           color: '#6b7280', // Same color as instruction text
           fontWeight: '500'
         }}>
-          <strong>Zoom:</strong> X: {xZoomLevel.toFixed(1)}x, Y: {yZoomLevel.toFixed(1)}x{y2ZoomLevel !== undefined ? `, Y2: ${y2ZoomLevel.toFixed(1)}x` : ''}
+          <strong>Zoom:</strong> {xZoomLevel !== undefined ? `X: ${xZoomLevel.toFixed(1)}x, ` : ''}Y: {yZoomLevel.toFixed(1)}x{y2ZoomLevel !== undefined ? `, Y2: ${y2ZoomLevel.toFixed(1)}x` : ''}
         </span>
         <button
           onClick={onResetZoom}

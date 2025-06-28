@@ -38,9 +38,12 @@ interface TimelineProps<T extends Record<string, any>> {
     clipPathId?: string;
   }) => React.ReactNode;
   tooltipMetadata?: Record<string, any>; // Additional metadata for tooltips
-  yScale?: d3.ScaleLinear<number, number>; // External Y scale for synchronization
-  onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Callback when Y scale changes
+  yScale?: d3.ScaleLinear<number, number>; // External Y scale for synchronization (deprecated)
+  onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Callback when Y scale changes (deprecated)
   allData?: T[]; // All data for scale calculation (may be different from displayed data)
+  yZoomDomain?: [number, number] | null; // Zoom domain from parent
+  onYZoomChange?: (domain: [number, number] | null) => void; // Callback for zoom changes
+  onResetZoom?: () => void; // Callback for reset zoom
 }
 
 
@@ -60,6 +63,9 @@ export default function Timeline<T extends Record<string, any>>({
   yScale: externalYScale,
   onYScaleChange,
   allData,
+  yZoomDomain,
+  onYZoomChange,
+  onResetZoom,
 }: TimelineProps<T>) {
   const { innerWidth, innerHeight } = useChartDimensions(width, height, margin);
   const { showTooltip, hideTooltip } = useTooltip();
@@ -67,9 +73,9 @@ export default function Timeline<T extends Record<string, any>>({
   const chartRef = useRef<SVGGElement>(null);
   const clipPathId = useId();
 
-  // Zoom state
+  // Zoom state - initialize Y domain from prop if provided
   const [xDomain, setXDomain] = useState<[any, any] | null>(null);
-  const [yDomain, setYDomain] = useState<[any, any] | null>(null);
+  const [yDomain, setYDomain] = useState<[any, any] | null>(yZoomDomain || null);
   const [y2Domain, setY2Domain] = useState<[any, any] | null>(null);
 
   // Legend selection state
@@ -243,12 +249,17 @@ export default function Timeline<T extends Record<string, any>>({
     }
   };
 
-  // Notify parent of initial scale creation
+  // Notify parent of initial scale creation (deprecated - for backward compatibility)
   useEffect(() => {
     if (!externalYScale && onYScaleChange && yScale) {
       onYScaleChange(yScale);
     }
   }, [yScale, externalYScale, onYScaleChange]);
+
+  // Update local yDomain when prop changes
+  useEffect(() => {
+    setYDomain(yZoomDomain || null);
+  }, [yZoomDomain]);
 
   // Set up wheel event listener with non-passive option
   useEffect(() => {
@@ -322,7 +333,12 @@ export default function Timeline<T extends Record<string, any>>({
           const newDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
           setYDomain(newDomain);
           
-          // Notify parent component of scale change
+          // Notify parent component of domain change
+          if (onYZoomChange) {
+            onYZoomChange(newDomain);
+          }
+          
+          // Notify parent component of scale change (deprecated - for backward compatibility)
           if (onYScaleChange) {
             const newScale = createLinearScale(newDomain, [innerHeight, 0]);
             onYScaleChange(newScale);
@@ -347,18 +363,29 @@ export default function Timeline<T extends Record<string, any>>({
     return () => {
       container.removeEventListener('wheel', handleWheel);
     };
-  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, clipPathId, height, y2Field, width, onYScaleChange]);
+  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, clipPathId, height, y2Field, width, onYScaleChange, onYZoomChange]);
 
   // Reset zoom function
   const resetZoom = () => {
-    setXDomain(null);
-    setYDomain(null);
-    setY2Domain(null);
-    
-    // Notify parent of reset
-    if (onYScaleChange) {
-      const resetScale = createLinearScale(originalYExtent, [innerHeight, 0]);
-      onYScaleChange(resetScale);
+    // If parent handles reset, use that
+    if (onResetZoom) {
+      onResetZoom();
+    } else {
+      // Otherwise, do local reset
+      setXDomain(null);
+      setYDomain(null);
+      setY2Domain(null);
+      
+      // Notify parent of reset via domain change
+      if (onYZoomChange) {
+        onYZoomChange(null);
+      }
+      
+      // Notify parent of reset (deprecated - for backward compatibility)
+      if (onYScaleChange) {
+        const resetScale = createLinearScale(originalYExtent, [innerHeight, 0]);
+        onYScaleChange(resetScale);
+      }
     }
   };
 
