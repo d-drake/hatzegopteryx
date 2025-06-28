@@ -22,8 +22,12 @@ interface SPCTimelineProps {
   yScale?: d3.ScaleLinear<number, number>; // External Y scale for synchronization (deprecated)
   onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Callback when Y scale changes (deprecated)
   allData?: CDDataItem[]; // All data for scale calculation
-  yZoomDomain?: [number, number] | null; // Zoom domain from parent
-  onYZoomChange?: (domain: [number, number] | null) => void; // Callback for zoom changes
+  xZoomDomain?: [number, number] | [Date, Date] | null; // X-axis zoom domain
+  yZoomDomain?: [number, number] | null; // Y-axis zoom domain
+  y2ZoomDomain?: [number, number] | null; // Y2-axis zoom domain
+  onXZoomChange?: (domain: [number, number] | [Date, Date] | null) => void; // Callback for X zoom
+  onYZoomChange?: (domain: [number, number] | null) => void; // Callback for Y zoom
+  onY2ZoomChange?: (domain: [number, number] | null) => void; // Callback for Y2 zoom
   onResetZoom?: () => void; // Callback for reset zoom
 }
 
@@ -43,8 +47,12 @@ export default function SPCTimeline({
   yScale,
   onYScaleChange,
   allData,
+  xZoomDomain,
   yZoomDomain,
+  y2ZoomDomain,
+  onXZoomChange,
   onYZoomChange,
+  onY2ZoomChange,
   onResetZoom,
 }: SPCTimelineProps) {
   // Use SPC limits from context instead of fetching independently
@@ -96,8 +104,12 @@ export default function SPCTimeline({
       yScale={yScale}
       onYScaleChange={onYScaleChange}
       allData={allData}
+      xZoomDomain={xZoomDomain}
       yZoomDomain={yZoomDomain}
+      y2ZoomDomain={y2ZoomDomain}
+      onXZoomChange={onXZoomChange}
       onYZoomChange={onYZoomChange}
+      onY2ZoomChange={onY2ZoomChange}
       onResetZoom={onResetZoom}
       renderOverlays={(scales) => {
         // Only render SPC limits if metadata is available

@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+
 interface ZoomControlsProps {
   xZoomLevel?: number;
   yZoomLevel: number;
@@ -13,17 +15,37 @@ export default function ZoomControls({
   y2ZoomLevel,
   onResetZoom 
 }: ZoomControlsProps) {
-  // Only show when zoom is not at default (1x for all axes)
-  const xIsDefault = xZoomLevel === undefined || xZoomLevel === 1;
-  const yIsDefault = yZoomLevel === 1;
-  const y2IsDefault = !y2ZoomLevel || y2ZoomLevel === 1;
+  const containerRef = useRef<HTMLDivElement>(null);
   
-  if (xIsDefault && yIsDefault && y2IsDefault) {
+  // Check if any axis is zoomed
+  const isZoomed = (xZoomLevel !== undefined && xZoomLevel !== 1) || 
+                   yZoomLevel !== 1 || 
+                   (y2ZoomLevel !== undefined && y2ZoomLevel !== 1);
+
+  // Prevent page scrolling when mouse is over zoom controls
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
+
+  // Only show controls when zoomed
+  if (!isZoomed) {
     return null;
   }
 
   return (
-    <div style={{
+    <div ref={containerRef} className="zoom-controls" style={{
       position: 'absolute',
       top: -57, // Position 8px below tab group and 8px above chart SVG
       left: 0, // Align with left edge of chart/tab group
@@ -42,7 +64,7 @@ export default function ZoomControls({
         gap: '8px',
         marginBottom: '4px'
       }}>
-        <span style={{
+        <span className="zoom-level" style={{
           color: '#6b7280', // Same color as instruction text
           fontWeight: '500'
         }}>
@@ -50,25 +72,31 @@ export default function ZoomControls({
         </span>
         <button
           onClick={onResetZoom}
+          disabled={!isZoomed}
           style={{
             padding: '2px 6px',
             fontSize: '10px',
             border: '1px solid #6b7280',
             borderRadius: '3px',
-            background: '#f9fafb',
-            cursor: 'pointer',
-            color: '#374151',
+            background: isZoomed ? '#f9fafb' : '#e5e7eb',
+            cursor: isZoomed ? 'pointer' : 'default',
+            color: isZoomed ? '#374151' : '#9ca3af',
             fontWeight: '500',
-            whiteSpace: 'nowrap'
+            whiteSpace: 'nowrap',
+            opacity: isZoomed ? 1 : 0.6
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#f3f4f6';
+            if (isZoomed) {
+              e.currentTarget.style.background = '#f3f4f6';
+            }
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = '#f9fafb';
+            if (isZoomed) {
+              e.currentTarget.style.background = '#f9fafb';
+            }
           }}
         >
-          Reset
+          Reset Zoom
         </button>
       </div>
       <div style={{ 

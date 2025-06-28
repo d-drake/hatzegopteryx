@@ -33,15 +33,27 @@ export default function SPCChartWrapper({
   children
 }: SPCChartWrapperProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
+  const [xZoomDomain, setXZoomDomain] = useState<[number, number] | [Date, Date] | null>(null);
   const [yZoomDomain, setYZoomDomain] = useState<[number, number] | null>(null);
+  const [y2ZoomDomain, setY2ZoomDomain] = useState<[number, number] | null>(null);
   const viewportWidth = useViewportWidth();
+  
+  const handleXZoomChange = useCallback((domain: [number, number] | [Date, Date] | null) => {
+    setXZoomDomain(domain);
+  }, []);
   
   const handleYZoomChange = useCallback((domain: [number, number] | null) => {
     setYZoomDomain(domain);
   }, []);
   
+  const handleY2ZoomChange = useCallback((domain: [number, number] | null) => {
+    setY2ZoomDomain(domain);
+  }, []);
+  
   const handleResetZoom = useCallback(() => {
+    setXZoomDomain(null);
     setYZoomDomain(null);
+    setY2ZoomDomain(null);
   }, []);
 
   // Helper function to inject zoom props into chart components
@@ -61,8 +73,12 @@ export default function SPCChartWrapper({
               if (isValidElement(child)) {
                 return cloneElement(child, {
                   width: Math.min(resWidth, width), // Ensure we don't exceed calculated width
+                  xZoomDomain: xZoomDomain,
                   yZoomDomain: yZoomDomain,
+                  y2ZoomDomain: y2ZoomDomain,
+                  onXZoomChange: handleXZoomChange,
                   onYZoomChange: handleYZoomChange,
+                  onY2ZoomChange: handleY2ZoomChange,
                   onResetZoom: handleResetZoom,
                   isSideBySide: isSideBySide,
                 } as any);
@@ -78,8 +94,12 @@ export default function SPCChartWrapper({
               if (isValidElement(child)) {
                 return cloneElement(child, {
                   width: resWidth,
+                  xZoomDomain: xZoomDomain,
                   yZoomDomain: yZoomDomain,
+                  y2ZoomDomain: y2ZoomDomain,
+                  onXZoomChange: handleXZoomChange,
                   onYZoomChange: handleYZoomChange,
+                  onY2ZoomChange: handleY2ZoomChange,
                   onResetZoom: handleResetZoom,
                 } as any);
               }
@@ -91,8 +111,12 @@ export default function SPCChartWrapper({
       
       // Handle direct chart components
       return cloneElement(content, {
+        xZoomDomain: xZoomDomain,
         yZoomDomain: yZoomDomain,
+        y2ZoomDomain: y2ZoomDomain,
+        onXZoomChange: handleXZoomChange,
         onYZoomChange: handleYZoomChange,
+        onY2ZoomChange: handleY2ZoomChange,
         onResetZoom: handleResetZoom,
         isSideBySide: isSideBySide,
       } as any);

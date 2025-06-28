@@ -41,8 +41,12 @@ interface TimelineProps<T extends Record<string, any>> {
   yScale?: d3.ScaleLinear<number, number>; // External Y scale for synchronization (deprecated)
   onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Callback when Y scale changes (deprecated)
   allData?: T[]; // All data for scale calculation (may be different from displayed data)
-  yZoomDomain?: [number, number] | null; // Zoom domain from parent
-  onYZoomChange?: (domain: [number, number] | null) => void; // Callback for zoom changes
+  xZoomDomain?: [number, number] | [Date, Date] | null; // X-axis zoom domain
+  yZoomDomain?: [number, number] | null; // Y-axis zoom domain
+  y2ZoomDomain?: [number, number] | null; // Y2-axis zoom domain
+  onXZoomChange?: (domain: [number, number] | [Date, Date] | null) => void; // Callback for X zoom
+  onYZoomChange?: (domain: [number, number] | null) => void; // Callback for Y zoom
+  onY2ZoomChange?: (domain: [number, number] | null) => void; // Callback for Y2 zoom
   onResetZoom?: () => void; // Callback for reset zoom
 }
 
@@ -63,8 +67,12 @@ export default function Timeline<T extends Record<string, any>>({
   yScale: externalYScale,
   onYScaleChange,
   allData,
-  yZoomDomain,
+  xZoomDomain: externalXZoomDomain,
+  yZoomDomain: externalYZoomDomain,
+  y2ZoomDomain: externalY2ZoomDomain,
+  onXZoomChange,
   onYZoomChange,
+  onY2ZoomChange,
   onResetZoom,
 }: TimelineProps<T>) {
   const { innerWidth, innerHeight } = useChartDimensions(width, height, margin);
@@ -75,7 +83,7 @@ export default function Timeline<T extends Record<string, any>>({
 
   // Zoom state - initialize Y domain from prop if provided
   const [xDomain, setXDomain] = useState<[any, any] | null>(null);
-  const [yDomain, setYDomain] = useState<[any, any] | null>(yZoomDomain || null);
+  const [yDomain, setYDomain] = useState<[any, any] | null>(externalYZoomDomain || null);
   const [y2Domain, setY2Domain] = useState<[any, any] | null>(null);
 
   // Legend selection state
@@ -256,16 +264,23 @@ export default function Timeline<T extends Record<string, any>>({
     }
   }, [yScale, externalYScale, onYScaleChange]);
 
-  // Update local yDomain when prop changes
+  // Update local domains when props change
   useEffect(() => {
-    setYDomain(yZoomDomain || null);
-  }, [yZoomDomain]);
+    setXDomain(externalXZoomDomain || null);
+  }, [externalXZoomDomain]);
+  
+  useEffect(() => {
+    setYDomain(externalYZoomDomain || null);
+  }, [externalYZoomDomain]);
+  
+  useEffect(() => {
+    setY2Domain(externalY2ZoomDomain || null);
+  }, [externalY2ZoomDomain]);
 
   // Set up wheel event listener with non-passive option
   useEffect(() => {
-    const container = document.querySelector(`[data-chart-id="${clipPathId}"]`) as HTMLElement;
-    if (!container) return;
-
+    let container: HTMLElement | null = null;
+    
     const handleWheel = (event: WheelEvent) => {
       const svg = svgRef.current;
       if (!svg) return;
@@ -312,14 +327,26 @@ export default function Timeline<T extends Record<string, any>>({
             const center = minTime + range * 0.5;
             const newRange = range / scale;
 
-            setXDomain([new Date(center - newRange * 0.5), new Date(center + newRange * 0.5)]);
+            const newXDomain: [Date, Date] = [new Date(center - newRange * 0.5), new Date(center + newRange * 0.5)];
+            setXDomain(newXDomain);
+            
+            // Notify parent component
+            if (onXZoomChange) {
+              onXZoomChange(newXDomain);
+            }
           } else {
             // Handle numeric values
             const range = max - min;
             const center = min + range * 0.5;
             const newRange = range / scale;
 
-            setXDomain([center - newRange * 0.5, center + newRange * 0.5]);
+            const newXDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
+            setXDomain(newXDomain);
+            
+            // Notify parent component
+            if (onXZoomChange) {
+              onXZoomChange(newXDomain);
+            }
           }
         }
 
@@ -338,11 +365,7 @@ export default function Timeline<T extends Record<string, any>>({
             onYZoomChange(newDomain);
           }
           
-          // Notify parent component of scale change (deprecated - for backward compatibility)
-          if (onYScaleChange) {
-            const newScale = createLinearScale(newDomain, [innerHeight, 0]);
-            onYScaleChange(newScale);
-          }
+          // Removed deprecated onYScaleChange handling
         }
 
         if (isOverY2Axis) {
@@ -352,18 +375,34 @@ export default function Timeline<T extends Record<string, any>>({
           const center = min + range * 0.5;
           const newRange = range / scale;
 
-          setY2Domain([center - newRange * 0.5, center + newRange * 0.5]);
+          const newY2Domain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
+          setY2Domain(newY2Domain);
+          
+          // Notify parent component
+          if (onY2ZoomChange) {
+            onY2ZoomChange(newY2Domain);
+          }
         }
       }
     };
 
-    // Add non-passive event listener
-    container.addEventListener('wheel', handleWheel, { passive: false });
+    // Small delay to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
+      container = svgRef.current?.parentElement || null;
+      if (container) {
+        // Add non-passive event listener
+        container.addEventListener('wheel', handleWheel, { passive: false });
+      }
+    }, 100); // 100ms delay
 
     return () => {
-      container.removeEventListener('wheel', handleWheel);
+      clearTimeout(timeoutId);
+      // Clean up the event listener if it was added
+      if (container) {
+        container.removeEventListener('wheel', handleWheel);
+      }
     };
-  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, clipPathId, height, y2Field, width, onYScaleChange, onYZoomChange]);
+  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, clipPathId, height, y2Field, width, onXZoomChange, onYZoomChange, onY2ZoomChange]);
 
   // Reset zoom function
   const resetZoom = () => {
@@ -377,15 +416,17 @@ export default function Timeline<T extends Record<string, any>>({
       setY2Domain(null);
       
       // Notify parent of reset via domain change
+      if (onXZoomChange) {
+        onXZoomChange(null);
+      }
       if (onYZoomChange) {
         onYZoomChange(null);
       }
-      
-      // Notify parent of reset (deprecated - for backward compatibility)
-      if (onYScaleChange) {
-        const resetScale = createLinearScale(originalYExtent, [innerHeight, 0]);
-        onYScaleChange(resetScale);
+      if (onY2ZoomChange) {
+        onY2ZoomChange(null);
       }
+      
+      // Removed deprecated onYScaleChange handling
     }
   };
 
