@@ -1,7 +1,7 @@
 'use client';
 
 interface ZoomControlsProps {
-  xZoomLevel: number;
+  xZoomLevel?: number;
   yZoomLevel: number;
   y2ZoomLevel?: number;
   onResetZoom: () => void;
@@ -14,7 +14,11 @@ export default function ZoomControls({
   onResetZoom 
 }: ZoomControlsProps) {
   // Only show when zoom is not at default (1x for all axes)
-  if (xZoomLevel === 1 && yZoomLevel === 1 && (!y2ZoomLevel || y2ZoomLevel === 1)) {
+  const xIsDefault = xZoomLevel === undefined || xZoomLevel === 1;
+  const yIsDefault = yZoomLevel === 1;
+  const y2IsDefault = !y2ZoomLevel || y2ZoomLevel === 1;
+  
+  if (xIsDefault && yIsDefault && y2IsDefault) {
     return null;
   }
 

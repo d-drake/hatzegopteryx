@@ -11,6 +11,8 @@ interface AxisProps {
   labelOffset: { x: number; y: number }
   gridLines?: boolean;
   gridLineLength?: number;
+  tickRotation?: number; // Rotation angle for tick labels
+  checkOverlap?: boolean; // Whether to check for tick label overlap
 }
 
 export default function Axis({
@@ -21,6 +23,8 @@ export default function Axis({
   labelOffset = { x: 0, y: 0 },
   gridLines = false,
   gridLineLength = 0,
+  tickRotation,
+  checkOverlap = false,
 }: AxisProps) {
   const axisRef = useRef<SVGGElement>(null);
 
@@ -85,6 +89,44 @@ export default function Axis({
       axisGroup
         .selectAll('.tick text')
         .style('fill', '#64748b'); // slate-500 color
+        
+      // Apply tick rotation if specified
+      if (tickRotation) {
+        const isBottomAxis = orientation === 'bottom';
+        axisGroup
+          .selectAll('.tick text')
+          .attr('transform', `rotate(${tickRotation})`)
+          .style('text-anchor', tickRotation > 0 ? 'start' : 'end')
+          .attr('dx', tickRotation > 0 ? '0.8em' : '-0.8em')
+          .attr('dy', isBottomAxis ? '0.15em' : '0');
+      }
+      
+      // Check for overlap and rotate if needed
+      if (checkOverlap && !tickRotation && (orientation === 'bottom' || orientation === 'top')) {
+        const tickTexts = axisGroup.selectAll('.tick text').nodes() as SVGTextElement[];
+        let hasOverlap = false;
+        
+        // Check if any labels overlap
+        for (let i = 0; i < tickTexts.length - 1; i++) {
+          const bbox1 = tickTexts[i].getBoundingClientRect();
+          const bbox2 = tickTexts[i + 1].getBoundingClientRect();
+          
+          if (bbox1.right > bbox2.left) {
+            hasOverlap = true;
+            break;
+          }
+        }
+        
+        // If overlap detected, rotate labels 45 degrees
+        if (hasOverlap) {
+          axisGroup
+            .selectAll('.tick text')
+            .attr('transform', 'rotate(45)')
+            .style('text-anchor', 'start')
+            .attr('dx', '0.8em')
+            .attr('dy', orientation === 'bottom' ? '0.15em' : '0');
+        }
+      }
     }
 
     if (label && !gridLines) {

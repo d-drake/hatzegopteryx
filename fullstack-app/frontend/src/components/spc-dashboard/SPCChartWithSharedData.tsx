@@ -72,6 +72,9 @@ export default function SPCChartWithSharedData({
   // Use original data until all entity data is loaded
   const dataForScaleCalculation = isLoading ? data : allEntityData;
 
+  // Define margins - consistent for both charts
+  const chartMargin = { top: 30, right: 240, bottom: 60, left: 70 };
+
   return (
     <SPCChartWrapper
       title={title}
@@ -92,7 +95,7 @@ export default function SPCChartWithSharedData({
                   shapeField={shapeField}
                   width={width}
                   height={400}
-                  margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
+                  margin={chartMargin}
                   processType={processType}
                   productType={productType}
                   spcMonitorName={spcMonitor}
@@ -112,7 +115,7 @@ export default function SPCChartWithSharedData({
                   chartMeasurement={yField as string}
                   width={width}
                   height={400}
-                  margin={{ top: 30, right: 240, bottom: 60, left: 70 }}
+                  margin={chartMargin}
                 />
               )}
             </ResponsiveChartWrapper>

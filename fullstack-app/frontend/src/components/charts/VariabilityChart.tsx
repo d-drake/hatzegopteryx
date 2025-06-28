@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useMemo, useState, useId } from 'react';
 import * as d3 from 'd3';
 import Axis from './Axis';
-import { Tooltip } from './Tooltip';
 import ZoomControls from './ZoomControls';
 import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
 
@@ -38,6 +37,7 @@ interface VariabilityChartProps {
   yZoomDomain?: [number, number] | null; // Zoom domain from parent
   onYZoomChange?: (domain: [number, number] | null) => void; // Callback for zoom changes
   onResetZoom?: () => void; // Callback for reset zoom
+  isSideBySide?: boolean; // Whether chart is in side-by-side layout
 }
 
 // Simple tooltip component
@@ -76,6 +76,7 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
   yZoomDomain,
   onYZoomChange,
   onResetZoom,
+  isSideBySide = false,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [hoveredData, setHoveredData] = useState<any>(null);
@@ -459,6 +460,7 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
             transform={`translate(0,${chartHeight})`}
             label={formatFieldName(categoricalColumn)}
             labelOffset={{ x: chartWidth / 2, y: 45 }}
+            checkOverlap={true}
           />
           
           {/* Y-axis zoom area */}

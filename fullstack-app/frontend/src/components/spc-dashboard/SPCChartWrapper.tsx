@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, cloneElement, ReactElement, isValidElement } from 'react';
+import { useViewportWidth } from '@/hooks/useViewportWidth';
+import ResponsiveChartWrapper from '@/components/charts/ResponsiveChartWrapper';
 
 interface TabConfig {
   id: string;
@@ -15,6 +17,15 @@ interface SPCChartWrapperProps {
   children?: React.ReactNode;
 }
 
+// Constants for side-by-side layout
+const SIDE_BY_SIDE_BREAKPOINT = 1500;
+const CHART_GAP = 5;
+const TIMELINE_WIDTH_RATIO = 0.55;
+const VARIABILITY_WIDTH_RATIO = 0.45;
+
+// Chart margins - consistent for both charts
+const CHART_MARGIN = { top: 30, right: 240, bottom: 60, left: 70 };
+
 export default function SPCChartWrapper({
   title,
   tabs,
@@ -23,6 +34,7 @@ export default function SPCChartWrapper({
 }: SPCChartWrapperProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [yZoomDomain, setYZoomDomain] = useState<[number, number] | null>(null);
+  const viewportWidth = useViewportWidth();
   
   const handleYZoomChange = useCallback((domain: [number, number] | null) => {
     setYZoomDomain(domain);
@@ -32,16 +44,69 @@ export default function SPCChartWrapper({
     setYZoomDomain(null);
   }, []);
 
+  // Helper function to inject zoom props into chart components
+  const injectZoomProps = (content: React.ReactNode, width?: number, isSideBySide: boolean = false): React.ReactNode => {
+    if (isValidElement(content)) {
+      const contentProps = content.props as any;
+      
+      // Handle ResponsiveChartWrapper
+      if (contentProps.children && typeof contentProps.children === 'function') {
+        if (width) {
+          // In side-by-side mode, pass the calculated width to ResponsiveChartWrapper
+          // by setting maxWidth to prevent it from using its default 800px
+          return cloneElement(content, {
+            maxWidth: width,
+            children: (resWidth: number) => {
+              const child = contentProps.children(resWidth);
+              if (isValidElement(child)) {
+                return cloneElement(child, {
+                  width: Math.min(resWidth, width), // Ensure we don't exceed calculated width
+                  yZoomDomain: yZoomDomain,
+                  onYZoomChange: handleYZoomChange,
+                  onResetZoom: handleResetZoom,
+                  isSideBySide: isSideBySide,
+                } as any);
+              }
+              return child;
+            }
+          } as any);
+        } else {
+          // In tabbed mode, let ResponsiveChartWrapper work normally
+          return cloneElement(content, {
+            children: (resWidth: number) => {
+              const child = contentProps.children(resWidth);
+              if (isValidElement(child)) {
+                return cloneElement(child, {
+                  width: resWidth,
+                  yZoomDomain: yZoomDomain,
+                  onYZoomChange: handleYZoomChange,
+                  onResetZoom: handleResetZoom,
+                } as any);
+              }
+              return child;
+            }
+          } as any);
+        }
+      }
+      
+      // Handle direct chart components
+      return cloneElement(content, {
+        yZoomDomain: yZoomDomain,
+        onYZoomChange: handleYZoomChange,
+        onResetZoom: handleResetZoom,
+        isSideBySide: isSideBySide,
+      } as any);
+    }
+    return content;
+  };
+
   // If no tabs provided, just render children with improved layout
   if (!tabs) {
     return (
       <div className="bg-white rounded-lg shadow">
-        {/* Title Section - separate from chart area */}
         <div className="px-4 pt-4 pb-2">
           <h4 className="text-lg font-medium text-center text-black">{title}</h4>
         </div>
-        
-        {/* Chart Content Area */}
         <div className="p-4 pt-0">
           {children}
         </div>
@@ -49,7 +114,58 @@ export default function SPCChartWrapper({
     );
   }
 
-  // Render with tabs
+  // Check if we should use side-by-side layout
+  const isSideBySide = viewportWidth >= SIDE_BY_SIDE_BREAKPOINT && tabs.length === 2;
+
+  // Calculate widths for side-by-side mode
+  if (isSideBySide) {
+    // The actual container has padding: p-4 (16px) on each side
+    // Plus the container itself has margins/padding from its parent
+    // Let's be more conservative with the calculation
+    const containerPadding = 32; // 16px * 2 for p-4
+    const containerMargin = 32; // Additional margin for the container itself
+    const totalPadding = containerPadding + containerMargin;
+    
+    // Calculate the actual available width inside the bg-white container
+    const containerWidth = Math.min(viewportWidth - totalPadding, 1504); // Cap at observed max
+    
+    // Account for the gap between charts and the internal padding
+    const chartAreaPadding = 32; // p-4 inside the container
+    const availableWidth = containerWidth - CHART_GAP - chartAreaPadding;
+    
+    const timelineWidth = Math.floor(availableWidth * TIMELINE_WIDTH_RATIO);
+    const variabilityWidth = Math.floor(availableWidth * VARIABILITY_WIDTH_RATIO);
+    
+    // Find the Timeline and Variability tabs
+    const timelineTab = tabs.find(tab => tab.id === 'timeline');
+    const variabilityTab = tabs.find(tab => tab.id === 'variability');
+
+    if (timelineTab && variabilityTab) {
+      return (
+        <div className="bg-white rounded-lg shadow">
+          {/* Shared title */}
+          <div className="px-4 pt-4 pb-2">
+            <h4 className="text-lg font-medium text-center text-black">{title}</h4>
+          </div>
+          
+          {/* Side-by-side charts */}
+          <div className="flex gap-[5px] p-4 pt-16">
+            {/* Timeline Chart */}
+            <div className="flex-none" style={{ width: `${timelineWidth}px` }}>
+              {injectZoomProps(timelineTab.content, timelineWidth, true)}
+            </div>
+            
+            {/* Variability Chart */}
+            <div className="flex-none" style={{ width: `${variabilityWidth}px` }}>
+              {injectZoomProps(variabilityTab.content, variabilityWidth, true)}
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // Render with tabs (narrow viewport)
   return (
     <div className="bg-white rounded-lg shadow">
       {/* Title Section - above everything */}
@@ -83,33 +199,7 @@ export default function SPCChartWrapper({
       <div className="p-4 pt-16">
         {tabs.map((tab) => {
           if (tab.id !== activeTab) return null;
-          
-          // Inject yScale and onYScaleChange props if the content is a ReactElement
-          const content = tab.content;
-          if (isValidElement(content)) {
-            // Check if it's a ResponsiveChartWrapper by looking for a render prop pattern
-            const contentProps = content.props as any;
-            if (contentProps.children && typeof contentProps.children === 'function') {
-              // Clone the wrapper and modify its children function
-              return cloneElement(content, {
-                key: tab.id,
-                children: (width: number) => {
-                  const child = contentProps.children(width);
-                  if (isValidElement(child)) {
-                    // Inject the zoom domain props into the chart component
-                    return cloneElement(child, {
-                      yZoomDomain: yZoomDomain,
-                      onYZoomChange: handleYZoomChange,
-                      onResetZoom: handleResetZoom,
-                    } as any);
-                  }
-                  return child;
-                }
-              } as any);
-            }
-          }
-          
-          return <div key={tab.id}>{content}</div>;
+          return <div key={tab.id}>{injectZoomProps(tab.content)}</div>;
         })}
       </div>
     </div>

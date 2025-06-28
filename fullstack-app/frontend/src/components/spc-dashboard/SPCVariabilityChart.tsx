@@ -15,6 +15,7 @@ interface SPCVariabilityChartProps {
   yZoomDomain?: [number, number] | null; // Zoom domain from parent
   onYZoomChange?: (domain: [number, number] | null) => void; // Callback for zoom changes
   onResetZoom?: () => void; // Callback for reset zoom
+  isSideBySide?: boolean; // Whether chart is in side-by-side layout
 }
 
 export const SPCVariabilityChart: React.FC<SPCVariabilityChartProps> = ({
@@ -28,7 +29,14 @@ export const SPCVariabilityChart: React.FC<SPCVariabilityChartProps> = ({
   yZoomDomain,
   onYZoomChange,
   onResetZoom,
+  isSideBySide = false,
 }) => {
+  // Adjust margin for side-by-side mode
+  // In side-by-side mode, remove the right margin (240px) allocated for legend
+  const adjustedMargin = isSideBySide 
+    ? { ...margin, right: 0 }
+    : margin;
+
   // Simply pass through the data - SPCChartWithSharedData handles fetching all entity data
   return (
     <VariabilityChart
@@ -37,12 +45,13 @@ export const SPCVariabilityChart: React.FC<SPCVariabilityChartProps> = ({
       valueColumn={chartMeasurement}
       width={width}
       height={height}
-      margin={margin}
+      margin={adjustedMargin}
       yScale={yScale}
       onYScaleChange={onYScaleChange}
       yZoomDomain={yZoomDomain}
       onYZoomChange={onYZoomChange}
       onResetZoom={onResetZoom}
+      isSideBySide={isSideBySide}
     />
   );
 };
