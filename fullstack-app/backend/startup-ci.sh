@@ -28,6 +28,10 @@ except Exception as e:
     sys.exit(1)
 "
 
+# Create superuser if it doesn't exist
+echo "Checking superuser..."
+python -m scripts.init_database
+
 if [ $? -eq 0 ]; then
     echo "✓ Database setup completed successfully"
     echo "Starting FastAPI server..."

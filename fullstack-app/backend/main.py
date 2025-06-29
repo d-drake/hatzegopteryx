@@ -99,11 +99,6 @@ app.include_router(items.router, prefix="/api/items", tags=["items"])
 app.include_router(cd_data.router, prefix="/api/cd-data", tags=["cd-data"])
 app.include_router(spc_limits.router, prefix="/api/spc-limits", tags=["spc-limits"])
 
-@app.options("/{path:path}")
-async def handle_options(path: str):
-    """Handle OPTIONS requests for CORS preflight"""
-    return {"message": "OK"}
-
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Fullstack App API"}

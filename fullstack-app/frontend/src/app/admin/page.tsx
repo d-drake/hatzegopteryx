@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DashboardStats {
   totalUsers: number;
@@ -11,6 +12,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     activeUsers: 0,
@@ -20,13 +22,15 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardStats();
-  }, []);
+    if (!authLoading && user && user.is_superuser) {
+      fetchDashboardStats();
+    }
+  }, [user, authLoading]);
 
   const fetchDashboardStats = async () => {
     try {
       // Fetch users
-      const usersResponse = await axios.get('/api/users');
+      const usersResponse = await axios.get('/api/users/');
       const users = usersResponse.data;
       
       // Fetch pending registrations
@@ -46,10 +50,19 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!user || !user.is_superuser) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-xl font-semibold text-red-600">Access Denied</h2>
+        <p className="mt-2 text-gray-600">You must be a superuser to access this page.</p>
       </div>
     );
   }

@@ -1,10 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+/* Critical styles to prevent layout shift */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-fallback: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -14,11 +12,30 @@
   }
 }
 
+/* Prevent layout shift during font loading */
+html {
+  /* Reserve space for scrollbar to prevent layout shift */
+  overflow-y: scroll;
+  /* Ensure minimum font metrics to prevent CLS */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Set height to prevent layout shifts */
+  height: 100%;
+}
+
 body {
+  margin: 0;
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Ensure body takes full height */
+  min-height: 100%;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer utilities {
   .text-balance {

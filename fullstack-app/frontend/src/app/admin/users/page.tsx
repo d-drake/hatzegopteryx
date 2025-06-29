@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface User {
   id: number;
@@ -14,20 +15,28 @@ interface User {
 }
 
 export default function UsersPage() {
+  const { user, loading: authLoading } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (!authLoading && user) {
+      fetchUsers();
+    }
+  }, [user, authLoading]);
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('/api/users');
+      const response = await axios.get('/api/users/');
       setUsers(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching users:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        console.error('Error status:', error.response.status);
+        console.error('Error headers:', error.response.headers);
+      }
     } finally {
       setLoading(false);
     }
@@ -62,10 +71,19 @@ export default function UsersPage() {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!user || !user.is_superuser) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-xl font-semibold text-red-600">Access Denied</h2>
+        <p className="mt-2 text-gray-600">You must be a superuser to access this page.</p>
       </div>
     );
   }

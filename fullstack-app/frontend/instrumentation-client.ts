@@ -1,39 +1,60 @@
 import * as Sentry from '@sentry/nextjs';
 
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+// Only initialize Sentry once
+if (typeof window !== 'undefined' && !window.__sentryInit__) {
+  window.__sentryInit__ = true;
+  window.__sentryReplayInit__ = true;
   
-  // Adds request headers and IP for users, for more info visit:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+  Sentry.init({
+    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    
+    // Set tracesSampleRate to 1.0 to capture 100% of transactions
+    // We recommend adjusting this value in production
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for tracing.
-  // We recommend adjusting this value in production
-  tracesSampleRate: 1.0,
+    // Capture replay sessions
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
 
-  debug: false,
+    debug: false,
 
-  // Capture Replay for 10% of all sessions,
-  // plus for 100% of sessions with an error
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+    integrations: [
+      // Automatically instrument your app
+      ...(typeof window !== 'undefined' && !window.__sentryReplayInit__ ? [
+        Sentry.replayIntegration({
+          maskAllText: false,
+          blockAllMedia: false,
+        }),
+      ] : []),
+    ],
 
-  integrations: [
-    Sentry.replayIntegration({
-      maskAllText: true,
-      blockAllMedia: true,
-    }),
-    Sentry.feedbackIntegration({
-      // Additional SDK configuration goes in here, for example:
-      colorScheme: "system",
-    }),
-  ],
+    // Filter out certain errors
+    beforeSend(event, hint) {
+      // Filter out non-critical errors
+      if (event.exception) {
+        const error = hint.originalException as any;
+        // Filter out canceled requests
+        if (error && error.message && error.message.includes('ERR_CANCELED')) {
+          return null;
+        }
+        // Filter out font loading errors
+        if (error && error.message && (
+          error.message.includes('Failed to fetch') ||
+          error.message.includes('Geist.ttf') ||
+          error.message.includes('Failed to load resource')
+        )) {
+          return null;
+        }
+      }
+      return event;
+    },
+  });
+}
 
-  // Enable logs to be sent to Sentry
-  _experiments: { enableLogs: true },
-});
-
-// This export will instrument router navigations, and is only relevant if you enable tracing.
-// `captureRouterTransitionStart` is available from SDK version 9.12.0 onwards
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+// Type declaration for window
+declare global {
+  interface Window {
+    __sentryInit__?: boolean;
+    __sentryReplayInit__?: boolean;
+  }
+}

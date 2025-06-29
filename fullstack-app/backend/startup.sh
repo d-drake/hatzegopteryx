@@ -6,6 +6,10 @@ echo "Starting backend with data verification..."
 # Ensure we're in the app directory
 cd /app
 
+# Create superuser if it doesn't exist
+echo "Checking superuser..."
+python -m scripts.init_database
+
 # Run the data verification and seeding script from the app directory
 echo "Running data verification and seeding..."
 python -m scripts.verify_and_seed_data

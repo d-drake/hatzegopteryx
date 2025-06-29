@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axios';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 
@@ -26,62 +26,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-// Configure axios defaults
-axios.defaults.baseURL = API_URL;
-axios.defaults.withCredentials = true;
-
-// Add request interceptor to include access token
-axios.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Add response interceptor to handle token refresh
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = Cookies.get('refresh_token');
-        if (refreshToken) {
-          const response = await axios.post('/api/auth/refresh', {
-            refresh_token: refreshToken
-          });
-
-          const { access_token, refresh_token: newRefreshToken } = response.data;
-          localStorage.setItem('access_token', access_token);
-          Cookies.set('refresh_token', newRefreshToken);
-
-          // Retry original request with new token
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
-          return axios(originalRequest);
-        }
-      } catch (refreshError) {
-        // Refresh failed, redirect to login
-        localStorage.removeItem('access_token');
-        Cookies.remove('refresh_token');
-        window.location.href = '/login';
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,6 +38,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
+      // Check if we're on the client side
+      if (typeof window === 'undefined') {
+        setLoading(false);
+        return;
+      }
+      
       const token = localStorage.getItem('access_token');
       if (!token) {
         setLoading(false);
@@ -103,7 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await axios.get('/api/auth/me');
       setUser(response.data);
     } catch (error) {
-      localStorage.removeItem('access_token');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token');
+      }
     } finally {
       setLoading(false);
     }
@@ -119,7 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { access_token, refresh_token } = response.data;
       
       // Store tokens
-      localStorage.setItem('access_token', access_token);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('access_token', access_token);
+      }
       Cookies.set('refresh_token', refresh_token);
 
       // Get user info
@@ -135,12 +89,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout');
+      await axios.post('/api/auth/logout', {}, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
       // Clear tokens and user data
-      localStorage.removeItem('access_token');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token');
+      }
       Cookies.remove('refresh_token');
       setUser(null);
       router.push('/login');
@@ -171,7 +131,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       const { access_token, refresh_token: newRefreshToken } = response.data;
-      localStorage.setItem('access_token', access_token);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('access_token', access_token);
+      }
       Cookies.set('refresh_token', newRefreshToken);
     } catch (error) {
       throw error;

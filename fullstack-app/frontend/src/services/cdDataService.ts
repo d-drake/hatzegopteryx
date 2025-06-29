@@ -1,15 +1,5 @@
-import axios from 'axios';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
-// Configure axios with better defaults for reliability
-const apiClient = axios.create({
-  baseURL: API_URL,
-  timeout: 10000, // 10 second timeout
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import apiClient from '@/lib/axios';
+import { AxiosError } from 'axios';
 
 // Add request interceptor for debugging
 apiClient.interceptors.request.use(
@@ -96,7 +86,7 @@ async function retryRequest<T>(
       }
       
       // Only retry on network errors, timeouts, 5xx server errors, or JSON parsing errors
-      const shouldRetry = axios.isAxiosError(error) && 
+      const shouldRetry = error instanceof AxiosError && 
           (error.code === 'ECONNABORTED' || 
            !error.response || 
            error.response.status >= 500 ||
@@ -189,7 +179,7 @@ export async function fetchCDDataStats(filters?: CDDataFilters): Promise<CDDataS
       if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
     }
 
-    const response = await axios.get<CDDataStats>(`${API_URL}/api/cd-data/stats`, {
+    const response = await apiClient.get<CDDataStats>('/api/cd-data/stats', {
       params: params.toString() ? params : undefined,
     });
     
@@ -202,7 +192,7 @@ export async function fetchCDDataStats(filters?: CDDataFilters): Promise<CDDataS
 
 export async function fetchEntities(): Promise<string[]> {
   try {
-    const response = await axios.get<string[]>(`${API_URL}/api/cd-data/entities`);
+    const response = await apiClient.get<string[]>('/api/cd-data/entities');
     return response.data;
   } catch (error) {
     console.error('Error fetching entities:', error);
@@ -212,7 +202,7 @@ export async function fetchEntities(): Promise<string[]> {
 
 export async function fetchProcessTypes(): Promise<string[]> {
   try {
-    const response = await axios.get<string[]>(`${API_URL}/api/cd-data/process-types`);
+    const response = await apiClient.get<string[]>('/api/cd-data/process-types');
     return response.data;
   } catch (error) {
     console.error('Error fetching process types:', error);
@@ -222,7 +212,7 @@ export async function fetchProcessTypes(): Promise<string[]> {
 
 export async function fetchProductTypes(): Promise<string[]> {
   try {
-    const response = await axios.get<string[]>(`${API_URL}/api/cd-data/product-types`);
+    const response = await apiClient.get<string[]>('/api/cd-data/product-types');
     return response.data;
   } catch (error) {
     console.error('Error fetching product types:', error);
@@ -232,7 +222,7 @@ export async function fetchProductTypes(): Promise<string[]> {
 
 export async function fetchSPCMonitorNames(): Promise<string[]> {
   try {
-    const response = await axios.get<string[]>(`${API_URL}/api/cd-data/spc-monitor-names`);
+    const response = await apiClient.get<string[]>('/api/cd-data/spc-monitor-names');
     return response.data;
   } catch (error) {
     console.error('Error fetching SPC monitor names:', error);

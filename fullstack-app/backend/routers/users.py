@@ -13,13 +13,14 @@ from email_service import send_registration_approved_email, send_registration_re
 
 router = APIRouter()
 
-@router.get("/", response_model=List[UserResponse], dependencies=[Depends(require_superuser)])
+@router.get("/", response_model=List[UserResponse])
 def get_users(
     skip: int = 0,
     limit: int = Query(default=50, le=100),
     is_active: Optional[bool] = None,
     is_superuser: Optional[bool] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser)
 ):
     """Get all users (superuser only)."""
     query = db.query(User)

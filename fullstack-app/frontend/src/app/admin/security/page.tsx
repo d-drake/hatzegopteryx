@@ -1,12 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-
-// Configure axios
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-});
+import api from '@/lib/axios';
 import { ExclamationTriangleIcon, ShieldCheckIcon, ShieldExclamationIcon } from '@heroicons/react/24/outline';
 
 interface SecurityDashboard {

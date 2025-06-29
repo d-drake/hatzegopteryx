@@ -7,8 +7,29 @@ const nextConfig: NextConfig = {
   experimental: {
     // Reduce memory usage during builds (available from v15.0.0)
     webpackMemoryOptimizations: true,
-    // Prevent preloading all JS modules on server startup
-    preloadEntriesOnStart: false,
+    optimizeCss: false, // Disable CSS optimization as it might cause FOUC
+  },
+  // Optimize CSS loading
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // Disable runtime JS for better performance
+  reactStrictMode: true,
+  // Disable x-powered-by header
+  poweredByHeader: false,
+  // Configure headers for preload
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+        ],
+      },
+    ]
   },
 }
 
@@ -22,6 +43,9 @@ export default withSentryConfig(nextConfig, {
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
 
+  // Disable source map upload in development
+  authToken: process.env.NODE_ENV === 'development' ? undefined : process.env.SENTRY_AUTH_TOKEN,
+
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
@@ -32,9 +56,10 @@ export default withSentryConfig(nextConfig, {
   // Disabled for static export
   // tunnelRoute: '/monitoring',
 
-  // Hides source maps from generated client bundles  
+  // Source maps configuration
   sourcemaps: {
-    disable: true
+    disable: false,
+    deleteSourcemapsAfterUpload: process.env.NODE_ENV === 'production'
   },
 
   // Automatically tree-shake Sentry logger statements to reduce bundle size
