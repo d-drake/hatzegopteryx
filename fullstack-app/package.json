@@ -1,5 +1,5 @@
 {
-  "name": "hatzegopteryx-fullstack",
+  "name": "ccdh-fullstack",
   "version": "1.0.0",
   "description": "Fullstack application with PostgreSQL, FastAPI, and Next.js",
   "scripts": {

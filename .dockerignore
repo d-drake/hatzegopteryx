@@ -118,3 +118,26 @@ playwright-report/
 
 # Development scripts
 tests/playwright/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+!terraform.tfvars.example
+infrastructure/terraform/.terraform/
+infrastructure/terraform/*.tfstate*
+infrastructure/terraform/*.tfvars
+!infrastructure/terraform/terraform.tfvars.example
+
+# AWS Lambda build artifacts
+lambda_function.zip
+lambda_build/
+
+
+# env
+.env
+.env.dev
+.env.prod

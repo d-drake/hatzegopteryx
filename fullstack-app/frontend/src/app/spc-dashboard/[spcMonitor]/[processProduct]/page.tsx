@@ -17,13 +17,13 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 function SPCDashboardInner() {
   const params = useParams();
-  const { 
-    data, 
-    isLoading: loading, 
-    error, 
-    filters, 
-    handleFiltersChange, 
-    refetch 
+  const {
+    data,
+    isLoading: loading,
+    error,
+    filters,
+    handleFiltersChange,
+    refetch
   } = useCDData();
 
   // Extract URL parameters
@@ -36,9 +36,9 @@ function SPCDashboardInner() {
       <Header />
       <header className="bg-slate-800 text-white">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">Hatzegopteryx</h1>
+          <h1 className="text-3xl font-bold">Cloud Critical Dimension Hub</h1>
           <p className="text-slate-300 mt-2">
-            Fullstack application with PostgreSQL, FastAPI, and Next.js
+            Plotting your past, present, and well-controlled future.
           </p>
         </div>
       </header>
@@ -147,7 +147,7 @@ function SPCDashboardInner() {
 
 function SPCDashboardContent() {
   const params = useParams();
-  
+
   // Extract URL parameters
   const spcMonitor = decodeURIComponent(params.spcMonitor as string);
   const processProduct = decodeURIComponent(params.processProduct as string);
@@ -160,9 +160,9 @@ function SPCDashboardContent() {
       spcMonitorName={spcMonitor}
       processProduct={processProduct}
     >
-      <SPCLimitsProvider 
-        processType={processType} 
-        productType={productType} 
+      <SPCLimitsProvider
+        processType={processType}
+        productType={productType}
         spcMonitorName={spcMonitor}
       >
         <SPCDashboardInner />

@@ -13,8 +13,8 @@ test.describe('Sentry MCP Helper Tests', () => {
     // This test is informational - it documents the expected Sentry setup
     console.log('Expected Sentry Configuration:');
     console.log('- Organization: pdev-zx');
-    console.log('- Frontend Project: hatzegopteryx-frontend');
-    console.log('- Backend Project: hatzegopteryx-backend');
+    console.log('- Frontend Project: ccdh-frontend');
+    console.log('- Backend Project: ccdh-backend');
     console.log('- Region URL: https://us.sentry.io');
     console.log('');
     console.log('To check recent errors, use Sentry MCP tools:');
@@ -27,9 +27,9 @@ test.describe('Sentry MCP Helper Tests', () => {
     // This test generates an error and provides instructions to verify it in Sentry
     const errorId = `test-${Date.now()}`;
     const errorMessage = `E2E Test Error ${errorId}`;
-    
+
     await page.goto('/');
-    
+
     // Generate a unique error
     await page.evaluate((msg) => {
       const sentry = (window as any).Sentry;
@@ -37,7 +37,7 @@ test.describe('Sentry MCP Helper Tests', () => {
         const error = new Error(msg);
         error.name = 'E2ETestError';
         sentry.captureException(error, {
-          tags: { 
+          tags: {
             test: 'e2e-verification',
             errorId: msg.split(' ').pop()
           },
@@ -46,18 +46,18 @@ test.describe('Sentry MCP Helper Tests', () => {
         });
       }
     }, errorMessage);
-    
+
     await page.waitForTimeout(3000);
-    
+
     console.log('');
     console.log('Test error generated!');
     console.log(`Error message: "${errorMessage}"`);
     console.log('');
     console.log('To verify in Sentry, use these MCP commands:');
-    console.log(`1. Find recent errors: mcp__sentry__find_errors(organizationSlug="pdev-zx", projectSlug="hatzegopteryx-frontend", regionUrl="https://us.sentry.io")`);
+    console.log(`1. Find recent errors: mcp__sentry__find_errors(organizationSlug="pdev-zx", projectSlug="ccdh-frontend", regionUrl="https://us.sentry.io")`);
     console.log(`2. Search for this specific error: mcp__sentry__find_issues(organizationSlug="pdev-zx", query="message:${errorId}", regionUrl="https://us.sentry.io")`);
     console.log('');
     console.log('Direct link to Sentry project:');
-    console.log('https://pdev-zx.sentry.io/projects/hatzegopteryx-frontend/');
+    console.log('https://pdev-zx.sentry.io/projects/ccdh-frontend/');
   });
 });

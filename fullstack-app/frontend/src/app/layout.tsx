@@ -3,8 +3,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Hatzegopteryx - Fullstack App",
-  description: "A modern fullstack application built with PostgreSQL, FastAPI, and Next.js",
+  title: "Cloud Critical Dimension Hub",
+  description: "Plotting your past, present, and well-controlled future.",
 };
 
 export default function RootLayout({

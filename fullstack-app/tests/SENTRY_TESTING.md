@@ -2,13 +2,13 @@
 
 ## Overview
 
-The Hatzegopteryx application has Sentry integration configured for error tracking and performance monitoring. This guide explains how to test and verify Sentry integration.
+The CCDH application has Sentry integration configured for error tracking and performance monitoring. This guide explains how to test and verify Sentry integration.
 
 ## Sentry Configuration
 
 - **Organization**: pdev-zx
-- **Frontend Project**: hatzegopteryx-frontend
-- **Backend Project**: hatzegopteryx-backend
+- **Frontend Project**: ccdh-frontend
+- **Backend Project**: ccdh-backend
 - **Region**: US (https://us.sentry.io)
 
 ## Running Sentry Tests
@@ -51,7 +51,7 @@ When Sentry MCP is authenticated, you can verify test errors:
 // Find recent issues
 mcp__sentry__find_issues({
   organizationSlug: "pdev-zx",
-  projectSlug: "hatzegopteryx-frontend",
+  projectSlug: "ccdh-frontend",
   regionUrl: "https://us.sentry.io",
   query: "is:unresolved",
   sortBy: "last_seen"
@@ -60,7 +60,7 @@ mcp__sentry__find_issues({
 // Find specific test errors
 mcp__sentry__find_errors({
   organizationSlug: "pdev-zx",
-  projectSlug: "hatzegopteryx-frontend",
+  projectSlug: "ccdh-frontend",
   regionUrl: "https://us.sentry.io",
   query: "E2E Test Error"
 })
@@ -68,15 +68,15 @@ mcp__sentry__find_errors({
 // Get issue details
 mcp__sentry__get_issue_details({
   organizationSlug: "pdev-zx",
-  issueId: "HATZEGOPTERYX-FRONTEND-4"
+  issueId: "ccdh-FRONTEND-4"
 })
 ```
 
 ## Current Issues in Sentry
 
 As of the last check:
-- **HATZEGOPTERYX-FRONTEND-3**: N+1 API Call issue in SPC Dashboard
-- **HATZEGOPTERYX-FRONTEND-4**: Test errors from E2E tests
+- **ccdh-FRONTEND-3**: N+1 API Call issue in SPC Dashboard
+- **ccdh-FRONTEND-4**: Test errors from E2E tests
 
 ## Test Environment Notes
 
@@ -94,6 +94,6 @@ As of the last check:
 
 ## Direct Links
 
-- Frontend Project: https://pdev-zx.sentry.io/projects/hatzegopteryx-frontend/
-- Backend Project: https://pdev-zx.sentry.io/projects/hatzegopteryx-backend/
+- Frontend Project: https://pdev-zx.sentry.io/projects/ccdh-frontend/
+- Backend Project: https://pdev-zx.sentry.io/projects/ccdh-backend/
 - Organization Dashboard: https://pdev-zx.sentry.io/

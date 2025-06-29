@@ -196,9 +196,9 @@ Comprehensive E2E tests cover:
 
 ## Known Issues Fixed
 
-1. **HATZEGOPTERYX-BACKEND-5**: Fixed SQLAlchemy JSON field query syntax
-2. **HATZEGOPTERYX-FRONTEND-X**: Installed missing @heroicons/react package
-3. **HATZEGOPTERYX-BACKEND-4**: Fixed password_changed_at field reference
+1. **ccdh-BACKEND-5**: Fixed SQLAlchemy JSON field query syntax
+2. **ccdh-FRONTEND-X**: Installed missing @heroicons/react package
+3. **ccdh-BACKEND-4**: Fixed password_changed_at field reference
 
 ## Deployment Considerations
 

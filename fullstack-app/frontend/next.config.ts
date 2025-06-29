@@ -2,6 +2,7 @@ import type { NextConfig } from 'next'
 import { withSentryConfig } from '@sentry/nextjs'
 
 const nextConfig: NextConfig = {
+  // Remove static export - we'll use standalone for container deployment
   output: 'standalone',
   experimental: {
     // Reduce memory usage during builds (available from v15.0.0)
@@ -16,7 +17,7 @@ export default withSentryConfig(nextConfig, {
   // https://github.com/getsentry/sentry-webpack-plugin#options
 
   org: 'pdev-zx',
-  project: 'hatzegopteryx',
+  project: 'CCDH',
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
@@ -28,7 +29,8 @@ export default withSentryConfig(nextConfig, {
   widenClientFileUpload: true,
 
   // Route browser requests to Sentry through a Next.js route to circumvent ad-blockers. (increases server load)
-  tunnelRoute: '/monitoring',
+  // Disabled for static export
+  // tunnelRoute: '/monitoring',
 
   // Hides source maps from generated client bundles  
   sourcemaps: {

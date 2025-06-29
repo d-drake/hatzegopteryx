@@ -25,8 +25,8 @@ jobs:
         context: ./fullstack-app/backend
         push: true
         tags: |
-          ${{ secrets.DOCKER_USERNAME }}/hatzegopteryx-backend:latest
-          ${{ secrets.DOCKER_USERNAME }}/hatzegopteryx-backend:${{ github.sha }}
+          ${{ secrets.DOCKER_USERNAME }}/ccdh-backend:latest
+          ${{ secrets.DOCKER_USERNAME }}/ccdh-backend:${{ github.sha }}
     
     - name: Build and push Frontend
       uses: docker/build-push-action@v5
@@ -34,8 +34,8 @@ jobs:
         context: ./fullstack-app/frontend
         push: true
         tags: |
-          ${{ secrets.DOCKER_USERNAME }}/hatzegopteryx-frontend:latest
-          ${{ secrets.DOCKER_USERNAME }}/hatzegopteryx-frontend:${{ github.sha }}
+          ${{ secrets.DOCKER_USERNAME }}/ccdh-frontend:latest
+          ${{ secrets.DOCKER_USERNAME }}/ccdh-frontend:${{ github.sha }}
     
     # Add deployment steps here based on your infrastructure
     # Examples: AWS ECS, Kubernetes, DigitalOcean, etc.

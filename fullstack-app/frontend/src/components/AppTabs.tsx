@@ -26,13 +26,17 @@ export default function AppTabs({ activeTab = 'items', onTabChange }: AppTabsPro
   const handleTabClick = (tab: Tab) => {
     if (tab.id === 'spc-dashboard') {
       router.push(tab.href);
+    } else if (pathname.startsWith('/spc-dashboard')) {
+      // When on SPC dashboard, navigate back to home for other tabs
+      router.push(tab.href);
     } else {
+      // When on home page, use the callback if provided
       onTabChange?.(tab.id);
     }
   };
 
   const isActive = (tab: Tab) => {
-    if (pathname === '/spc-dashboard' && tab.id === 'spc-dashboard') return true;
+    if (pathname.startsWith('/spc-dashboard') && tab.id === 'spc-dashboard') return true;
     if (pathname === '/' && tab.id !== 'spc-dashboard') return activeTab === tab.id;
     return false;
   };

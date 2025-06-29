@@ -1,4 +1,4 @@
-# Hatzegopteryx
+# CCDH aka Project Hatzegopteryx
 
 A modern fullstack application built with PostgreSQL, FastAPI, and React TypeScript. Features SPC data visualization and interactive charts.
 

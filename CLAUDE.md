@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Hatzegopteryx is a sophisticated fullstack SPC (Statistical Process Control) data visualization application designed for semiconductor manufacturing analytics. The application features advanced interactive charts, real-time filtering, and comprehensive control limits integration.
+Cloud Critical Dimension Hub is a sophisticated fullstack SPC (Statistical Process Control) data visualization application designed for semiconductor manufacturing analytics. The application features advanced interactive charts, real-time filtering, and comprehensive control limits integration.
 
 **Core Technologies:**
 - **Backend**: FastAPI (Python 3.13) with SQLAlchemy ORM
@@ -18,13 +18,23 @@ Hatzegopteryx is a sophisticated fullstack SPC (Statistical Process Control) dat
 ### Development Environment
 ```bash
 # Start all services (PostgreSQL, Backend, Frontend) with hot reload
-docker compose up
+dc-dev up
+# Or: docker compose -f docker-compose.dev.yml up
 
 # Stop all services
-docker compose down
+dc-dev down
 
 # Rebuild containers after dependency changes
-docker compose build
+dc-dev build
+```
+
+### Production Environment (Local Testing)
+```bash
+# Start services with production config
+dc-prod up
+# Or: docker compose -f docker-compose.prod.yml up
+
+# Note: Requires RDS endpoint in .env.prod
 ```
 
 ### Frontend Development
@@ -48,10 +58,28 @@ npx tsc --noEmit
 ```
 
 ### Service URLs
+
+#### Development
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - API Documentation (Swagger): http://localhost:8000/docs
 - Database Admin (Adminer): http://localhost:8080
+
+#### Production (AWS)
+- Frontend: https://ccdh.me (DNS → CloudFront → ALB → ECS)
+- Backend API: https://t3f3cvzjv4.execute-api.us-west-1.amazonaws.com (API Gateway → Lambda)
+- API Documentation: https://t3f3cvzjv4.execute-api.us-west-1.amazonaws.com/docs
+- Database: Aurora Serverless v2 PostgreSQL (private VPC access only)
+
+**Important**: Always access the production frontend via https://ccdh.me, NOT via the CloudFront URL directly. The API CORS configuration only allows requests from https://ccdh.me.
+
+### Production Infrastructure Notes
+- **CloudFront Configuration**: Uses ALB as origin (not S3), configured in Terraform
+- **Domain & SSL**: ccdh.me alias and SSL certificate properly configured in `main.tf`
+- **Infrastructure as Code**: No manual CloudFront updates needed after running Terraform
+- **Authentication**: Superuser credentials configured via environment variables in terraform.tfvars
+- **CORS Handling**: Custom Lambda handler manages OPTIONS preflight requests
+- **Deployment**: Lambda function updates via `deploy_lambda.sh` script
 
 ## Architecture
 
@@ -66,6 +94,10 @@ npx tsc --noEmit
 - **Data Generation**: `backend/scripts/` - Comprehensive data seeding
   - `generate_cd_data.py` - 43,800 CD data records with correlation modeling
   - `generate_spc_limits.py` - 144 SPC limits records for process control
+- **Deployment**: `backend/deployment/` - Lambda deployment configuration
+  - `lambda/lambda_handler.py` - AWS Lambda entry point with Mangum adapter
+  - `scripts/build_lambda.sh` - Builds deployment package for AWS Lambda
+  - `scripts/deploy_lambda.sh` - Updates Lambda function code
 - **API Pattern**: RESTful endpoints with automatic OpenAPI documentation
 
 ### Frontend Structure
@@ -179,16 +211,34 @@ npx tsc --noEmit
 
 ## Environment Configuration
 
-### Required `.env` file in `fullstack-app/`:
-```env
-POSTGRES_USER=appuser
-POSTGRES_PASSWORD=apppassword
-POSTGRES_DB=appdb
-```
+### Docker Compose Environment Setup:
+The project uses environment-specific Docker Compose files with aliases:
+- **Development**: `dc-dev` (alias for `docker compose -f docker-compose.dev.yml`)
+- **Production**: `dc-prod` (alias for `docker compose -f docker-compose.prod.yml`)
 
-### Frontend Environment Variables:
+### Environment Files:
+- **`.env.dev`** - Development environment (committed to Git)
+- **`.env.prod`** - Production environment (gitignored for security)
+- **`.env`** - Legacy/default file
+
+### Key Environment Variables:
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
+# Database
+POSTGRES_USER=appuser
+POSTGRES_PASSWORD=<environment-specific>
+POSTGRES_DB=appdb
+
+# Superuser
+SUPERUSER_EMAIL=admin@ccdh.me
+SUPERUSER_USERNAME=admin
+SUPERUSER_PASSWORD=<environment-specific>
+
+# JWT
+SECRET_KEY=<environment-specific>
+ALGORITHM=HS256
+
+# Frontend
+NEXT_PUBLIC_API_URL=<environment-specific>
 ```
 
 ### Docker Configuration Features:
@@ -265,6 +315,7 @@ The project uses optimized CI/CD with environment-specific configurations:
 - **Prefer TypeScript** for all new test files (except Python backend tests)
 
 #### Playwright Test Organization
+- **Browser**: Use Chromium browser for Playwright testing
 - **Headless Mode**: Use headless mode by default for all tests (`headless: true`)
   - Only use `headless: false` when debugging visual issues
 

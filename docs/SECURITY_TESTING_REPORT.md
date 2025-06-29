@@ -62,16 +62,16 @@ Using Playwright MCP, I successfully tested:
 ## Sentry Issues Resolved
 
 ### Backend Issues Fixed
-1. **HATZEGOPTERYX-BACKEND-5**: Fixed SQLAlchemy JSON query syntax
+1. **ccdh-BACKEND-5**: Fixed SQLAlchemy JSON query syntax
    - Changed `has_key()` to proper SQLAlchemy JSON operators
    - Affected privilege escalation and unauthorized access detection
 
-2. **HATZEGOPTERYX-BACKEND-4**: Fixed password_changed_at reference
+2. **ccdh-BACKEND-4**: Fixed password_changed_at reference
    - Updated to use created_at for password age calculation
    - Added note for future password_changed_at implementation
 
 ### Frontend Issues Fixed
-1. **HATZEGOPTERYX-FRONTEND-X**: Installed missing @heroicons/react
+1. **ccdh-FRONTEND-X**: Installed missing @heroicons/react
    - Added package to dependencies
    - Used in security dashboard UI
 

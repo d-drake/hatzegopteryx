@@ -1,0 +1,9 @@
+{
+  "Variables": {
+    "DATABASE_URL": "postgresql://appuser:G9RppMnJhGKzRWTB5MVPwSDZ6bD4-aZoxJFeMCXE_YQ@ccdh-cluster.cluster-crcei826enn5.us-west-1.rds.amazonaws.com:5432/appdb",
+    "SECRET_KEY": "lxehOOZyWadZ4cRtieeBXySyY1B0602r8N6Pz2Z_cOU",
+    "SUPERUSER_EMAIL": "admin@ccdh.me",
+    "SUPERUSER_PASSWORD": "Beryllium$56",
+    "CORS_ORIGINS": "https://ccdh.me"
+  }
+}

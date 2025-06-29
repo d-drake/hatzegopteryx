@@ -12,22 +12,22 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold text-gray-900">
-              Hatzegopteryx
+              Cloud Critical Dimension Hub
             </Link>
           </div>
-          
+
           <nav className="flex items-center space-x-4">
             {user ? (
               <>
-                <Link 
-                  href="/spc-dashboard" 
+                <Link
+                  href="/spc-dashboard"
                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   SPC Dashboard
                 </Link>
                 {user.is_superuser && (
-                  <Link 
-                    href="/admin" 
+                  <Link
+                    href="/admin"
                     className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                   >
                     Admin
@@ -47,14 +47,14 @@ export default function Header() {
               </>
             ) : (
               <>
-                <Link 
-                  href="/login" 
+                <Link
+                  href="/login"
                   className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Login
                 </Link>
-                <Link 
-                  href="/register" 
+                <Link
+                  href="/register"
                   className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Register

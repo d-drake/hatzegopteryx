@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    env_file: .env.dev
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-appuser}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
@@ -14,8 +15,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    stop_grace_period: 30s
-    stop_signal: SIGTERM
     restart: unless-stopped
 
   backend:
@@ -24,6 +23,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    env_file: .env.dev
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD:-apppassword}@postgres:5432/${POSTGRES_DB:-appdb}
       SENTRY_DSN: ${SENTRY_DSN}
@@ -54,8 +54,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 60s
-    stop_grace_period: 15s
-    stop_signal: SIGTERM
     restart: unless-stopped
     develop:
       watch:
@@ -73,32 +71,18 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
+    env_file: .env.dev
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
       - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN}
       - NODE_ENV=development
-      # - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true # FOR DEV HOT RELOAD
     depends_on:
       backend:
         condition: service_healthy
     volumes:
       - ./frontend:/app
-      # - /app/node_modules
-      # - /app/.next
-    stop_grace_period: 10s
-    stop_signal: SIGTERM
     restart: unless-stopped
-    # develop:
-    #   watch:
-    #     - action: sync+restart
-    #       path: ./frontend
-    #       target: /app
-    #       ignore:
-    #         - node_modules/
-    #         - .next/
-    #     - action: rebuild
-    #       path: ./frontend/package.json
 
   adminer:
     image: adminer:4.8.1
@@ -109,12 +93,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    stop_grace_period: 5s
-    stop_signal: SIGTERM
     restart: unless-stopped
-    logging:
-      options:
-        max-size: "1m"
 
 volumes:
   postgres_data:

@@ -14,12 +14,12 @@ export default function Home() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
         <Header />
-        
+
         <header className="bg-slate-800 text-white">
           <div className="container mx-auto px-4 py-6">
-            <h1 className="text-3xl font-bold">Hatzegopteryx</h1>
+            <h1 className="text-3xl font-bold">Cloud Critical Dimension Hub</h1>
             <p className="text-slate-300 mt-2">
-              Fullstack application with PostgreSQL, FastAPI, and Next.js
+              Plotting your past, present, and well-controlled future.
             </p>
           </div>
         </header>

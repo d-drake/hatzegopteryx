@@ -22,6 +22,9 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.prod
+.env.dev
+.env.production
 
 # IDE
 .vscode/
@@ -88,3 +91,29 @@ tokens/
 
 # plans (development only)
 plans/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+!terraform.tfvars.example
+crash.log
+*.tfplan
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# AWS Lambda build artifacts
+lambda_function.zip
+lambda_build/
+fullstack-app/backend/deployment/scripts/lambda_function.zip
+fullstack-app/backend/deployment/scripts/lambda_build/
+
+# Terraform outputs
+infrastructure/terraform/outputs.txt
+
+docs

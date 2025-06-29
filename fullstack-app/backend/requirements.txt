@@ -5,7 +5,7 @@ fastapi==0.115.13
 greenlet==3.2.3
 h11==0.16.0
 idna==3.10
-numpy==2.3.1
+numpy==2.2.6  # this version was needed for build_lambda.sh to complete successfully (was using 2.3.1 previously)
 psycopg2-binary==2.9.10
 pydantic==2.11.7
 pydantic-settings==2.10.0
@@ -24,3 +24,6 @@ python-jose[cryptography]==3.3.0
 python-multipart==0.0.6
 fastapi-mail==1.4.1
 slowapi==0.1.9
+requests==2.32.3
+# AWS Lambda adapter
+mangum==0.17.0

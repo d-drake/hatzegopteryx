@@ -1,80 +1,58 @@
-services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-appuser}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
-      POSTGRES_DB: ${POSTGRES_DB:-appdb}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appuser} -d ${POSTGRES_DB:-appdb}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+# Production Docker Compose - For local testing with production settings
+# Note: In actual production, you'd use AWS services, not local containers
 
+services:
+  # No local postgres in production - using AWS RDS
+  
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    env_file: .env.prod
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD:-apppassword}@postgres:5432/${POSTGRES_DB:-appdb}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      # Use AWS RDS connection string
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@<rds-endpoint>:5432/${POSTGRES_DB}
+      PRODUCTION: "true"
+      SENTRY_DSN: ${SENTRY_DSN}
+      # JWT Configuration
+      SECRET_KEY: ${SECRET_KEY}
+      ALGORITHM: ${ALGORITHM}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS}
+      # Email Configuration
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_SERVER: ${MAIL_SERVER}
+      MAIL_TLS: ${MAIL_TLS}
+      MAIL_SSL: ${MAIL_SSL}
+      # Superuser Configuration
+      SUPERUSER_EMAIL: ${SUPERUSER_EMAIL}
+      SUPERUSER_USERNAME: ${SUPERUSER_USERNAME}
+      SUPERUSER_PASSWORD: ${SUPERUSER_PASSWORD}
+      # CORS for production
+      CORS_ORIGINS: "https://ccdh.me,https://www.ccdh.me"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/docs || exit 1"]
-      interval: 20m
+      test: [ "CMD-SHELL", "curl -f http://localhost:8000/health || exit 1" ]
+      interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
-    develop:
-      watch:
-        - action: sync
-          path: ./backend
-          target: /app
-          ignore:
-            - __pycache__/
-        - action: rebuild
-          path: ./backend/requirements.txt
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile  # Use production Dockerfile
     ports:
       - "3000:3000"
+    env_file: .env.prod
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN}
+      - NODE_ENV=production
     depends_on:
-      backend:
-        condition: service_healthy
-    develop:
-      watch:
-        - action: sync
-          path: ./frontend/src
-          target: /app/src
-          ignore:
-            - node_modules/
-        - action: rebuild
-          path: ./frontend/package.json
-
-  adminer:
-    image: adminer:4.8.1
-    ports:
-      - "8080:8080"
-    environment:
-      ADMINER_DEFAULT_SERVER: postgres
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-volumes:
-  postgres_data:
+      - backend
+    restart: unless-stopped
