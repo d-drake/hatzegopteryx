@@ -100,6 +100,14 @@ jobs:
         POSTGRES_USER=testuser
         POSTGRES_PASSWORD=testpass
         POSTGRES_DB=testdb
+        DATABASE_URL=postgresql://testuser:testpass@postgres:5432/testdb
+        SECRET_KEY=test-secret-key
+        ALGORITHM=HS256
+        ACCESS_TOKEN_EXPIRE_MINUTES=30
+        REFRESH_TOKEN_EXPIRE_DAYS=7
+        SUPERUSER_EMAIL=admin@test.com
+        SUPERUSER_USERNAME=admin
+        SUPERUSER_PASSWORD=testpass123
         EOF
         
         # Create CI override to use faster startup
