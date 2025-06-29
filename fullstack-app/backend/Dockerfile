@@ -10,6 +10,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Ensure startup scripts are executable
+RUN chmod +x startup.sh startup-ci.sh || true
+
 EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

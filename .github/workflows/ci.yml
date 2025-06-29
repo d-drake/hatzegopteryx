@@ -108,6 +108,14 @@ jobs:
         SUPERUSER_EMAIL=admin@test.com
         SUPERUSER_USERNAME=admin
         SUPERUSER_PASSWORD=testpass123
+        # Email configuration (using defaults)
+        MAIL_USERNAME=
+        MAIL_PASSWORD=
+        MAIL_FROM=noreply@test.com
+        MAIL_PORT=587
+        MAIL_SERVER=smtp.gmail.com
+        MAIL_TLS=true
+        MAIL_SSL=false
         EOF
         
         # Create CI override to use faster startup
@@ -121,6 +129,10 @@ jobs:
               timeout: 3s
               retries: 3
         EOF
+        
+        # Verify the override is being used
+        echo "=== Verifying Docker Compose Configuration ==="
+        docker compose config | grep -A 5 "backend:" | grep "command" || echo "Warning: Backend command not found in config"
         
         echo "Starting containers (this may take several minutes to pull images)..."
         docker compose up -d
