@@ -116,6 +116,9 @@ export default function SPCChartWithSharedData({
                   width={width}
                   height={400}
                   margin={chartMargin}
+                  processType={processType}
+                  productType={productType}
+                  spcMonitorName={spcMonitor}
                 />
               )}
             </ResponsiveChartWrapper>

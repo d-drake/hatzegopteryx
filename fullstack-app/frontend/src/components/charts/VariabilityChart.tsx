@@ -38,6 +38,7 @@ interface VariabilityChartProps {
   onYZoomChange?: (domain: [number, number] | null) => void; // Callback for zoom changes
   onResetZoom?: () => void; // Callback for reset zoom
   isSideBySide?: boolean; // Whether chart is in side-by-side layout
+  renderOverlays?: (scales: { xScale: d3.ScaleBand<string>; yScale: d3.ScaleLinear<number, number> }) => React.ReactNode;
 }
 
 // Simple tooltip component
@@ -77,6 +78,7 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
   onYZoomChange,
   onResetZoom,
   isSideBySide = false,
+  renderOverlays,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [hoveredData, setHoveredData] = useState<any>(null);
@@ -447,6 +449,12 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
         </defs>
         <g transform={`translate(${margin.left},${margin.top})`}>
           <g className="chart-area data-area" clipPath="url(#variability-clip)" />
+          {/* Render overlays (e.g., SPC limit lines) */}
+          {renderOverlays && (
+            <g className="chart-overlays" clipPath="url(#variability-clip)">
+              {renderOverlays({ xScale, yScale })}
+            </g>
+          )}
           <Axis
             scale={yScale}
             orientation="left"
