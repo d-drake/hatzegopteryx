@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import * as Sentry from '@sentry/nextjs';
 import { fetchCDData, CDDataItem } from '@/services/cdDataService';
 import { FilterState } from '@/components/spc-dashboard/FilterControls';
 
@@ -131,6 +132,21 @@ export function CDDataProvider({
         : 'Failed to load filtered data. Please try again.';
       setError(errorMessage);
       console.error('Error loading filtered data:', err);
+      
+      // Track error in Sentry with context
+      Sentry.captureException(err, {
+        tags: {
+          component: 'CDDataContext',
+          action: 'loadFilteredData'
+        },
+        extra: {
+          spcMonitorName,
+          processType,
+          productType,
+          filters,
+          cacheKey
+        }
+      });
     } finally {
       setIsLoading(false);
     }

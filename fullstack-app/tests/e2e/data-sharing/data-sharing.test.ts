@@ -103,7 +103,7 @@ test.describe('Data Sharing between SPC Dashboard and Analytics', () => {
     await expect(prevButton).toBeEnabled();
     
     // Check that we're on page 2
-    const pageInfo = await page.locator('text=/Showing \\d+-\\d+/').textContent();
+    const pageInfo = await page.locator('text=/Showing \\d+-\\d+/').first().textContent();
     expect(pageInfo).toContain('51-');
   });
 });

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import * as Sentry from '@sentry/nextjs';
 import { CDData, CDDataStats } from '@/types';
 import { cdDataApi } from '@/lib/api';
 import Header from '@/components/auth/Header';
@@ -10,6 +11,7 @@ import SPCTabs from '@/components/spc-dashboard/SPCTabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
 import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 function SPCAnalyticsInner() {
   const params = useParams();
@@ -200,6 +202,21 @@ function SPCAnalyticsInner() {
     } catch (err) {
       setError('Failed to fetch additional data');
       console.error(err);
+      
+      // Track error in Sentry
+      Sentry.captureException(err, {
+        tags: {
+          component: 'SPCAnalytics',
+          action: 'fetchAdditionalData'
+        },
+        extra: {
+          page,
+          spcMonitor,
+          processType,
+          productType,
+          params
+        }
+      });
     } finally {
       setLoading(false);
     }
@@ -748,19 +765,21 @@ export default function SPCAnalyticsPage() {
   const [processType, productType] = processProduct.split('-');
   
   return (
-    <CDDataProvider
-      processType={processType}
-      productType={productType}
-      spcMonitorName={spcMonitor}
-      processProduct={processProduct}
-    >
-      <SPCLimitsProvider
+    <ErrorBoundary errorMessage="Unable to load SPC Analytics">
+      <CDDataProvider
         processType={processType}
         productType={productType}
         spcMonitorName={spcMonitor}
+        processProduct={processProduct}
       >
-        <SPCAnalyticsInner />
-      </SPCLimitsProvider>
-    </CDDataProvider>
+        <SPCLimitsProvider
+          processType={processType}
+          productType={productType}
+          spcMonitorName={spcMonitor}
+        >
+          <SPCAnalyticsInner />
+        </SPCLimitsProvider>
+      </CDDataProvider>
+    </ErrorBoundary>
   );
 }
