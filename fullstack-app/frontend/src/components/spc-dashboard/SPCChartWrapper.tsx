@@ -15,6 +15,9 @@ interface SPCChartWrapperProps {
   tabs?: TabConfig[];
   defaultTab?: string;
   children?: React.ReactNode;
+  syncViews?: boolean;
+  activeView?: 'timeline' | 'variability';
+  onViewChange?: (view: 'timeline' | 'variability') => void;
 }
 
 // Constants for side-by-side layout
@@ -30,13 +33,19 @@ export default function SPCChartWrapper({
   title,
   tabs,
   defaultTab = 'timeline',
-  children
+  children,
+  syncViews = false,
+  activeView,
+  onViewChange
 }: SPCChartWrapperProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [localActiveTab, setLocalActiveTab] = useState(defaultTab);
   const [xZoomDomain, setXZoomDomain] = useState<[number, number] | [Date, Date] | null>(null);
   const [yZoomDomain, setYZoomDomain] = useState<[number, number] | null>(null);
   const [y2ZoomDomain, setY2ZoomDomain] = useState<[number, number] | null>(null);
   const viewportWidth = useViewportWidth();
+  
+  // Use synced view if enabled, otherwise use local tab state
+  const activeTab = syncViews && activeView ? activeView : localActiveTab;
   
   const handleXZoomChange = useCallback((domain: [number, number] | [Date, Date] | null) => {
     setXZoomDomain(domain);
@@ -55,6 +64,13 @@ export default function SPCChartWrapper({
     setYZoomDomain(null);
     setY2ZoomDomain(null);
   }, []);
+  
+  const handleTabClick = useCallback((tabId: string) => {
+    setLocalActiveTab(tabId);
+    if (syncViews && onViewChange && (tabId === 'timeline' || tabId === 'variability')) {
+      onViewChange(tabId);
+    }
+  }, [syncViews, onViewChange]);
 
   // Helper function to inject zoom props into chart components
   const injectZoomProps = (content: React.ReactNode, width?: number, isSideBySide: boolean = false): React.ReactNode => {
@@ -203,7 +219,7 @@ export default function SPCChartWrapper({
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
               className={`
                 px-4 py-2 text-sm font-medium transition-colors
                 border-b-2 -mb-px

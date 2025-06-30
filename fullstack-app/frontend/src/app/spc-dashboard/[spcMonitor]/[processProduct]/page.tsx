@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useParams } from 'next/navigation';
 import SPCTimeline from '@/components/spc-dashboard/SPCTimeline';
 import FilterControls from '@/components/spc-dashboard/FilterControls';
@@ -29,6 +29,10 @@ function SPCDashboardInner() {
   } = useCDData();
 
   const isGuest = !user;
+  
+  // State for synchronized view switching
+  const [syncViews, setSyncViews] = useState(true); // Default to synced
+  const [activeView, setActiveView] = useState<'timeline' | 'variability'>('timeline');
 
   // Extract URL parameters
   const spcMonitor = decodeURIComponent(params.spcMonitor as string);
@@ -114,7 +118,27 @@ function SPCDashboardInner() {
 
         {!loading && !error && data.length > 0 && (
           <div className="mt-8">
-            <h3 className="text-xl font-semibold mb-6 text-black">CD Measurement Analysis</h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-black">CD Measurement Analysis</h3>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={syncViews}
+                    onChange={(e) => setSyncViews(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    syncViews ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}>
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      syncViews ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </div>
+                  <span className="ml-2 text-sm text-gray-700">Sync Chart Views</span>
+                </label>
+              </div>
+            </div>
             <div className="space-y-8">
               {/* CD ATT vs Date */}
               <SPCChartWithSharedData
@@ -127,6 +151,9 @@ function SPCDashboardInner() {
                 processType={processType}
                 productType={productType}
                 spcMonitor={spcMonitor}
+                syncViews={syncViews}
+                activeView={activeView}
+                onViewChange={setActiveView}
               />
 
               {/* CD X/Y vs Date */}
@@ -138,6 +165,9 @@ function SPCDashboardInner() {
                 processType={processType}
                 productType={productType}
                 spcMonitor={spcMonitor}
+                syncViews={syncViews}
+                activeView={activeView}
+                onViewChange={setActiveView}
               />
 
               {/* CD 6-Sigma vs Date */}
@@ -148,6 +178,9 @@ function SPCDashboardInner() {
                 processType={processType}
                 productType={productType}
                 spcMonitor={spcMonitor}
+                syncViews={syncViews}
+                activeView={activeView}
+                onViewChange={setActiveView}
               />
             </div>
           </div>

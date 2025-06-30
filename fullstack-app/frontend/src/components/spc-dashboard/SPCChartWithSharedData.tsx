@@ -18,6 +18,9 @@ interface SPCChartWithSharedDataProps {
   processType: string;
   productType: string;
   spcMonitor: string;
+  syncViews?: boolean;
+  activeView?: 'timeline' | 'variability';
+  onViewChange?: (view: 'timeline' | 'variability') => void;
 }
 
 export default function SPCChartWithSharedData({
@@ -30,6 +33,9 @@ export default function SPCChartWithSharedData({
   processType,
   productType,
   spcMonitor,
+  syncViews = false,
+  activeView = 'timeline',
+  onViewChange,
 }: SPCChartWithSharedDataProps) {
   const { filters } = useCDData();
   const [allEntityData, setAllEntityData] = useState<CDDataItem[]>([]);
@@ -78,6 +84,9 @@ export default function SPCChartWithSharedData({
   return (
     <SPCChartWrapper
       title={title}
+      syncViews={syncViews}
+      activeView={activeView}
+      onViewChange={onViewChange}
       tabs={[
         {
           id: 'timeline',
