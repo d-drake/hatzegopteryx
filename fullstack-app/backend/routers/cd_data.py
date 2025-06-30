@@ -61,6 +61,9 @@ async def get_cd_data(
     if filters:
         query = query.filter(and_(*filters))
     
+    # Sort by date_process descending (newest first)
+    query = query.order_by(models.CDData.date_process.desc())
+    
     # Apply pagination and return
     cd_data = query.offset(skip).limit(limit).all()
     return cd_data

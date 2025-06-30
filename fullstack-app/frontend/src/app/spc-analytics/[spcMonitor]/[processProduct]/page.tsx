@@ -25,6 +25,8 @@ export default function SPCAnalyticsPage() {
   const [entities, setEntities] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
   // Get filter values from URL
   const selectedEntity = searchParams.get('entity') || '';
@@ -65,11 +67,12 @@ export default function SPCAnalyticsPage() {
   const startDate = getEffectiveStartDate();
   const endDate = getEffectiveEndDate();
 
-  const fetchCDData = useCallback(async () => {
+  const fetchCDData = useCallback(async (newOffset: number = 0) => {
     try {
       setLoading(true);
       const params = {
         limit: 50,
+        skip: newOffset,
         spc_monitor_name: spcMonitor,
         process_type: processType,
         product_type: productType,
@@ -78,7 +81,9 @@ export default function SPCAnalyticsPage() {
         ...(endDate && { end_date: endDate }),
       };
       const data = await cdDataApi.getAll(params);
+      
       setCdData(data);
+      setHasMore(data.length === 50); // If we got 50 items, there might be more
       setError(null);
     } catch (err) {
       setError('Failed to fetch CD data');
@@ -111,7 +116,7 @@ export default function SPCAnalyticsPage() {
         cdDataApi.getEntities(),
       ]);
       setEntities(entitiesData);
-      await fetchCDData();
+      await fetchCDData(0);
       await fetchStats();
     } catch (err) {
       setError('Failed to fetch initial data');
@@ -124,7 +129,8 @@ export default function SPCAnalyticsPage() {
   }, [fetchInitialData]);
 
   useEffect(() => {
-    fetchCDData();
+    setOffset(0); // Reset offset when filters change
+    fetchCDData(0);
     fetchStats();
   }, [selectedEntity, startDate, endDate, fetchCDData, fetchStats]);
 
@@ -186,6 +192,18 @@ export default function SPCAnalyticsPage() {
     setLocalStartDate('');
     setLocalEndDate('');
     router.push(`/spc-analytics/${spcMonitor}/${processProduct}`);
+  };
+
+  const handlePrevPage = () => {
+    const newOffset = Math.max(0, offset - 50);
+    setOffset(newOffset);
+    fetchCDData(newOffset);
+  };
+
+  const handleNextPage = () => {
+    const newOffset = offset + 50;
+    setOffset(newOffset);
+    fetchCDData(newOffset);
   };
 
   if (loading && !cdData.length) {
@@ -326,8 +344,41 @@ export default function SPCAnalyticsPage() {
 
           {/* Data Table */}
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
               <h2 className="text-lg font-semibold text-black">CD Data</h2>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={offset === 0 || loading}
+                  className={`flex items-center gap-1 px-3 py-1 rounded ${
+                    offset === 0 || loading
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600">
+                  Showing {offset + 1}-{Math.min(offset + 50, offset + cdData.length)}
+                </span>
+                <button
+                  onClick={handleNextPage}
+                  disabled={!hasMore || loading}
+                  className={`flex items-center gap-1 px-3 py-1 rounded ${
+                    !hasMore || loading
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Next
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
