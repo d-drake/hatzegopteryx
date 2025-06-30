@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { fetchEntities } from '@/services/cdDataService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface FilterState {
   entity: string;
@@ -22,6 +23,12 @@ export default function FilterControls({
 }: FilterControlsProps) {
   const [entities, setEntities] = useState<string[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
+  const { user } = useAuth();
+  
+  const isGuest = !user;
+  const today = new Date();
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(today.getDate() - 30);
 
   useEffect(() => {
     loadFilterOptions();
@@ -40,6 +47,16 @@ export default function FilterControls({
   };
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
+    // For guests, enforce date restrictions
+    if (isGuest && (key === 'startDate' || key === 'endDate')) {
+      if (key === 'startDate' && value && new Date(value) < thirtyDaysAgo) {
+        value = thirtyDaysAgo.toISOString().split('T')[0];
+      }
+      if (key === 'endDate' && value && new Date(value) > today) {
+        value = today.toISOString().split('T')[0];
+      }
+    }
+    
     onFiltersChange({
       ...filters,
       [key]: value
@@ -114,6 +131,8 @@ export default function FilterControls({
             onChange={(e) => handleFilterChange('startDate', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
             disabled={loading}
+            min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
+            max={isGuest ? today.toISOString().split('T')[0] : undefined}
           />
         </div>
 
@@ -128,6 +147,8 @@ export default function FilterControls({
             onChange={(e) => handleFilterChange('endDate', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
             disabled={loading}
+            min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
+            max={isGuest ? today.toISOString().split('T')[0] : undefined}
           />
         </div>
       </div>

@@ -22,10 +22,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # Content Security Policy - adjust based on your needs
         csp = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "  # Adjust for your JS needs
-            "style-src 'self' 'unsafe-inline'; "  # Adjust for your CSS needs
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "  # Added CDN for Swagger UI
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "  # Added CDN for Swagger UI
             "img-src 'self' data: https:; "
-            "font-src 'self'; "
+            "font-src 'self' https://cdn.jsdelivr.net; "  # Added CDN for fonts
             "connect-src 'self' http://localhost:* ws://localhost:*; "  # For dev
             "frame-ancestors 'none'; "
             "base-uri 'self'; "

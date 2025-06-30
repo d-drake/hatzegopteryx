@@ -1,40 +1,34 @@
 'use client';
 
-import { useState } from 'react';
-import ItemsSection from '@/components/ItemsSection';
-import CDDataSection from '@/components/CDDataSection';
-import AppTabs from '@/components/AppTabs';
-import Header from '@/components/auth/Header';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'items' | 'cd-data'>('items');
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
+  useEffect(() => {
+    // Wait for auth to load
+    if (loading) return;
+
+    // Redirect all users (guests and authenticated non-superusers) to SPC Dashboard
+    if (!user || !user.is_superuser) {
+      router.push('/spc-dashboard/SPC_CD_L1/1000-BNT44');
+    } else {
+      // Superusers can stay on home page but we'll still redirect to SPC Dashboard
+      // since Todo Items will be accessible from the nav
+      router.push('/spc-dashboard/SPC_CD_L1/1000-BNT44');
+    }
+  }, [user, loading, router]);
+
+  // Show loading state while redirecting
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-
-        <header className="bg-slate-800 text-white">
-          <div className="container mx-auto px-4 py-6">
-            <h1 className="text-3xl font-bold">Cloud Critical Dimension Hub</h1>
-            <p className="text-slate-300 mt-2">
-              Plotting your past, present, and well-controlled future.
-            </p>
-          </div>
-        </header>
-
-        <main className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <AppTabs activeTab={activeTab} onTabChange={(tabId) => setActiveTab(tabId as 'items' | 'cd-data')} />
-          </div>
-
-          <div className="mt-8">
-            {activeTab === 'items' && <ItemsSection />}
-            {activeTab === 'cd-data' && <CDDataSection />}
-          </div>
-        </main>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading...</p>
       </div>
-    </ProtectedRoute>
+    </div>
   );
 }

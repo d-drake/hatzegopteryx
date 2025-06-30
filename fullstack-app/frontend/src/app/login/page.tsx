@@ -35,7 +35,7 @@ export default function LoginPage() {
 
     try {
       await login(data.email, data.password);
-      router.push('/');
+      router.push('/spc-dashboard/SPC_CD_L1/1000-BNT44');
     } catch (err: any) {
       setError(err.message || 'An error occurred during login');
     } finally {

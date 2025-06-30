@@ -26,6 +26,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = settings.refresh_token_expire_days
 
 # Security scheme
 security = HTTPBearer()
+security_optional = HTTPBearer(auto_error=False)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash using Argon2id."""
@@ -171,6 +172,30 @@ async def get_current_active_superuser(
             detail="Not enough permissions"
         )
     return current_user
+
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security_optional),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """Get the current authenticated user if available, otherwise return None."""
+    if not credentials:
+        return None
+    
+    try:
+        token = credentials.credentials
+        payload = verify_token(token, "access", db)
+        
+        user_id: int = payload.get("sub")
+        if user_id is None:
+            return None
+        
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None or not user.is_active:
+            return None
+        
+        return user
+    except:
+        return None
 
 def create_audit_log(
     db: Session,

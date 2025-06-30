@@ -1,16 +1,17 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from typing import List, Optional
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from database import get_db
+from auth import get_current_user_optional
 import models
 import schemas
 
 router = APIRouter()
 
 @router.get("/", response_model=List[schemas.CDData])
-def get_cd_data(
+async def get_cd_data(
     skip: int = 0,
     limit: int = Query(default=100, le=1000),
     start_date: Optional[date] = None,
@@ -19,8 +20,27 @@ def get_cd_data(
     process_type: Optional[str] = None,
     product_type: Optional[str] = None,
     spc_monitor_name: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_current_user_optional)
 ):
+    # For unauthenticated users (guests), enforce 30-day limit
+    if not current_user:
+        today = date.today()
+        thirty_days_ago = today - timedelta(days=30)
+        
+        # Override dates for guests
+        if not start_date or start_date < thirty_days_ago:
+            start_date = thirty_days_ago
+        if not end_date or end_date > today:
+            end_date = today
+        
+        # Validate guest date range
+        if start_date < thirty_days_ago or end_date > today:
+            raise HTTPException(
+                status_code=403,
+                detail="Guest access is limited to the past 30 days of data"
+            )
+    
     query = db.query(models.CDData)
     
     # Apply filters
@@ -46,15 +66,34 @@ def get_cd_data(
     return cd_data
 
 @router.get("/stats")
-def get_cd_data_stats(
+async def get_cd_data_stats(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     entity: Optional[str] = None,
     process_type: Optional[str] = None,
     product_type: Optional[str] = None,
     spc_monitor_name: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_current_user_optional)
 ):
+    # For unauthenticated users (guests), enforce 30-day limit
+    if not current_user:
+        today = date.today()
+        thirty_days_ago = today - timedelta(days=30)
+        
+        # Override dates for guests
+        if not start_date or start_date < thirty_days_ago:
+            start_date = thirty_days_ago
+        if not end_date or end_date > today:
+            end_date = today
+        
+        # Validate guest date range
+        if start_date < thirty_days_ago or end_date > today:
+            raise HTTPException(
+                status_code=403,
+                detail="Guest access is limited to the past 30 days of data"
+            )
+    
     query = db.query(models.CDData)
     
     # Apply filters

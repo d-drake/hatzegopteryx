@@ -13,10 +13,12 @@ import SPCChartWithSharedData from '@/components/spc-dashboard/SPCChartWithShare
 import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
 import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
 import Header from '@/components/auth/Header';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
+import DashboardInstructions from '@/components/spc-dashboard/DashboardInstructions';
 
 function SPCDashboardInner() {
   const params = useParams();
+  const { user } = useAuth();
   const {
     data,
     isLoading: loading,
@@ -25,6 +27,8 @@ function SPCDashboardInner() {
     handleFiltersChange,
     refetch
   } = useCDData();
+
+  const isGuest = !user;
 
   // Extract URL parameters
   const spcMonitor = decodeURIComponent(params.spcMonitor as string);
@@ -48,7 +52,21 @@ function SPCDashboardInner() {
           <AppTabs activeTab="spc-dashboard" />
         </div>
 
-        <h2 className="text-2xl font-bold mb-6">SPC Data Dashboard</h2>
+        <h2 className="text-2xl font-bold mb-6 text-black">SPC Data Dashboard</h2>
+
+        {/* Guest Access Notice */}
+        {isGuest && (
+          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800">
+              <strong>Notice:</strong> Access to the SPC Dashboard is limited to the past 30 days only for guests.
+              Please <a href="/register" className="text-blue-600 hover:underline">register</a> or
+              <a href="/login" className="text-blue-600 hover:underline ml-1">login</a> to gain full access.
+            </p>
+          </div>
+        )}
+
+        {/* Dashboard Instructions */}
+        <DashboardInstructions className="mb-6" />
 
         {/* SPC Monitor and Process-Product Tabs */}
         <div className="mb-6">
@@ -96,7 +114,7 @@ function SPCDashboardInner() {
 
         {!loading && !error && data.length > 0 && (
           <div className="mt-8">
-            <h3 className="text-xl font-semibold mb-6">CD Measurement Analysis</h3>
+            <h3 className="text-xl font-semibold mb-6 text-black">CD Measurement Analysis</h3>
             <div className="space-y-8">
               {/* CD ATT vs Date */}
               <SPCChartWithSharedData
@@ -173,10 +191,8 @@ function SPCDashboardContent() {
 
 export default function SPCDashboardPage() {
   return (
-    <ProtectedRoute>
-      <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
-        <SPCDashboardContent />
-      </Suspense>
-    </ProtectedRoute>
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+      <SPCDashboardContent />
+    </Suspense>
   );
 }

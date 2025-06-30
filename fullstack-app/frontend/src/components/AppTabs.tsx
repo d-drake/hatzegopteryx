@@ -1,18 +1,13 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Tab {
   id: string;
   label: string;
   href: string;
 }
-
-const tabs: Tab[] = [
-  { id: 'items', label: 'Todo Items', href: '/' },
-  { id: 'cd-data', label: 'CD Data Analytics', href: '/?tab=cd-data' },
-  { id: 'spc-dashboard', label: 'SPC Dashboard', href: '/spc-dashboard' },
-];
 
 interface AppTabsProps {
   activeTab?: string;
@@ -22,22 +17,33 @@ interface AppTabsProps {
 export default function AppTabs({ activeTab = 'items', onTabChange }: AppTabsProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  // Define all tabs
+  const allTabs: Tab[] = [
+    { id: 'spc-dashboard', label: 'SPC Dashboard', href: '/spc-dashboard/SPC_CD_L1/1000-BNT44' },
+    { id: 'spc-analytics', label: 'SPC Analytics', href: '/spc-analytics/SPC_CD_L1/1000-BNT44' },
+    { id: 'items', label: 'To Do Items', href: '/todo-items' },
+  ];
+
+  // Filter tabs based on user permissions
+  const tabs = allTabs.filter(tab => {
+    // Only show To Do Items tab to superusers
+    if (tab.id === 'items') {
+      return user?.is_superuser === true;
+    }
+    // Show all other tabs to everyone
+    return true;
+  });
 
   const handleTabClick = (tab: Tab) => {
-    if (tab.id === 'spc-dashboard') {
-      router.push(tab.href);
-    } else if (pathname.startsWith('/spc-dashboard')) {
-      // When on SPC dashboard, navigate back to home for other tabs
-      router.push(tab.href);
-    } else {
-      // When on home page, use the callback if provided
-      onTabChange?.(tab.id);
-    }
+    router.push(tab.href);
   };
 
   const isActive = (tab: Tab) => {
-    if (pathname.startsWith('/spc-dashboard') && tab.id === 'spc-dashboard') return true;
-    if (pathname === '/' && tab.id !== 'spc-dashboard') return activeTab === tab.id;
+    if (tab.id === 'spc-dashboard' && pathname.startsWith('/spc-dashboard')) return true;
+    if (tab.id === 'spc-analytics' && pathname.startsWith('/spc-analytics')) return true;
+    if (tab.id === 'items' && pathname.startsWith('/todo-items')) return true;
     return false;
   };
 
