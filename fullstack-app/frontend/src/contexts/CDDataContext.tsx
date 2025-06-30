@@ -71,21 +71,21 @@ export function CDDataProvider({
   const [filters, setFilters] = useState<FilterState>(getDefaultFilters());
 
   const loadFilteredData = useCallback(async () => {
+    // Base params without entity filter
+    const baseParams = {
+      limit: 1000,
+      process_type: processType,
+      product_type: productType,
+      spc_monitor_name: spcMonitorName,
+      ...(filters.startDate && { startDate: filters.startDate }),
+      ...(filters.endDate && { endDate: filters.endDate })
+    };
+
+    // Create cache key
+    const cacheKey = JSON.stringify(baseParams);
+    
     try {
       setIsLoading(true);
-      
-      // Base params without entity filter
-      const baseParams = {
-        limit: 1000,
-        process_type: processType,
-        product_type: productType,
-        spc_monitor_name: spcMonitorName,
-        ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate })
-      };
-
-      // Create cache key
-      const cacheKey = JSON.stringify(baseParams);
       
       // Check cache first
       const cached = dataCache.get(cacheKey);
