@@ -7,6 +7,7 @@ import { FilterState } from '@/components/spc-dashboard/FilterControls';
 
 interface CDDataContextValue {
   data: CDDataItem[];
+  allEntityData: CDDataItem[]; // Data without entity filter
   isLoading: boolean;
   error: string | null;
   filters: FilterState;
@@ -26,6 +27,10 @@ interface CDDataProviderProps {
   processProduct: string;
 }
 
+// Cache for storing data by key
+const dataCache = new Map<string, { data: CDDataItem[], timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export function CDDataProvider({ 
   children, 
   processType, 
@@ -37,6 +42,7 @@ export function CDDataProvider({
   const searchParams = useSearchParams();
   
   const [data, setData] = useState<CDDataItem[]>([]);
+  const [allEntityData, setAllEntityData] = useState<CDDataItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -66,23 +72,59 @@ export function CDDataProvider({
   const loadFilteredData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const filterParams = {
+      
+      // Base params without entity filter
+      const baseParams = {
         limit: 1000,
-        // URL path parameters
         process_type: processType,
         product_type: productType,
         spc_monitor_name: spcMonitorName,
-        // Query string parameters
-        ...(filters.entity && { entity: filters.entity }),
         ...(filters.startDate && { startDate: filters.startDate }),
         ...(filters.endDate && { endDate: filters.endDate })
       };
 
-      console.log('📊 Fetching CD data with params:', filterParams);
-      const dataResponse = await fetchCDData(filterParams);
-      setData(dataResponse);
+      // Create cache key
+      const cacheKey = JSON.stringify(baseParams);
+      
+      // Check cache first
+      const cached = dataCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        console.log('📊 Using cached data');
+        setAllEntityData(cached.data);
+        
+        // Apply entity filter for dashboard
+        if (filters.entity && !window.location.pathname.includes('/spc-analytics')) {
+          const filtered = cached.data.filter(d => d.entity === filters.entity);
+          setData(filtered);
+        } else {
+          setData(cached.data);
+        }
+        
+        setError(null);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch data without entity filter (for variability charts and analytics)
+      console.log('📊 Fetching all entity data with params:', baseParams);
+      const allDataResponse = await fetchCDData(baseParams);
+      
+      // Cache the response
+      dataCache.set(cacheKey, { data: allDataResponse, timestamp: Date.now() });
+      
+      setAllEntityData(allDataResponse);
+      
+      // For dashboard, apply entity filter client-side
+      if (filters.entity && !window.location.pathname.includes('/spc-analytics')) {
+        const filtered = allDataResponse.filter(d => d.entity === filters.entity);
+        setData(filtered);
+      } else {
+        // For analytics or when no entity filter, use all data
+        setData(allDataResponse);
+      }
+      
       setError(null);
-      console.log(`✅ Fetched ${dataResponse.length} CD data records`);
+      console.log(`✅ Fetched ${allDataResponse.length} total records`);
     } catch (err) {
       const errorMessage = err instanceof Error && err.message.includes('JSON')
         ? 'Connection issue detected. Please refresh the page to try again.'
@@ -96,8 +138,11 @@ export function CDDataProvider({
 
   // Initialize filters from URL query params on mount
   useEffect(() => {
+    const isAnalyticsPage = window.location.pathname.includes('/spc-analytics');
+    
     const urlFilters: FilterState = {
-      entity: searchParams.get('entity') || 'FAKE_TOOL1',
+      // Don't use entity from URL for analytics page
+      entity: isAnalyticsPage ? 'FAKE_TOOL1' : (searchParams.get('entity') || 'FAKE_TOOL1'),
       startDate: searchParams.get('startDate') || '',
       endDate: searchParams.get('endDate') || ''
     };
@@ -124,18 +169,32 @@ export function CDDataProvider({
   // Update URL query string when filters change
   useEffect(() => {
     if (isInitialized) {
+      const currentPath = window.location.pathname;
+      const isAnalyticsPage = currentPath.includes('/spc-analytics');
       const params = new URLSearchParams();
+      
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) {
+        // Don't include entity in URL for analytics page
+        if (value && !(isAnalyticsPage && key === 'entity')) {
           params.set(key, value);
         }
       });
+      
+      // Preserve analyticsEntity parameter if on analytics page
+      if (isAnalyticsPage) {
+        const analyticsEntity = searchParams.get('analyticsEntity');
+        if (analyticsEntity) {
+          params.set('analyticsEntity', analyticsEntity);
+        }
+      }
 
       const queryString = params.toString();
-      const newUrl = `/spc-dashboard/${encodeURIComponent(spcMonitorName)}/${encodeURIComponent(processProduct)}${queryString ? `?${queryString}` : ''}`;
+      // Get current path to maintain the correct route (dashboard or analytics)
+      const basePath = isAnalyticsPage ? '/spc-analytics' : '/spc-dashboard';
+      const newUrl = `${basePath}/${encodeURIComponent(spcMonitorName)}/${encodeURIComponent(processProduct)}${queryString ? `?${queryString}` : ''}`;
       router.replace(newUrl);
     }
-  }, [filters, isInitialized, spcMonitorName, processProduct, router]);
+  }, [filters, isInitialized, spcMonitorName, processProduct, router, searchParams]);
 
   const handleFiltersChange = useCallback((newFilters: FilterState) => {
     setFilters(newFilters);
@@ -151,6 +210,7 @@ export function CDDataProvider({
 
   const value: CDDataContextValue = useMemo(() => ({
     data,
+    allEntityData,
     isLoading,
     error,
     filters,
@@ -158,7 +218,7 @@ export function CDDataProvider({
     handleFiltersChange,
     clearFilters,
     refetch: loadFilteredData
-  }), [data, isLoading, error, filters, isInitialized, handleFiltersChange, clearFilters, loadFilteredData]);
+  }), [data, allEntityData, isLoading, error, filters, isInitialized, handleFiltersChange, clearFilters, loadFilteredData]);
 
   return (
     <CDDataContext.Provider value={value}>

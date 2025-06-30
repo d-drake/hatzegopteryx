@@ -42,6 +42,7 @@ export interface CDDataStats {
   min_cd_att: number;
   max_cd_att: number;
   avg_cd_6sig: number;
+  entity_count?: number;
 }
 
 export interface SPCLimits {

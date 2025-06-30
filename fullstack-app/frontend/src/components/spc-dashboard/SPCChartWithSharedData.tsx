@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { fetchCDData, CDDataItem } from '@/services/cdDataService';
+import React from 'react';
+import { CDDataItem } from '@/services/cdDataService';
 import { useCDData } from '@/contexts/CDDataContext';
 import SPCTimeline from './SPCTimeline';
 import { SPCVariabilityChart } from './SPCVariabilityChart';
@@ -37,46 +37,10 @@ export default function SPCChartWithSharedData({
   activeView = 'timeline',
   onViewChange,
 }: SPCChartWithSharedDataProps) {
-  const { filters } = useCDData();
-  const [allEntityData, setAllEntityData] = useState<CDDataItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { allEntityData } = useCDData();
 
-  // Extract process info from first data item
-  const spcMonitorName = data[0]?.spc_monitor_name || spcMonitor;
-
-  useEffect(() => {
-    const loadAllEntityData = async () => {
-      if (!processType || !productType || !spcMonitorName) return;
-
-      try {
-        setIsLoading(true);
-        // Fetch data with all filters except entity filter
-        const filterParams = {
-          limit: 1000,
-          process_type: processType,
-          product_type: productType,
-          spc_monitor_name: spcMonitorName,
-          // Apply date filters but NOT entity filter
-          ...(filters.startDate && { startDate: filters.startDate }),
-          ...(filters.endDate && { endDate: filters.endDate })
-        };
-
-        const response = await fetchCDData(filterParams);
-        setAllEntityData(response);
-      } catch (error) {
-        console.error('Error loading unfiltered entity data:', error);
-        // Fallback to provided data
-        setAllEntityData(data);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadAllEntityData();
-  }, [processType, productType, spcMonitorName, filters.startDate, filters.endDate, data]);
-
-  // Use original data until all entity data is loaded
-  const dataForScaleCalculation = isLoading ? data : allEntityData;
+  // Use all entity data for scale calculation (variability chart needs all entities)
+  const dataForScaleCalculation = allEntityData.length > 0 ? allEntityData : data;
 
   // Define margins - consistent for both charts
   const chartMargin = { top: 30, right: 240, bottom: 60, left: 70 };

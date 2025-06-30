@@ -8,12 +8,24 @@ import Header from '@/components/auth/Header';
 import AppTabs from '@/components/AppTabs';
 import SPCTabs from '@/components/spc-dashboard/SPCTabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
+import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
 
-export default function SPCAnalyticsPage() {
+function SPCAnalyticsInner() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
+  
+  // Use CDDataContext for shared data
+  const { 
+    data: contextData,
+    allEntityData, 
+    isLoading: contextLoading, 
+    error: contextError,
+    filters: contextFilters,
+    handleFiltersChange 
+  } = useCDData();
 
   const spcMonitor = params.spcMonitor as string;
   const processProduct = params.processProduct as string;
@@ -21,13 +33,28 @@ export default function SPCAnalyticsPage() {
   // Parse process and product from the combined parameter
   const [processType, productType] = processProduct ? processProduct.split('-') : ['', ''];
 
-  const [cdData, setCdData] = useState<CDData[]>([]);
+  // Local state for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [localData, setLocalData] = useState<CDData[]>([]);
   const [stats, setStats] = useState<CDDataStats | null>(null);
   const [entities, setEntities] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
+  
+  // Independent entity filter for Analytics (not synced with context)
+  const [localSelectedEntity, setLocalSelectedEntity] = useState<string>('');
+  
+  // Initialize local entity from URL on mount (independent from context)
+  useEffect(() => {
+    const urlEntity = searchParams.get('analyticsEntity') || '';
+    setLocalSelectedEntity(urlEntity);
+  }, [searchParams]);
+  
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState<'date_process' | 'entity' | 'bias' | 'cd_att' | 'cd_6sig'>('date_process');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  
+  const pageSize = 50;
 
   // Calculate date restrictions and defaults
   const isGuest = !user;
@@ -35,127 +62,211 @@ export default function SPCAnalyticsPage() {
   const thirtyDaysAgo = new Date(today);
   thirtyDaysAgo.setDate(today.getDate() - 30);
   
-  // Default dates - last 30 days
-  const defaultStartDate = thirtyDaysAgo.toISOString().split('T')[0];
-  const defaultEndDate = today.toISOString().split('T')[0];
-
-  // Get filter values from URL
-  const selectedEntity = searchParams.get('entity') || '';
-  const urlStartDate = searchParams.get('startDate') || defaultStartDate;
-  const urlEndDate = searchParams.get('endDate') || defaultEndDate;
+  // Use only date filters from context, entity is independent
+  const startDate = contextFilters.startDate;
+  const endDate = contextFilters.endDate;
   
   // Local state for date inputs to prevent immediate updates
-  const [localStartDate, setLocalStartDate] = useState(urlStartDate);
-  const [localEndDate, setLocalEndDate] = useState(urlEndDate);
+  const [localStartDate, setLocalStartDate] = useState(startDate);
+  const [localEndDate, setLocalEndDate] = useState(endDate);
+  
+  // Sync local date state with context filters (but not entity)
+  useEffect(() => {
+    setLocalStartDate(contextFilters.startDate);
+    setLocalEndDate(contextFilters.endDate);
+  }, [contextFilters.startDate, contextFilters.endDate]);
 
   // For guests, enforce 30-day limit
   const getEffectiveStartDate = () => {
     if (isGuest) {
       const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
-      if (!urlStartDate || new Date(urlStartDate) < thirtyDaysAgo) {
+      if (!startDate || new Date(startDate) < thirtyDaysAgo) {
         return thirtyDaysAgoStr;
       }
     }
-    return urlStartDate;
+    return startDate;
   };
 
   const getEffectiveEndDate = () => {
     if (isGuest) {
       const todayStr = today.toISOString().split('T')[0];
-      if (!urlEndDate || new Date(urlEndDate) > today) {
+      if (!endDate || new Date(endDate) > today) {
         return todayStr;
       }
     }
-    return urlEndDate;
+    return endDate;
   };
 
-  const startDate = getEffectiveStartDate() || defaultStartDate;
-  const endDate = getEffectiveEndDate() || defaultEndDate;
+  // Calculate pagination from all entity data (using allEntityData like SPCVariabilityChart)
+  const dataForAnalytics = allEntityData.length > 0 ? allEntityData : contextData;
+  const filteredDataLength = localSelectedEntity 
+    ? dataForAnalytics.filter(d => d.entity === localSelectedEntity).length 
+    : dataForAnalytics.length;
+  const totalPages = Math.ceil(filteredDataLength / pageSize);
+  const hasMoreInContext = currentPage < totalPages;
+  const needsServerFetch = currentPage > totalPages && dataForAnalytics.length === 1000;
+  
+  // Sort data function
+  const sortData = useCallback((data: CDData[]) => {
+    return [...data].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+      
+      switch (sortColumn) {
+        case 'date_process':
+          aValue = new Date(a.date_process).getTime();
+          bValue = new Date(b.date_process).getTime();
+          break;
+        case 'entity':
+          aValue = a.entity;
+          bValue = b.entity;
+          break;
+        case 'bias':
+          aValue = a.bias;
+          bValue = b.bias;
+          break;
+        case 'cd_att':
+          aValue = a.cd_att;
+          bValue = b.cd_att;
+          break;
+        case 'cd_6sig':
+          aValue = a.cd_6sig;
+          bValue = b.cd_6sig;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      } else {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+      }
+    });
+  }, [sortColumn, sortDirection]);
 
-  const fetchCDData = useCallback(async (newOffset: number = 0) => {
+  // Get current page data
+  const getCurrentPageData = useCallback(() => {
+    // Use all entity data for Analytics (similar to SPCVariabilityChart)
+    const baseData = dataForAnalytics;
+    
+    // Apply client-side entity filter for display purposes
+    const filteredData = localSelectedEntity 
+      ? baseData.filter(d => d.entity === localSelectedEntity)
+      : baseData;
+    
+    // Sort the filtered data
+    const sortedData = sortData(filteredData);
+    
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    
+    // If we have enough data in context, use it
+    if (startIndex < sortedData.length) {
+      return sortedData.slice(startIndex, endIndex);
+    }
+    
+    // Otherwise return empty array (will trigger server fetch if needed)
+    return [];
+  }, [dataForAnalytics, currentPage, pageSize, localSelectedEntity, sortData]);
+  
+  // Update local data when context data or page changes
+  useEffect(() => {
+    const pageData = getCurrentPageData();
+    setLocalData(pageData);
+  }, [getCurrentPageData]);
+  
+  // Fetch additional data from server if needed
+  const fetchAdditionalData = useCallback(async (page: number) => {
+    if (!needsServerFetch) return;
+    
     try {
       setLoading(true);
+      const skipAmount = (page - 1) * pageSize;
       const params = {
-        limit: 50,
-        skip: newOffset,
+        limit: pageSize,
+        skip: skipAmount,
         spc_monitor_name: spcMonitor,
         process_type: processType,
         product_type: productType,
-        ...(selectedEntity && { entity: selectedEntity }),
+        // Note: NOT filtering by entity as requested
         ...(startDate && { start_date: startDate }),
         ...(endDate && { end_date: endDate }),
       };
       const data = await cdDataApi.getAll(params);
       
-      setCdData(data);
-      setHasMore(data.length === 50); // If we got 50 items, there might be more
+      setLocalData(data);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch CD data');
+      setError('Failed to fetch additional data');
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [spcMonitor, processType, productType, selectedEntity, startDate, endDate]);
+  }, [needsServerFetch, spcMonitor, processType, productType, startDate, endDate, pageSize]);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const params = {
-        spc_monitor_name: spcMonitor,
-        process_type: processType,
-        product_type: productType,
-        ...(selectedEntity && { entity: selectedEntity }),
-        ...(startDate && { start_date: startDate }),
-        ...(endDate && { end_date: endDate }),
-      };
-      const statsData = await cdDataApi.getStats(params);
-      setStats(statsData);
-    } catch (err) {
-      console.error('Failed to fetch stats:', err);
+  // Calculate stats from all entity data
+  const calculateStats = useCallback(() => {
+    // Use all entity data for Analytics
+    const baseData = dataForAnalytics;
+    
+    // Apply client-side entity filter for stats calculation
+    const dataForStats = localSelectedEntity 
+      ? baseData.filter(d => d.entity === localSelectedEntity)
+      : baseData;
+      
+    if (dataForStats.length === 0) {
+      setStats(null);
+      return;
     }
-  }, [spcMonitor, processType, productType, selectedEntity, startDate, endDate]);
+    
+    const cdAttValues = dataForStats.map(d => d.cd_att).filter(v => v != null);
+    const cd6sigValues = dataForStats.map(d => d.cd_6sig).filter(v => v != null);
+    
+    setStats({
+      total_count: dataForStats.length,
+      avg_cd_att: cdAttValues.reduce((a, b) => a + b, 0) / cdAttValues.length,
+      avg_cd_6sig: cd6sigValues.reduce((a, b) => a + b, 0) / cd6sigValues.length,
+      min_cd_att: Math.min(...cdAttValues),
+      max_cd_att: Math.max(...cdAttValues),
+      entity_count: new Set(dataForStats.map(d => d.entity)).size
+    });
+  }, [dataForAnalytics, localSelectedEntity]);
 
-  const fetchInitialData = useCallback(async () => {
-    try {
-      const [entitiesData] = await Promise.all([
-        cdDataApi.getEntities(),
-      ]);
-      setEntities(entitiesData);
-      await fetchCDData(0);
-      await fetchStats();
-    } catch (err) {
-      setError('Failed to fetch initial data');
-      console.error(err);
+  // Load entities from all entity data
+  useEffect(() => {
+    const uniqueEntities = Array.from(new Set(dataForAnalytics.map(d => d.entity))).sort();
+    setEntities(uniqueEntities);
+  }, [dataForAnalytics]);
+  
+  // Calculate stats when context data changes
+  useEffect(() => {
+    calculateStats();
+  }, [calculateStats]);
+  
+  // Fetch additional data if we're beyond context data
+  useEffect(() => {
+    if (needsServerFetch && currentPage > totalPages) {
+      fetchAdditionalData(currentPage);
     }
-  }, [fetchCDData, fetchStats]);
-
-  useEffect(() => {
-    fetchInitialData();
-  }, [fetchInitialData]);
-
-  useEffect(() => {
-    setOffset(0); // Reset offset when filters change
-    fetchCDData(0);
-    fetchStats();
-  }, [selectedEntity, startDate, endDate, fetchCDData, fetchStats]);
-
-  // Sync local state with URL parameters
-  useEffect(() => {
-    setLocalStartDate(urlStartDate);
-    setLocalEndDate(urlEndDate);
-  }, [urlStartDate, urlEndDate]);
-
-  const updateFilters = (newEntity: string, newStartDate: string, newEndDate: string) => {
-    const params = new URLSearchParams();
-    if (newEntity) params.set('entity', newEntity);
-    if (newStartDate) params.set('startDate', newStartDate);
-    if (newEndDate) params.set('endDate', newEndDate);
-
-    router.push(`/spc-analytics/${spcMonitor}/${processProduct}?${params.toString()}`);
-  };
+  }, [needsServerFetch, currentPage, totalPages, fetchAdditionalData]);
 
   const handleEntityChange = (value: string) => {
-    updateFilters(value, startDate, endDate);
+    // SPC Analytics has independent entity filter
+    setLocalSelectedEntity(value);
+    // Reset to first page when filters change
+    setCurrentPage(1);
+    
+    // Update URL with analytics-specific entity parameter
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set('analyticsEntity', value);
+    } else {
+      params.delete('analyticsEntity');
+    }
+    
+    const newUrl = `/spc-analytics/${encodeURIComponent(spcMonitor)}/${encodeURIComponent(processProduct)}?${params.toString()}`;
+    router.replace(newUrl);
   };
 
   const handleDateSubmit = (key: 'startDate' | 'endDate', value: string) => {
@@ -169,11 +280,13 @@ export default function SPCAnalyticsPage() {
       }
     }
     
-    if (key === 'startDate') {
-      updateFilters(selectedEntity, value, endDate);
-    } else {
-      updateFilters(selectedEntity, startDate, value);
-    }
+    // Update context filters
+    handleFiltersChange({
+      ...contextFilters,
+      [key]: value
+    });
+    // Reset to first page when filters change
+    setCurrentPage(1);
   };
 
   const handleDateKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, key: 'startDate' | 'endDate') => {
@@ -196,22 +309,43 @@ export default function SPCAnalyticsPage() {
   const clearFilters = () => {
     setLocalStartDate('');
     setLocalEndDate('');
-    router.push(`/spc-analytics/${spcMonitor}/${processProduct}`);
+    setLocalSelectedEntity(''); // Reset local entity filter
+    handleFiltersChange({
+      ...contextFilters,
+      startDate: '',
+      endDate: ''
+    });
+    setCurrentPage(1);
   };
 
   const handlePrevPage = () => {
-    const newOffset = Math.max(0, offset - 50);
-    setOffset(newOffset);
-    fetchCDData(newOffset);
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
   };
 
   const handleNextPage = () => {
-    const newOffset = offset + 50;
-    setOffset(newOffset);
-    fetchCDData(newOffset);
+    setCurrentPage(currentPage + 1);
   };
 
-  if (loading && !cdData.length) {
+  const handleSort = (column: 'date_process' | 'entity' | 'bias' | 'cd_att' | 'cd_6sig') => {
+    if (column === sortColumn) {
+      // Toggle direction if clicking the same column
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Set new column with default ascending order (except for date which defaults to descending)
+      setSortColumn(column);
+      setSortDirection(column === 'date_process' ? 'desc' : 'asc');
+    }
+    // Reset to first page when sorting changes
+    setCurrentPage(1);
+  };
+  
+  // Calculate if there are more pages available
+  const hasMore = hasMoreInContext || (contextData.length === 1000 && needsServerFetch);
+
+  // Show loading only for initial context load
+  if (contextLoading && dataForAnalytics.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -221,6 +355,14 @@ export default function SPCAnalyticsPage() {
       </div>
     );
   }
+  
+  // Calculate display offset for pagination
+  const offset = (currentPage - 1) * pageSize;
+  
+  // Calculate the total records to display accurately
+  const totalDisplayRecords = localSelectedEntity 
+    ? dataForAnalytics.filter(d => d.entity === localSelectedEntity).length 
+    : dataForAnalytics.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -272,9 +414,9 @@ export default function SPCAnalyticsPage() {
         </div>
 
         <div className="space-y-6">
-          {error && (
+          {(error || contextError) && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
-              <p className="text-red-800">{error}</p>
+              <p className="text-red-800">{error || contextError}</p>
             </div>
           )}
 
@@ -298,7 +440,7 @@ export default function SPCAnalyticsPage() {
                   Entity
                 </label>
                 <select
-                  value={selectedEntity}
+                  value={localSelectedEntity}
                   onChange={(e) => handleEntityChange(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
                   disabled={loading}
@@ -384,9 +526,9 @@ export default function SPCAnalyticsPage() {
               <div className="flex items-center gap-4">
                 <button
                   onClick={handlePrevPage}
-                  disabled={offset === 0 || loading}
+                  disabled={currentPage === 1 || loading}
                   className={`flex items-center gap-1 px-3 py-1 rounded ${
-                    offset === 0 || loading
+                    currentPage === 1 || loading
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
@@ -397,7 +539,7 @@ export default function SPCAnalyticsPage() {
                   Previous
                 </button>
                 <span className="text-sm text-gray-600">
-                  Showing {offset + 1}-{Math.min(offset + 50, offset + cdData.length)}
+                  Showing {offset + 1}-{Math.min(offset + pageSize, totalDisplayRecords)} of {totalDisplayRecords}
                 </span>
                 <button
                   onClick={handleNextPage}
@@ -419,20 +561,90 @@ export default function SPCAnalyticsPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      DateTime
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                      onClick={() => handleSort('date_process')}
+                    >
+                      <div className="flex items-center gap-1">
+                        DateTime
+                        {sortColumn === 'date_process' && (
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            {sortDirection === 'asc' ? (
+                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            ) : (
+                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            )}
+                          </svg>
+                        )}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Entity
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                      onClick={() => handleSort('entity')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Entity
+                        {sortColumn === 'entity' && (
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            {sortDirection === 'asc' ? (
+                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            ) : (
+                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            )}
+                          </svg>
+                        )}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Bias
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                      onClick={() => handleSort('bias')}
+                    >
+                      <div className="flex items-center gap-1">
+                        Bias
+                        {sortColumn === 'bias' && (
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            {sortDirection === 'asc' ? (
+                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            ) : (
+                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            )}
+                          </svg>
+                        )}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      CD ATT
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                      onClick={() => handleSort('cd_att')}
+                    >
+                      <div className="flex items-center gap-1">
+                        CD ATT
+                        {sortColumn === 'cd_att' && (
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            {sortDirection === 'asc' ? (
+                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            ) : (
+                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            )}
+                          </svg>
+                        )}
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
-                      <span className="uppercase">CD 6</span>σ
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer hover:text-gray-700"
+                      onClick={() => handleSort('cd_6sig')}
+                    >
+                      <div className="flex items-center gap-1">
+                        <span className="uppercase">CD 6</span>σ
+                        {sortColumn === 'cd_6sig' && (
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            {sortDirection === 'asc' ? (
+                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            ) : (
+                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            )}
+                          </svg>
+                        )}
+                      </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Process/Product
@@ -443,7 +655,7 @@ export default function SPCAnalyticsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {cdData.map((row) => (
+                  {localData.map((row) => (
                     <tr key={row.lot} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {new Date(row.date_process).toLocaleString()}
@@ -477,21 +689,21 @@ export default function SPCAnalyticsPage() {
               </table>
             </div>
 
-            {cdData.length === 0 && (
+            {localData.length === 0 && !loading && (
               <div className="text-center py-8 text-gray-500">
                 No CD data found with the current filters.
               </div>
             )}
             
             {/* Bottom pagination controls */}
-            {cdData.length > 0 && (
+            {localData.length > 0 && (
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
                 <div className="flex items-center gap-4">
                   <button
                     onClick={handlePrevPage}
-                    disabled={offset === 0 || loading}
+                    disabled={currentPage === 1 || loading}
                     className={`flex items-center gap-1 px-3 py-1 rounded ${
-                      offset === 0 || loading
+                      currentPage === 1 || loading
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
@@ -502,7 +714,7 @@ export default function SPCAnalyticsPage() {
                     Previous
                   </button>
                   <span className="text-sm text-gray-600">
-                    Showing {offset + 1}-{Math.min(offset + 50, offset + cdData.length)}
+                    Showing {offset + 1}-{Math.min(offset + pageSize, totalDisplayRecords)} of {totalDisplayRecords}
                   </span>
                   <button
                     onClick={handleNextPage}
@@ -525,5 +737,30 @@ export default function SPCAnalyticsPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function SPCAnalyticsPage() {
+  const params = useParams();
+  
+  const spcMonitor = decodeURIComponent(params.spcMonitor as string);
+  const processProduct = decodeURIComponent(params.processProduct as string);
+  const [processType, productType] = processProduct.split('-');
+  
+  return (
+    <CDDataProvider
+      processType={processType}
+      productType={productType}
+      spcMonitorName={spcMonitor}
+      processProduct={processProduct}
+    >
+      <SPCLimitsProvider
+        processType={processType}
+        productType={productType}
+        spcMonitorName={spcMonitor}
+      >
+        <SPCAnalyticsInner />
+      </SPCLimitsProvider>
+    </CDDataProvider>
   );
 }
