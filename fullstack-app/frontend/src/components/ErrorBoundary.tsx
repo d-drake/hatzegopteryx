@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 {this.props.errorMessage || 'Something went wrong'}
               </h2>
               <p className="mt-2 text-sm text-gray-600">
-                We've been notified and are working to fix the issue.
+                We&apos;ve been notified and are working to fix the issue.
               </p>
               <button
                 onClick={() => window.location.reload()}

@@ -220,7 +220,7 @@ function SPCAnalyticsInner() {
     } finally {
       setLoading(false);
     }
-  }, [needsServerFetch, spcMonitor, processType, productType, startDate, endDate, pageSize]);
+  }, [needsServerFetch, spcMonitor, processType, productType, startDate, endDate, pageSize, page]);
 
   // Calculate stats from all entity data
   const calculateStats = useCallback(() => {
