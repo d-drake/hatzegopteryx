@@ -29,7 +29,10 @@ export class ErrorBoundary extends Component<Props, State> {
     
     // Log to Sentry
     Sentry.withScope((scope) => {
-      scope.setExtras(errorInfo);
+      scope.setExtras({
+        componentStack: errorInfo.componentStack,
+        errorBoundary: true
+      });
       Sentry.captureException(error);
     });
   }
