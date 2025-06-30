@@ -30,6 +30,10 @@ export default function SPCAnalyticsPage() {
   const selectedEntity = searchParams.get('entity') || '';
   const urlStartDate = searchParams.get('startDate') || '';
   const urlEndDate = searchParams.get('endDate') || '';
+  
+  // Local state for date inputs to prevent immediate updates
+  const [localStartDate, setLocalStartDate] = useState(urlStartDate);
+  const [localEndDate, setLocalEndDate] = useState(urlEndDate);
 
   // Calculate date restrictions for guests
   const isGuest = !user;
@@ -124,6 +128,12 @@ export default function SPCAnalyticsPage() {
     fetchStats();
   }, [selectedEntity, startDate, endDate, fetchCDData, fetchStats]);
 
+  // Sync local state with URL parameters
+  useEffect(() => {
+    setLocalStartDate(urlStartDate);
+    setLocalEndDate(urlEndDate);
+  }, [urlStartDate, urlEndDate]);
+
   const updateFilters = (newEntity: string, newStartDate: string, newEndDate: string) => {
     const params = new URLSearchParams();
     if (newEntity) params.set('entity', newEntity);
@@ -137,23 +147,44 @@ export default function SPCAnalyticsPage() {
     updateFilters(value, startDate, endDate);
   };
 
-  const handleStartDateChange = (value: string) => {
-    // For guests, enforce 30-day limit
-    if (isGuest && new Date(value) < thirtyDaysAgo) {
-      value = thirtyDaysAgo.toISOString().split('T')[0];
+  const handleDateSubmit = (key: 'startDate' | 'endDate', value: string) => {
+    // For guests, enforce date restrictions
+    if (isGuest) {
+      if (key === 'startDate' && value && new Date(value) < thirtyDaysAgo) {
+        value = thirtyDaysAgo.toISOString().split('T')[0];
+      }
+      if (key === 'endDate' && value && new Date(value) > today) {
+        value = today.toISOString().split('T')[0];
+      }
     }
-    updateFilters(selectedEntity, value, endDate);
+    
+    if (key === 'startDate') {
+      updateFilters(selectedEntity, value, endDate);
+    } else {
+      updateFilters(selectedEntity, startDate, value);
+    }
   };
 
-  const handleEndDateChange = (value: string) => {
-    // For guests, enforce today as max
-    if (isGuest && new Date(value) > today) {
-      value = today.toISOString().split('T')[0];
+  const handleDateKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, key: 'startDate' | 'endDate') => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const value = key === 'startDate' ? localStartDate : localEndDate;
+      handleDateSubmit(key, value);
     }
-    updateFilters(selectedEntity, startDate, value);
+  };
+
+  const handleDateBlur = (key: 'startDate' | 'endDate') => {
+    const value = key === 'startDate' ? localStartDate : localEndDate;
+    const currentValue = key === 'startDate' ? startDate : endDate;
+    // Only update if the value has actually changed
+    if (value !== currentValue) {
+      handleDateSubmit(key, value);
+    }
   };
 
   const clearFilters = () => {
+    setLocalStartDate('');
+    setLocalEndDate('');
     router.push(`/spc-analytics/${spcMonitor}/${processProduct}`);
   };
 
@@ -231,8 +262,10 @@ export default function SPCAnalyticsPage() {
                 </label>
                 <input
                   type="date"
-                  value={startDate}
-                  onChange={(e) => handleStartDateChange(e.target.value)}
+                  value={localStartDate}
+                  onChange={(e) => setLocalStartDate(e.target.value)}
+                  onBlur={() => handleDateBlur('startDate')}
+                  onKeyDown={(e) => handleDateKeyDown(e, 'startDate')}
                   min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
                   max={isGuest ? today.toISOString().split('T')[0] : undefined}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -244,8 +277,10 @@ export default function SPCAnalyticsPage() {
                 </label>
                 <input
                   type="date"
-                  value={endDate}
-                  onChange={(e) => handleEndDateChange(e.target.value)}
+                  value={localEndDate}
+                  onChange={(e) => setLocalEndDate(e.target.value)}
+                  onBlur={() => handleDateBlur('endDate')}
+                  onKeyDown={(e) => handleDateKeyDown(e, 'endDate')}
                   min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
                   max={isGuest ? today.toISOString().split('T')[0] : undefined}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

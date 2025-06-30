@@ -25,6 +25,10 @@ export default function FilterControls({
   const [loadingOptions, setLoadingOptions] = useState(true);
   const { user } = useAuth();
   
+  // Local state for date inputs to prevent immediate updates
+  const [localStartDate, setLocalStartDate] = useState(filters.startDate);
+  const [localEndDate, setLocalEndDate] = useState(filters.endDate);
+  
   const isGuest = !user;
   const today = new Date();
   const thirtyDaysAgo = new Date(today);
@@ -33,6 +37,12 @@ export default function FilterControls({
   useEffect(() => {
     loadFilterOptions();
   }, []);
+
+  // Sync local state with parent filters
+  useEffect(() => {
+    setLocalStartDate(filters.startDate);
+    setLocalEndDate(filters.endDate);
+  }, [filters.startDate, filters.endDate]);
 
   const loadFilterOptions = async () => {
     try {
@@ -63,7 +73,29 @@ export default function FilterControls({
     });
   };
 
+  const handleDateSubmit = (key: 'startDate' | 'endDate', value: string) => {
+    handleFilterChange(key, value);
+  };
+
+  const handleDateKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, key: 'startDate' | 'endDate') => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const value = key === 'startDate' ? localStartDate : localEndDate;
+      handleDateSubmit(key, value);
+    }
+  };
+
+  const handleDateBlur = (key: 'startDate' | 'endDate') => {
+    const value = key === 'startDate' ? localStartDate : localEndDate;
+    // Only update if the value has actually changed
+    if (value !== filters[key]) {
+      handleDateSubmit(key, value);
+    }
+  };
+
   const clearFilters = () => {
+    setLocalStartDate('');
+    setLocalEndDate('');
     onFiltersChange({
       entity: entities.length > 0 ? entities[0] : filters.entity, // Keep current entity or use first available
       startDate: '',
@@ -127,8 +159,10 @@ export default function FilterControls({
           </label>
           <input
             type="date"
-            value={filters.startDate}
-            onChange={(e) => handleFilterChange('startDate', e.target.value)}
+            value={localStartDate}
+            onChange={(e) => setLocalStartDate(e.target.value)}
+            onBlur={() => handleDateBlur('startDate')}
+            onKeyDown={(e) => handleDateKeyDown(e, 'startDate')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
             disabled={loading}
             min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
@@ -143,8 +177,10 @@ export default function FilterControls({
           </label>
           <input
             type="date"
-            value={filters.endDate}
-            onChange={(e) => handleFilterChange('endDate', e.target.value)}
+            value={localEndDate}
+            onChange={(e) => setLocalEndDate(e.target.value)}
+            onBlur={() => handleDateBlur('endDate')}
+            onKeyDown={(e) => handleDateKeyDown(e, 'endDate')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
             disabled={loading}
             min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
