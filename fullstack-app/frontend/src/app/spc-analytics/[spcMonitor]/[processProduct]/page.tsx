@@ -210,17 +210,17 @@ function SPCAnalyticsInner() {
           action: 'fetchAdditionalData'
         },
         extra: {
-          page,
+          page: page,
           spcMonitor,
           processType,
           productType,
-          params
+          skipAmount: (page - 1) * pageSize
         }
       });
     } finally {
       setLoading(false);
     }
-  }, [needsServerFetch, spcMonitor, processType, productType, startDate, endDate, pageSize, page]);
+  }, [needsServerFetch, spcMonitor, processType, productType, startDate, endDate, pageSize]);
 
   // Calculate stats from all entity data
   const calculateStats = useCallback(() => {
