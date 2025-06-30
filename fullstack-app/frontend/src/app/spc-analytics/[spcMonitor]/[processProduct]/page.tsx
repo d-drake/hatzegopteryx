@@ -29,20 +29,24 @@ export default function SPCAnalyticsPage() {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
-  // Get filter values from URL
-  const selectedEntity = searchParams.get('entity') || '';
-  const urlStartDate = searchParams.get('startDate') || '';
-  const urlEndDate = searchParams.get('endDate') || '';
-  
-  // Local state for date inputs to prevent immediate updates
-  const [localStartDate, setLocalStartDate] = useState(urlStartDate);
-  const [localEndDate, setLocalEndDate] = useState(urlEndDate);
-
-  // Calculate date restrictions for guests
+  // Calculate date restrictions and defaults
   const isGuest = !user;
   const today = new Date();
   const thirtyDaysAgo = new Date(today);
   thirtyDaysAgo.setDate(today.getDate() - 30);
+  
+  // Default dates - last 30 days
+  const defaultStartDate = thirtyDaysAgo.toISOString().split('T')[0];
+  const defaultEndDate = today.toISOString().split('T')[0];
+
+  // Get filter values from URL
+  const selectedEntity = searchParams.get('entity') || '';
+  const urlStartDate = searchParams.get('startDate') || defaultStartDate;
+  const urlEndDate = searchParams.get('endDate') || defaultEndDate;
+  
+  // Local state for date inputs to prevent immediate updates
+  const [localStartDate, setLocalStartDate] = useState(urlStartDate);
+  const [localEndDate, setLocalEndDate] = useState(urlEndDate);
 
   // For guests, enforce 30-day limit
   const getEffectiveStartDate = () => {
@@ -65,8 +69,8 @@ export default function SPCAnalyticsPage() {
     return urlEndDate;
   };
 
-  const startDate = getEffectiveStartDate();
-  const endDate = getEffectiveEndDate();
+  const startDate = getEffectiveStartDate() || defaultStartDate;
+  const endDate = getEffectiveEndDate() || defaultEndDate;
 
   const fetchCDData = useCallback(async (newOffset: number = 0) => {
     try {
