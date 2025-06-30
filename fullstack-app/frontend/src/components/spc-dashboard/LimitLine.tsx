@@ -8,7 +8,7 @@ import { useSPCLimits } from '@/contexts/SPCLimitsContext';
 interface LimitLineProps {
   type: 'CL' | 'LCL' | 'UCL';
   yScale: d3.ScaleLinear<number, number>;
-  xScale: d3.ScaleLinear<number, number> | d3.ScaleTime<number, number>;
+  xScale: d3.ScaleLinear<number, number> | d3.ScaleTime<number, number> | d3.ScaleBand<string>;
   chartName: string; // e.g., "cd_att"
   processType: string;
   productType: string;
