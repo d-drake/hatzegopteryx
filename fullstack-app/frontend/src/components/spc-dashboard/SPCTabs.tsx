@@ -11,9 +11,10 @@ import {
 interface SPCTabsProps {
   spcMonitor: string;
   processProduct: string;
+  basePath?: string; // Optional base path for navigation
 }
 
-export default function SPCTabs({ spcMonitor, processProduct }: SPCTabsProps) {
+export default function SPCTabs({ spcMonitor, processProduct, basePath = '/spc-dashboard' }: SPCTabsProps) {
   const router = useRouter();
   const [spcMonitors, setSpcMonitors] = useState<string[]>([]);
   const [processProductCombinations, setProcessProductCombinations] = useState<ProcessProductCombination[]>([]);
@@ -55,11 +56,11 @@ export default function SPCTabs({ spcMonitor, processProduct }: SPCTabsProps) {
     const targetCombo = existingCombo || availableCombos[0];
     const newProcessProduct = `${targetCombo.process_type}-${targetCombo.product_type}`;
     
-    router.push(`/spc-dashboard/${newSpcMonitor}/${newProcessProduct}`);
+    router.push(`${basePath}/${newSpcMonitor}/${newProcessProduct}`);
   };
 
   const handleProcessProductChange = (newProcessProduct: string) => {
-    router.push(`/spc-dashboard/${spcMonitor}/${newProcessProduct}`);
+    router.push(`${basePath}/${spcMonitor}/${newProcessProduct}`);
   };
 
   if (loading) {

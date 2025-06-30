@@ -6,6 +6,7 @@ import { CDData, CDDataStats } from '@/types';
 import { cdDataApi } from '@/lib/api';
 import Header from '@/components/auth/Header';
 import AppTabs from '@/components/AppTabs';
+import SPCTabs from '@/components/spc-dashboard/SPCTabs';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function SPCAnalyticsPage() {
@@ -235,6 +236,8 @@ export default function SPCAnalyticsPage() {
           <AppTabs />
         </div>
 
+        <h2 className="text-2xl font-bold mb-6 text-black">SPC Analytics</h2>
+
         {/* Guest Access Notice */}
         {isGuest && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -246,6 +249,24 @@ export default function SPCAnalyticsPage() {
           </div>
         )}
 
+        {/* SPC Monitor and Process-Product Tabs */}
+        <div className="mb-6">
+          <SPCTabs
+            spcMonitor={spcMonitor}
+            processProduct={processProduct}
+            basePath="/spc-analytics"
+          />
+        </div>
+
+        {/* Current Selection Info */}
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex flex-wrap gap-4 text-sm text-blue-800">
+            <span><strong>SPC Monitor:</strong> {spcMonitor}</span>
+            <span><strong>Process Type:</strong> {processType}</span>
+            <span><strong>Product Type:</strong> {productType}</span>
+          </div>
+        </div>
+
         <div className="space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">
@@ -254,9 +275,20 @@ export default function SPCAnalyticsPage() {
           )}
 
           {/* Filters */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold mb-4 text-black">Data Filters</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Data Filters</h3>
+              <button
+                onClick={clearFilters}
+                className="text-sm text-gray-600 hover:text-gray-800 underline"
+                disabled={loading}
+              >
+                Clear All
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Entity Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Entity
@@ -264,7 +296,8 @@ export default function SPCAnalyticsPage() {
                 <select
                   value={selectedEntity}
                   onChange={(e) => handleEntityChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
+                  disabled={loading}
                 >
                   <option value="">All Entities</option>
                   {entities.map((entity) => (
@@ -274,6 +307,8 @@ export default function SPCAnalyticsPage() {
                   ))}
                 </select>
               </div>
+
+              {/* Start Date Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Start Date
@@ -284,11 +319,14 @@ export default function SPCAnalyticsPage() {
                   onChange={(e) => setLocalStartDate(e.target.value)}
                   onBlur={() => handleDateBlur('startDate')}
                   onKeyDown={(e) => handleDateKeyDown(e, 'startDate')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
+                  disabled={loading}
                   min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
                   max={isGuest ? today.toISOString().split('T')[0] : undefined}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+
+              {/* End Date Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   End Date
@@ -299,18 +337,11 @@ export default function SPCAnalyticsPage() {
                   onChange={(e) => setLocalEndDate(e.target.value)}
                   onBlur={() => handleDateBlur('endDate')}
                   onKeyDown={(e) => handleDateKeyDown(e, 'endDate')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
+                  disabled={loading}
                   min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
                   max={isGuest ? today.toISOString().split('T')[0] : undefined}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </div>
-              <div className="flex items-end">
-                <button
-                  onClick={clearFilters}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                >
-                  Clear Filters
-                </button>
               </div>
             </div>
           </div>
@@ -396,8 +427,8 @@ export default function SPCAnalyticsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       CD ATT
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      CD 6σ
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider">
+                      <span className="uppercase">CD 6</span>σ
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Process/Product
@@ -445,6 +476,45 @@ export default function SPCAnalyticsPage() {
             {cdData.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 No CD data found with the current filters.
+              </div>
+            )}
+            
+            {/* Bottom pagination controls */}
+            {cdData.length > 0 && (
+              <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={handlePrevPage}
+                    disabled={offset === 0 || loading}
+                    className={`flex items-center gap-1 px-3 py-1 rounded ${
+                      offset === 0 || loading
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    Showing {offset + 1}-{Math.min(offset + 50, offset + cdData.length)}
+                  </span>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={!hasMore || loading}
+                    className={`flex items-center gap-1 px-3 py-1 rounded ${
+                      !hasMore || loading
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Next
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             )}
           </div>
