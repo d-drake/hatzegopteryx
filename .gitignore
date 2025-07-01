@@ -116,4 +116,5 @@ fullstack-app/backend/deployment/scripts/lambda_build/
 # Terraform outputs
 infrastructure/terraform/outputs.txt
 
+# Sensitive documentation
 docs
