@@ -86,22 +86,11 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
   const [yDomain, setYDomain] = useState<[number, number] | null>(yZoomDomain || null);
   
-  // Track window width for responsive behavior
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 800);
+  // Track if SVG width is narrow (< 800px)
+  const isNarrowSVG = width < 800;
   
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-  const isNarrowScreen = windowWidth < 800;
-  
-  // Adjust margins for narrow screens
-  const responsiveMargin = isNarrowScreen
+  // Adjust margins for narrow SVGs
+  const responsiveMargin = isNarrowSVG
     ? { top: 40, right: 10, bottom: 80, left: 50 }
     : margin;
 
@@ -465,8 +454,7 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
         ref={svgRef} 
         width={width} 
         height={height} 
-        margin={responsiveMargin} 
-        responsive={isNarrowScreen}
+        margin={responsiveMargin}
       >
         <defs>
           <clipPath id="variability-clip">
@@ -486,18 +474,18 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
             transform={`translate(0,0)`}
             label={formatFieldName(valueColumn)}
             labelOffset={{ x: -chartHeight / 2, y: -50 }}
-            responsive={isNarrowScreen}
-            screenWidth={windowWidth}
+            responsive={isNarrowSVG}
+            screenWidth={width}
           />
           <Axis
             scale={xScale}
             orientation="bottom"
             transform={`translate(0,${chartHeight})`}
             label={formatFieldName(categoricalColumn)}
-            labelOffset={{ x: chartWidth / 2, y: isNarrowScreen ? 45 : 45 }}
+            labelOffset={{ x: chartWidth / 2, y: isNarrowSVG ? 45 : 45 }}
             checkOverlap={true}
-            responsive={isNarrowScreen}
-            screenWidth={windowWidth}
+            responsive={isNarrowSVG}
+            screenWidth={width}
           />
           
           {/* Y-axis zoom area */}

@@ -17,22 +17,17 @@ const ChartContainer = forwardRef<SVGSVGElement, ChartContainerProps>(
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    const svgProps = responsive
-      ? {
-          viewBox: `0 0 ${width} ${height}`,
-          preserveAspectRatio,
-          style: {
-            display: 'block',
-            width: '100%',
-            maxWidth: '100%',
-            height: 'auto',
-          },
-        }
-      : {
-          width,
-          height,
-          style: { display: 'block' },
-        };
+    // Always use responsive SVG properties for better scaling
+    const svgProps = {
+      viewBox: `0 0 ${width} ${height}`,
+      preserveAspectRatio,
+      style: {
+        display: 'block',
+        width: '100%',
+        maxWidth: '100%',
+        height: 'auto',
+      },
+    };
 
     return (
       <svg ref={ref} {...svgProps} onWheel={onWheel}>

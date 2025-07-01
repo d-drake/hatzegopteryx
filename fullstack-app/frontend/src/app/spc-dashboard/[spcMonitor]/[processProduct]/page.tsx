@@ -15,6 +15,7 @@ import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
 import Header from '@/components/auth/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardInstructions from '@/components/spc-dashboard/DashboardInstructions';
+import { useViewportWidth } from '@/hooks/useViewportWidth';
 
 function SPCDashboardInner() {
   const params = useParams();
@@ -29,10 +30,15 @@ function SPCDashboardInner() {
   } = useCDData();
 
   const isGuest = !user;
+  const viewportWidth = useViewportWidth();
   
   // State for synchronized view switching
   const [syncViews, setSyncViews] = useState(true); // Default to synced
   const [activeView, setActiveView] = useState<'timeline' | 'variability'>('timeline');
+  
+  // Tabs are visible when viewport < 1500px (matching SPCChartWrapper logic)
+  const SIDE_BY_SIDE_BREAKPOINT = 1500;
+  const areTabsVisible = viewportWidth < SIDE_BY_SIDE_BREAKPOINT;
 
   // Extract URL parameters
   const spcMonitor = decodeURIComponent(params.spcMonitor as string);
@@ -120,24 +126,26 @@ function SPCDashboardInner() {
           <div className="mt-8">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold text-black">CD Measurement Analysis</h3>
-              <div className="flex items-center gap-2">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={syncViews}
-                    onChange={(e) => setSyncViews(e.target.checked)}
-                    className="sr-only"
-                  />
-                  <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    syncViews ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}>
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      syncViews ? 'translate-x-6' : 'translate-x-1'
-                    }`} />
-                  </div>
-                  <span className="ml-2 text-sm text-gray-700">Sync Chart Views</span>
-                </label>
-              </div>
+              {areTabsVisible && (
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={syncViews}
+                      onChange={(e) => setSyncViews(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      syncViews ? 'bg-blue-600' : 'bg-gray-200'
+                    }`}>
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        syncViews ? 'translate-x-6' : 'translate-x-1'
+                      }`} />
+                    </div>
+                    <span className="ml-2 text-sm text-gray-700">Sync Chart Views</span>
+                  </label>
+                </div>
+              )}
             </div>
             <div className="space-y-8">
               {/* CD ATT vs Date */}

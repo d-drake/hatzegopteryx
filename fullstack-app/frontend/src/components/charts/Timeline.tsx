@@ -7,6 +7,7 @@ import Circles from './Circles';
 import Symbols from './Symbols';
 import Line from './Line';
 import Legend from './Legend';
+import MultiColumnLegend from './MultiColumnLegend';
 import HorizontalLegend from './HorizontalLegend';
 import { useTooltip, formatTooltipContent } from './Tooltip';
 import ZoomControls from './ZoomControls';
@@ -76,25 +77,14 @@ export default function Timeline<T extends Record<string, any>>({
   onY2ZoomChange,
   onResetZoom,
 }: TimelineProps<T>) {
-  // Track window width for responsive behavior
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 800);
-  
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-  const isNarrowScreen = windowWidth < 800;
+  // Track if SVG width is narrow (< 800px)
+  const isNarrowSVG = width < 800;
   
   // Dynamic right margin state - must be declared before using it
   const [dynamicRightMargin, setDynamicRightMargin] = useState(80);
   
   // Calculate responsive margins with dynamic right margin
-  const responsiveMargin = isNarrowScreen
+  const responsiveMargin = isNarrowSVG
     ? { top: 40, right: y2Field ? Math.max(dynamicRightMargin, 60) : 10, bottom: 80, left: 50 }
     : { ...margin, right: y2Field ? Math.max(margin.right, dynamicRightMargin) : margin.right };
     
@@ -307,7 +297,7 @@ export default function Timeline<T extends Record<string, any>>({
     if (Math.abs(totalRightMargin - dynamicRightMargin) > 5) {
       setDynamicRightMargin(totalRightMargin);
     }
-  }, [y2Field, y2Scale, currentY2Extent, isNarrowScreen, dynamicRightMargin]);
+  }, [y2Field, y2Scale, currentY2Extent, isNarrowSVG, dynamicRightMargin]);
 
   // Update local domains when props change
   useEffect(() => {
@@ -523,7 +513,7 @@ export default function Timeline<T extends Record<string, any>>({
       />
 
 
-      <ChartContainer width={width} height={height} margin={responsiveMargin} ref={svgRef} responsive={isNarrowScreen}>
+      <ChartContainer width={width} height={height} margin={responsiveMargin} ref={svgRef}>
         <defs>
           <clipPath id={clipPathId}>
             <rect x={30} y={0} width={innerWidth - 60} height={innerHeight} />
@@ -536,17 +526,17 @@ export default function Timeline<T extends Record<string, any>>({
             orientation="bottom"
             transform={`translate(0,${innerHeight})`}
             label={formatFieldName(String(xField))}
-            labelOffset={{ x: innerWidth / 2, y: isNarrowScreen ? 45 : 45 }}
-            responsive={isNarrowScreen}
-            screenWidth={windowWidth}
+            labelOffset={{ x: innerWidth / 2, y: isNarrowSVG ? 45 : 45 }}
+            responsive={isNarrowSVG}
+            screenWidth={width}
           />
           <Axis
             scale={yScale}
             orientation="left"
             label={formatFieldName(String(yField))}
             labelOffset={{ x: -innerHeight / 2, y: -50 }}
-            responsive={isNarrowScreen}
-            screenWidth={windowWidth}
+            responsive={isNarrowSVG}
+            screenWidth={width}
           />
 
           {/* Secondary Y-axis (right side) */}
@@ -557,8 +547,8 @@ export default function Timeline<T extends Record<string, any>>({
               transform={`translate(${innerWidth},0)`}
               label={formatFieldName(String(y2Field))}
               labelOffset={{ x: -innerHeight / 2, y: 60 }}
-              responsive={isNarrowScreen}
-              screenWidth={windowWidth}
+              responsive={isNarrowSVG}
+              screenWidth={width}
             />
           )}
 
@@ -659,10 +649,10 @@ export default function Timeline<T extends Record<string, any>>({
             </g>
           )}
 
-          {/* Legends - render inside SVG for desktop, outside for mobile */}
-          {!isNarrowScreen && (
+          {/* Legends - render inside SVG for wide SVGs, outside for narrow */}
+          {!isNarrowSVG && (
             <>
-              <Legend
+              <MultiColumnLegend
                 title={formatFieldName(String(colorField))}
                 items={colorLegendItems}
                 x={innerWidth + (y2Field ? 85 : 20)}
@@ -670,17 +660,23 @@ export default function Timeline<T extends Record<string, any>>({
                 selectedItems={selectedColorItems}
                 onItemClick={handleColorLegendClick}
                 hasOtherSelections={selectedShapeItems.size > 0}
+                maxHeight={innerHeight}
+                columnGap={30}
+                maxColumns={3}
               />
 
               {shapeLegendItems.length > 0 && (
-                <Legend
+                <MultiColumnLegend
                   title={formatFieldName(String(shapeField!))}
                   items={shapeLegendItems}
                   x={innerWidth + (y2Field ? 85 : 20)}
-                  y={20 + colorLegendItems.length * 20}
+                  y={20 + Math.min(colorLegendItems.length * 20, innerHeight)}
                   selectedItems={selectedShapeItems}
                   onItemClick={handleShapeLegendClick}
                   hasOtherSelections={selectedColorItems.size > 0}
+                  maxHeight={innerHeight - 20 - Math.min(colorLegendItems.length * 20, innerHeight)}
+                  columnGap={30}
+                  maxColumns={3}
                 />
               )}
             </>
@@ -722,8 +718,8 @@ export default function Timeline<T extends Record<string, any>>({
         </g>
       </ChartContainer>
       
-      {/* Horizontal legends for narrow screens */}
-      {isNarrowScreen && (
+      {/* Horizontal legends for narrow SVGs */}
+      {isNarrowSVG && (
         <div className="mt-2 space-y-2">
           <HorizontalLegend
             title={formatFieldName(String(colorField))}
