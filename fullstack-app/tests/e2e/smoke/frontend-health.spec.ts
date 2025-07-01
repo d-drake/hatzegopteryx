@@ -5,11 +5,12 @@ test.describe('Frontend Health Checks', () => {
     await page.goto('/');
 
     // Check that the page loads without errors
-    await expect(page).toHaveTitle(/CCDH/);
+    await expect(page).toHaveTitle('Cloud Critical Dimension Hub');
 
     // Check for main navigation tabs
-    await expect(page.getByRole('button', { name: 'Todo Items' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'CD Data Analytics' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'SPC Dashboard' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'SPC Analytics' })).toBeVisible();
+    // Note: "To Do Items" tab is only visible to superusers
   });
 
   test('should navigate to SPC Dashboard', async ({ page }) => {
@@ -38,8 +39,8 @@ test.describe('Frontend Health Checks', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Click on CD Data Analytics tab
-    await page.getByRole('button', { name: 'CD Data Analytics' }).click();
+    // Click on SPC Analytics tab
+    await page.getByRole('button', { name: 'SPC Analytics' }).click();
 
     // Wait for API calls
     await page.waitForTimeout(1000);
