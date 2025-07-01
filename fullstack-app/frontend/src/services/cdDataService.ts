@@ -51,7 +51,10 @@ apiClient.interceptors.response.use(
       console.error(`❌ Network error: ${method} ${url} - ${error.message}`);
     } else {
       console.error(`❌ API Error: ${method} ${url} - Status: ${error.response.status}`);
-      console.error('Response data:', error.response.data);
+      // Safely access response data
+      if (error.response.data !== undefined) {
+        console.error('Response data:', error.response.data);
+      }
     }
     
     // Log the raw response if it's a JSON parsing issue

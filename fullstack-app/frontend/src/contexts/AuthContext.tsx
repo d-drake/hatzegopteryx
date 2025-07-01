@@ -83,7 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Redirect to dashboard
       router.push('/');
     } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Login failed');
+      // Handle different error structures
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Login failed';
+      throw new Error(errorMessage);
     }
   };
 
@@ -117,7 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return { message: response.data.message };
     } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Registration failed');
+      // Handle different error structures
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.message || 
+                          error.message || 
+                          'Registration failed';
+      throw new Error(errorMessage);
     }
   };
 
