@@ -213,8 +213,8 @@ npx tsc --noEmit
 
 ### Docker Compose Environment Setup:
 The project uses environment-specific Docker Compose files with aliases:
-- **Development**: `dc-dev` (alias for `docker compose -f docker-compose.dev.yml`)
-- **Production**: `dc-prod` (alias for `docker compose -f docker-compose.prod.yml`)
+- **Development**: `dc-dev` (alias for `docker compose -f docker-compose.dev.yml --env-file .env.dev`)
+- **Production**: `dc-prod` (alias for `docker compose -f docker-compose.prod.yml --env-file .env.prod`)
 
 ### Environment Files:
 - **`.env.dev`** - Development environment (committed to Git)

@@ -8,15 +8,34 @@ interface ChartContainerProps {
   margin: { top: number; right: number; bottom: number; left: number };
   children: ReactNode;
   onWheel?: (event: React.WheelEvent<SVGSVGElement>) => void;
+  responsive?: boolean;
+  preserveAspectRatio?: string;
 }
 
 const ChartContainer = forwardRef<SVGSVGElement, ChartContainerProps>(
-  ({ width, height, margin, children, onWheel }, ref) => {
+  ({ width, height, margin, children, onWheel, responsive = false, preserveAspectRatio = 'xMinYMid meet' }, ref) => {
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
+    const svgProps = responsive
+      ? {
+          viewBox: `0 0 ${width} ${height}`,
+          preserveAspectRatio,
+          style: {
+            display: 'block',
+            width: '100%',
+            maxWidth: '100%',
+            height: 'auto',
+          },
+        }
+      : {
+          width,
+          height,
+          style: { display: 'block' },
+        };
+
     return (
-      <svg ref={ref} width={width} height={height} onWheel={onWheel} style={{ overflow: 'visible' }}>
+      <svg ref={ref} {...svgProps} onWheel={onWheel}>
         <g transform={`translate(${margin.left},${margin.top})`}>
           {children}
         </g>

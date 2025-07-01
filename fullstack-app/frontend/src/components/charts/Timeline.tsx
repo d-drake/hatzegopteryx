@@ -7,6 +7,7 @@ import Circles from './Circles';
 import Symbols from './Symbols';
 import Line from './Line';
 import Legend from './Legend';
+import HorizontalLegend from './HorizontalLegend';
 import { useTooltip, formatTooltipContent } from './Tooltip';
 import ZoomControls from './ZoomControls';
 import {
@@ -75,7 +76,29 @@ export default function Timeline<T extends Record<string, any>>({
   onY2ZoomChange,
   onResetZoom,
 }: TimelineProps<T>) {
-  const { innerWidth, innerHeight } = useChartDimensions(width, height, margin);
+  // Track window width for responsive behavior
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 800);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  const isNarrowScreen = windowWidth < 800;
+  
+  // Dynamic right margin state - must be declared before using it
+  const [dynamicRightMargin, setDynamicRightMargin] = useState(80);
+  
+  // Calculate responsive margins with dynamic right margin
+  const responsiveMargin = isNarrowScreen
+    ? { top: 40, right: y2Field ? Math.max(dynamicRightMargin, 60) : 10, bottom: 80, left: 50 }
+    : { ...margin, right: y2Field ? Math.max(margin.right, dynamicRightMargin) : margin.right };
+    
+  const { innerWidth, innerHeight } = useChartDimensions(width, height, responsiveMargin);
   const { showTooltip, hideTooltip } = useTooltip();
   const svgRef = useRef<SVGSVGElement>(null);
   const chartRef = useRef<SVGGElement>(null);
@@ -263,6 +286,28 @@ export default function Timeline<T extends Record<string, any>>({
       onYScaleChange(yScale);
     }
   }, [yScale, externalYScale, onYScaleChange]);
+  
+  // Measure right axis labels after render
+  useEffect(() => {
+    if (!y2Field || !svgRef.current) return;
+    
+    // Find all right axis tick labels
+    const rightAxisLabels = svgRef.current.querySelectorAll('.axis:last-of-type .tick text');
+    let maxWidth = 0;
+    
+    rightAxisLabels.forEach((label) => {
+      const bbox = (label as SVGTextElement).getBBox();
+      maxWidth = Math.max(maxWidth, bbox.width);
+    });
+    
+    // Add padding for the axis label itself and some buffer
+    const totalRightMargin = maxWidth + 80; // 80px for axis label and padding
+    
+    // Only update if significantly different to avoid infinite loops
+    if (Math.abs(totalRightMargin - dynamicRightMargin) > 5) {
+      setDynamicRightMargin(totalRightMargin);
+    }
+  }, [y2Field, y2Scale, currentY2Extent, isNarrowScreen, dynamicRightMargin]);
 
   // Update local domains when props change
   useEffect(() => {
@@ -478,7 +523,7 @@ export default function Timeline<T extends Record<string, any>>({
       />
 
 
-      <ChartContainer width={width} height={height} margin={margin} ref={svgRef}>
+      <ChartContainer width={width} height={height} margin={responsiveMargin} ref={svgRef} responsive={isNarrowScreen}>
         <defs>
           <clipPath id={clipPathId}>
             <rect x={30} y={0} width={innerWidth - 60} height={innerHeight} />
@@ -491,13 +536,17 @@ export default function Timeline<T extends Record<string, any>>({
             orientation="bottom"
             transform={`translate(0,${innerHeight})`}
             label={formatFieldName(String(xField))}
-            labelOffset={{ x: innerWidth / 2, y: 45 }}
+            labelOffset={{ x: innerWidth / 2, y: isNarrowScreen ? 45 : 45 }}
+            responsive={isNarrowScreen}
+            screenWidth={windowWidth}
           />
           <Axis
             scale={yScale}
             orientation="left"
             label={formatFieldName(String(yField))}
             labelOffset={{ x: -innerHeight / 2, y: -50 }}
+            responsive={isNarrowScreen}
+            screenWidth={windowWidth}
           />
 
           {/* Secondary Y-axis (right side) */}
@@ -508,6 +557,8 @@ export default function Timeline<T extends Record<string, any>>({
               transform={`translate(${innerWidth},0)`}
               label={formatFieldName(String(y2Field))}
               labelOffset={{ x: -innerHeight / 2, y: 60 }}
+              responsive={isNarrowScreen}
+              screenWidth={windowWidth}
             />
           )}
 
@@ -608,27 +659,31 @@ export default function Timeline<T extends Record<string, any>>({
             </g>
           )}
 
-          {/* Legends - adjust position when secondary Y-axis is present */}
-          <Legend
-            title={formatFieldName(String(colorField))}
-            items={colorLegendItems}
-            x={innerWidth + (y2Field ? 85 : 20)}
-            y={0}
-            selectedItems={selectedColorItems}
-            onItemClick={handleColorLegendClick}
-            hasOtherSelections={selectedShapeItems.size > 0}
-          />
+          {/* Legends - render inside SVG for desktop, outside for mobile */}
+          {!isNarrowScreen && (
+            <>
+              <Legend
+                title={formatFieldName(String(colorField))}
+                items={colorLegendItems}
+                x={innerWidth + (y2Field ? 85 : 20)}
+                y={0}
+                selectedItems={selectedColorItems}
+                onItemClick={handleColorLegendClick}
+                hasOtherSelections={selectedShapeItems.size > 0}
+              />
 
-          {shapeLegendItems.length > 0 && (
-            <Legend
-              title={formatFieldName(String(shapeField!))}
-              items={shapeLegendItems}
-              x={innerWidth + (y2Field ? 85 : 20)}
-              y={20 + colorLegendItems.length * 20}
-              selectedItems={selectedShapeItems}
-              onItemClick={handleShapeLegendClick}
-              hasOtherSelections={selectedColorItems.size > 0}
-            />
+              {shapeLegendItems.length > 0 && (
+                <Legend
+                  title={formatFieldName(String(shapeField!))}
+                  items={shapeLegendItems}
+                  x={innerWidth + (y2Field ? 85 : 20)}
+                  y={20 + colorLegendItems.length * 20}
+                  selectedItems={selectedShapeItems}
+                  onItemClick={handleShapeLegendClick}
+                  hasOtherSelections={selectedColorItems.size > 0}
+                />
+              )}
+            </>
           )}
 
           {/* Zoom areas for user guidance */}
@@ -637,16 +692,16 @@ export default function Timeline<T extends Record<string, any>>({
             x={0}
             y={innerHeight}
             width={innerWidth}
-            height={margin.bottom}
+            height={responsiveMargin.bottom}
             fill="transparent"
             style={{ cursor: 'ew-resize' }}
           />
 
           {/* Y-axis zoom area */}
           <rect
-            x={-margin.left}
+            x={-responsiveMargin.left}
             y={0}
-            width={margin.left}
+            width={responsiveMargin.left}
             height={innerHeight}
             fill="transparent"
             style={{ cursor: 'ns-resize' }}
@@ -666,6 +721,39 @@ export default function Timeline<T extends Record<string, any>>({
 
         </g>
       </ChartContainer>
+      
+      {/* Horizontal legends for narrow screens */}
+      {isNarrowScreen && (
+        <div className="mt-2 space-y-2">
+          <HorizontalLegend
+            title={formatFieldName(String(colorField))}
+            items={colorLegendItems}
+            selectedItems={selectedColorItems}
+            onItemClick={handleColorLegendClick}
+            hasOtherSelections={selectedShapeItems.size > 0}
+          />
+          
+          {shapeLegendItems.length > 0 && (
+            <HorizontalLegend
+              title={formatFieldName(String(shapeField!))}
+              items={shapeLegendItems}
+              selectedItems={selectedShapeItems}
+              onItemClick={handleShapeLegendClick}
+              hasOtherSelections={selectedColorItems.size > 0}
+            />
+          )}
+          
+          {/* Reset selections button for mobile */}
+          {hasSelections && (
+            <button
+              onClick={resetLegendSelections}
+              className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+            >
+              Reset Selections
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

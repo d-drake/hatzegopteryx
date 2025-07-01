@@ -13,6 +13,8 @@ interface AxisProps {
   gridLineLength?: number;
   tickRotation?: number; // Rotation angle for tick labels
   checkOverlap?: boolean; // Whether to check for tick label overlap
+  responsive?: boolean; // Enable responsive features
+  screenWidth?: number; // Current screen width for responsive adjustments
 }
 
 export default function Axis({
@@ -25,6 +27,8 @@ export default function Axis({
   gridLineLength = 0,
   tickRotation,
   checkOverlap = false,
+  responsive = false,
+  screenWidth = 800,
 }: AxisProps) {
   const axisRef = useRef<SVGGElement>(null);
 
@@ -63,13 +67,60 @@ export default function Axis({
 
         // Ensure we have at least 2 ticks but not more than would cause overlap
         const tickCount = Math.max(2, Math.min(10, maxTicks));
-        axis = axis.ticks(tickCount);
+        
+        // For right axis with potentially small ranges, be more conservative
+        if (orientation === 'right') {
+          const domain = scale.domain ? scale.domain() : [0, 1];
+          const range = Math.abs(domain[1] - domain[0]);
+          // If range is very small, reduce tick count to avoid duplicates
+          if (range < 0.1) {
+            axis = axis.ticks(Math.min(3, tickCount));
+          } else if (range < 1) {
+            axis = axis.ticks(Math.min(5, tickCount));
+          } else {
+            axis = axis.ticks(tickCount);
+          }
+        } else {
+          axis = axis.ticks(tickCount);
+        }
       }
     }
 
     const axisGroup = d3.select(axisRef.current);
     // Clear existing content to prevent stacking
     axisGroup.selectAll('*').remove();
+    
+    // Apply responsive tick formatting if enabled
+    if (responsive && screenWidth < 800) {
+      const isHorizontal = orientation === 'bottom' || orientation === 'top';
+      
+      if (isHorizontal && scale.domain) {
+        // Check if it's a time scale
+        const domain = scale.domain();
+        if (domain[0] instanceof Date) {
+          // Use shorter date format for narrow screens
+          axis = axis.tickFormat(d3.timeFormat('%-m/%-d'));
+        }
+      } else if (!isHorizontal) {
+        // Format numbers with abbreviations for Y axes
+        axis = axis.tickFormat((d: any) => {
+          const num = Number(d);
+          if (Math.abs(num) >= 10000) {
+            return d3.format('.2s')(num); // e.g., "12k" for 12000
+          } else if (Math.abs(num) >= 1000) {
+            return d3.format('.3s')(num); // e.g., "1.23k" for 1230
+          }
+          // For smaller numbers, use appropriate precision
+          if (Math.abs(num) < 1) {
+            return d3.format('.3~f')(num); // Up to 3 decimal places
+          } else if (Math.abs(num) < 10) {
+            return d3.format('.2~f')(num); // Up to 2 decimal places
+          }
+          return d3.format('.1~f')(num); // Up to 1 decimal place
+        });
+      }
+    }
+    
     axisGroup.call(axis);
 
     if (gridLines) {
@@ -88,7 +139,8 @@ export default function Axis({
         .style('stroke', '#64748b'); // slate-500 color
       axisGroup
         .selectAll('.tick text')
-        .style('fill', '#64748b'); // slate-500 color
+        .style('fill', '#64748b') // slate-500 color
+        .style('font-size', responsive && screenWidth < 800 ? '10px' : '12px');
         
       // Apply tick rotation if specified
       if (tickRotation) {
@@ -131,18 +183,47 @@ export default function Axis({
 
     if (label && !gridLines) {
       const isVertical = orientation === 'left' || orientation === 'right';
+      const isNarrowScreen = responsive && screenWidth < 800;
+      
+      // Determine label position and styling based on orientation and screen size
+      let labelX = labelOffset.x;
+      let labelY = labelOffset.y;
+      let rotation = isVertical ? 'rotate(-90)' : null;
+      let textAnchor = 'middle';
+      let fontSize = isNarrowScreen ? '12px' : '14px';
+      
+      // Reposition labels on narrow screens to avoid collisions
+      if (isNarrowScreen) {
+        if (orientation === 'left') {
+          // Move to top-left corner, horizontal text
+          labelX = 0;
+          labelY = -15;
+          rotation = null;
+          textAnchor = 'start';
+        } else if (orientation === 'right') {
+          // Move to top-right corner, horizontal text
+          const range = scale.range ? scale.range() : [0, 0];
+          labelX = Math.max(...range);
+          labelY = -15;
+          rotation = null;
+          textAnchor = 'end';
+        } else if (orientation === 'bottom') {
+          // Increase offset to avoid tick labels
+          labelY = labelOffset.y + 20;
+        }
+      }
 
       axisGroup
         .append('text')
-        .attr('transform', isVertical ? 'rotate(-90)' : null)
-        .attr('x', labelOffset.x)
-        .attr('y', labelOffset.y)
+        .attr('transform', rotation)
+        .attr('x', labelX)
+        .attr('y', labelY)
         .attr('fill', '#000000')
-        .style('text-anchor', 'middle')
-        .style('font-size', '14px')
+        .style('text-anchor', textAnchor)
+        .style('font-size', fontSize)
         .text(label);
     }
-  }, [scale, gridLines, gridLineLength, label, labelOffset.x, labelOffset.y, orientation]);
+  }, [scale, gridLines, gridLineLength, label, labelOffset.x, labelOffset.y, orientation, tickRotation, checkOverlap, responsive, screenWidth]);
 
   return <g ref={axisRef} transform={transform} className="axis" />;
 }

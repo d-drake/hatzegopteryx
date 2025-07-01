@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useMemo, useState, useId } from 'react';
 import * as d3 from 'd3';
 import Axis from './Axis';
+import ChartContainer from './ChartContainer';
 import ZoomControls from './ZoomControls';
 import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
 
@@ -84,9 +85,28 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
   const [hoveredData, setHoveredData] = useState<any>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
   const [yDomain, setYDomain] = useState<[number, number] | null>(yZoomDomain || null);
+  
+  // Track window width for responsive behavior
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 800);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  const isNarrowScreen = windowWidth < 800;
+  
+  // Adjust margins for narrow screens
+  const responsiveMargin = isNarrowScreen
+    ? { top: 40, right: 10, bottom: 80, left: 50 }
+    : margin;
 
-  const chartWidth = width - margin.left - margin.right;
-  const chartHeight = height - margin.top - margin.bottom;
+  const chartWidth = width - responsiveMargin.left - responsiveMargin.right;
+  const chartHeight = height - responsiveMargin.top - responsiveMargin.bottom;
 
   // Calculate box plot statistics for each category
   const boxPlotData = useMemo(() => {
@@ -187,8 +207,8 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
       
 
       // Check if mouse is over y-axis area (to the left of the chart, in the margin area)
-      const isOverYAxis = mouseX >= 0 && mouseX <= margin.left &&
-        mouseY >= margin.top && mouseY <= margin.top + chartHeight;
+      const isOverYAxis = mouseX >= 0 && mouseX <= responsiveMargin.left &&
+        mouseY >= responsiveMargin.top && mouseY <= responsiveMargin.top + chartHeight;
 
       if (isOverYAxis) {
         event.preventDefault();
@@ -229,7 +249,7 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
     return () => {
       svg.removeEventListener('wheel', handleWheel);
     };
-  }, [currentYExtent, chartHeight, margin, onYScaleChange, onYZoomChange]);
+  }, [currentYExtent, chartHeight, responsiveMargin, onYScaleChange, onYZoomChange]);
 
   // Render D3 elements
   useEffect(() => {
@@ -441,13 +461,18 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
         onResetZoom={handleResetZoom}
       />
       
-      <svg ref={svgRef} width={width} height={height} className="variability-chart">
+      <ChartContainer 
+        ref={svgRef} 
+        width={width} 
+        height={height} 
+        margin={responsiveMargin} 
+        responsive={isNarrowScreen}
+      >
         <defs>
           <clipPath id="variability-clip">
             <rect x={0} y={0} width={chartWidth} height={chartHeight} />
           </clipPath>
         </defs>
-        <g transform={`translate(${margin.left},${margin.top})`}>
           <g className="chart-area data-area" clipPath="url(#variability-clip)" />
           {/* Render overlays (e.g., SPC limit lines) */}
           {renderOverlays && (
@@ -461,27 +486,30 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
             transform={`translate(0,0)`}
             label={formatFieldName(valueColumn)}
             labelOffset={{ x: -chartHeight / 2, y: -50 }}
+            responsive={isNarrowScreen}
+            screenWidth={windowWidth}
           />
           <Axis
             scale={xScale}
             orientation="bottom"
             transform={`translate(0,${chartHeight})`}
             label={formatFieldName(categoricalColumn)}
-            labelOffset={{ x: chartWidth / 2, y: 45 }}
+            labelOffset={{ x: chartWidth / 2, y: isNarrowScreen ? 45 : 45 }}
             checkOverlap={true}
+            responsive={isNarrowScreen}
+            screenWidth={windowWidth}
           />
           
           {/* Y-axis zoom area */}
           <rect
-            x={-margin.left}
+            x={-responsiveMargin.left}
             y={0}
-            width={margin.left}
+            width={responsiveMargin.left}
             height={chartHeight}
             fill="transparent"
             style={{ cursor: 'ns-resize' }}
           />
-        </g>
-      </svg>
+      </ChartContainer>
       {hoveredData && mousePosition && (
         <Tooltip x={mousePosition.x} y={mousePosition.y}>
           {hoveredData.type === 'box' && (

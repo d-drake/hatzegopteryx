@@ -56,7 +56,7 @@ export default function SPCChartWithSharedData({
           id: 'timeline',
           label: 'Timeline',
           content: (
-            <ResponsiveChartWrapper>
+            <ResponsiveChartWrapper padding={48}>
               {(width) => (
                 <SPCTimeline
                   data={data}
@@ -81,7 +81,7 @@ export default function SPCChartWithSharedData({
           id: 'variability',
           label: 'Variability',
           content: (
-            <ResponsiveChartWrapper>
+            <ResponsiveChartWrapper padding={48}>
               {(width) => (
                 <SPCVariabilityChart
                   data={dataForScaleCalculation}
