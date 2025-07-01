@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
 import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { DatePicker } from '@/components/ui/date-picker';
 
 function SPCAnalyticsInner() {
   const params = useParams();
@@ -286,7 +287,14 @@ function SPCAnalyticsInner() {
     router.replace(newUrl);
   };
 
-  const handleDateSubmit = (key: 'startDate' | 'endDate', value: string) => {
+  const handleDateChange = (key: 'startDate' | 'endDate', value: string) => {
+    // Update local state
+    if (key === 'startDate') {
+      setLocalStartDate(value);
+    } else {
+      setLocalEndDate(value);
+    }
+    
     // For guests, enforce date restrictions
     if (isGuest) {
       if (key === 'startDate' && value && new Date(value) < thirtyDaysAgo) {
@@ -304,23 +312,6 @@ function SPCAnalyticsInner() {
     });
     // Reset to first page when filters change
     setCurrentPage(1);
-  };
-
-  const handleDateKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, key: 'startDate' | 'endDate') => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const value = key === 'startDate' ? localStartDate : localEndDate;
-      handleDateSubmit(key, value);
-    }
-  };
-
-  const handleDateBlur = (key: 'startDate' | 'endDate') => {
-    const value = key === 'startDate' ? localStartDate : localEndDate;
-    const currentValue = key === 'startDate' ? startDate : endDate;
-    // Only update if the value has actually changed
-    if (value !== currentValue) {
-      handleDateSubmit(key, value);
-    }
   };
 
   const clearFilters = () => {
@@ -476,16 +467,13 @@ function SPCAnalyticsInner() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Start Date
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={localStartDate}
-                  onChange={(e) => setLocalStartDate(e.target.value)}
-                  onBlur={() => handleDateBlur('startDate')}
-                  onKeyDown={(e) => handleDateKeyDown(e, 'startDate')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
+                  onChange={(date) => handleDateChange('startDate', date)}
                   disabled={loading}
-                  min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
-                  max={isGuest ? today.toISOString().split('T')[0] : undefined}
+                  minDate={isGuest ? thirtyDaysAgo : undefined}
+                  maxDate={isGuest ? today : undefined}
+                  placeholder="Select start date"
                 />
               </div>
 
@@ -494,16 +482,13 @@ function SPCAnalyticsInner() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   End Date
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={localEndDate}
-                  onChange={(e) => setLocalEndDate(e.target.value)}
-                  onBlur={() => handleDateBlur('endDate')}
-                  onKeyDown={(e) => handleDateKeyDown(e, 'endDate')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
+                  onChange={(date) => handleDateChange('endDate', date)}
                   disabled={loading}
-                  min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
-                  max={isGuest ? today.toISOString().split('T')[0] : undefined}
+                  minDate={isGuest ? thirtyDaysAgo : undefined}
+                  maxDate={isGuest ? today : undefined}
+                  placeholder="Select end date"
                 />
               </div>
             </div>

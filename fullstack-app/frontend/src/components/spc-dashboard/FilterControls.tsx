@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { fetchEntities } from '@/services/cdDataService';
 import { useAuth } from '@/contexts/AuthContext';
+import { DatePicker } from '@/components/ui/date-picker';
 
 export interface FilterState {
   entity: string;
@@ -73,24 +74,15 @@ export default function FilterControls({
     });
   };
 
-  const handleDateSubmit = (key: 'startDate' | 'endDate', value: string) => {
+  const handleDateChange = (key: 'startDate' | 'endDate', value: string) => {
+    // Update local state
+    if (key === 'startDate') {
+      setLocalStartDate(value);
+    } else {
+      setLocalEndDate(value);
+    }
+    // Update filters
     handleFilterChange(key, value);
-  };
-
-  const handleDateKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, key: 'startDate' | 'endDate') => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const value = key === 'startDate' ? localStartDate : localEndDate;
-      handleDateSubmit(key, value);
-    }
-  };
-
-  const handleDateBlur = (key: 'startDate' | 'endDate') => {
-    const value = key === 'startDate' ? localStartDate : localEndDate;
-    // Only update if the value has actually changed
-    if (value !== filters[key]) {
-      handleDateSubmit(key, value);
-    }
   };
 
   const clearFilters = () => {
@@ -157,16 +149,13 @@ export default function FilterControls({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Start Date
           </label>
-          <input
-            type="date"
+          <DatePicker
             value={localStartDate}
-            onChange={(e) => setLocalStartDate(e.target.value)}
-            onBlur={() => handleDateBlur('startDate')}
-            onKeyDown={(e) => handleDateKeyDown(e, 'startDate')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
+            onChange={(date) => handleDateChange('startDate', date)}
             disabled={loading}
-            min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
-            max={isGuest ? today.toISOString().split('T')[0] : undefined}
+            minDate={isGuest ? thirtyDaysAgo : undefined}
+            maxDate={isGuest ? today : undefined}
+            placeholder="Select start date"
           />
         </div>
 
@@ -175,16 +164,13 @@ export default function FilterControls({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             End Date
           </label>
-          <input
-            type="date"
+          <DatePicker
             value={localEndDate}
-            onChange={(e) => setLocalEndDate(e.target.value)}
-            onBlur={() => handleDateBlur('endDate')}
-            onKeyDown={(e) => handleDateKeyDown(e, 'endDate')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
+            onChange={(date) => handleDateChange('endDate', date)}
             disabled={loading}
-            min={isGuest ? thirtyDaysAgo.toISOString().split('T')[0] : undefined}
-            max={isGuest ? today.toISOString().split('T')[0] : undefined}
+            minDate={isGuest ? thirtyDaysAgo : undefined}
+            maxDate={isGuest ? today : undefined}
+            placeholder="Select end date"
           />
         </div>
       </div>
