@@ -273,6 +273,7 @@ The project uses optimized CI/CD with environment-specific configurations:
 - **Documentation Location**: Save all project documentation in the root `/docs/` directory, NOT in `/fullstack-app/docs/`
   - Example: `/home/dwdra/workspace/hatzegopteryx/docs/` for all markdown documentation
   - This includes implementation guides, testing reports, API documentation, etc.
+- **IMPORTANT**: Without exception, NOTHING in the `/docs/` directory should be committed to Git. The entire `/docs/` directory is in .gitignore to prevent sensitive information from being tracked.
 
 ### Testing Conventions
 
