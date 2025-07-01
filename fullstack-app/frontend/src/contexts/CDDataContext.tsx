@@ -208,7 +208,7 @@ export function CDDataProvider({
       // Get current path to maintain the correct route (dashboard or analytics)
       const basePath = isAnalyticsPage ? '/spc-analytics' : '/spc-dashboard';
       const newUrl = `${basePath}/${encodeURIComponent(spcMonitorName)}/${encodeURIComponent(processProduct)}${queryString ? `?${queryString}` : ''}`;
-      router.replace(newUrl);
+      router.replace(newUrl, { scroll: false });
     }
   }, [filters, isInitialized, spcMonitorName, processProduct, router, searchParams]);
 

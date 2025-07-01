@@ -268,8 +268,10 @@ function SPCAnalyticsInner() {
       fetchAdditionalData(currentPage);
     }
   }, [needsServerFetch, currentPage, totalPages, fetchAdditionalData]);
+  
 
   const handleEntityChange = (value: string) => {
+    
     // SPC Analytics has independent entity filter
     setLocalSelectedEntity(value);
     // Reset to first page when filters change
@@ -284,10 +286,11 @@ function SPCAnalyticsInner() {
     }
     
     const newUrl = `/spc-analytics/${encodeURIComponent(spcMonitor)}/${encodeURIComponent(processProduct)}?${params.toString()}`;
-    router.replace(newUrl);
+    router.replace(newUrl, { scroll: false });
   };
 
   const handleDateChange = (key: 'startDate' | 'endDate', value: string) => {
+    
     // Update local state
     if (key === 'startDate') {
       setLocalStartDate(value);
@@ -450,7 +453,7 @@ function SPCAnalyticsInner() {
                 <select
                   value={localSelectedEntity}
                   onChange={(e) => handleEntityChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2714%27%20height%3D%278%27%20viewBox%3D%270%200%2014%208%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cpath%20d%3D%27M1%201l6%206%206-6%27%20stroke%3D%27%236b7280%27%20stroke-width%3D%272%27%20fill%3D%27none%27%20fill-rule%3D%27evenodd%27%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_0.7rem_center] bg-no-repeat"
                   disabled={loading}
                 >
                   <option value="">All Entities</option>

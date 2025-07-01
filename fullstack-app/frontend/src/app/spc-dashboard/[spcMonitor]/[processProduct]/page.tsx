@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import SPCTimeline from '@/components/spc-dashboard/SPCTimeline';
 import FilterControls from '@/components/spc-dashboard/FilterControls';
@@ -44,6 +44,7 @@ function SPCDashboardInner() {
   const spcMonitor = decodeURIComponent(params.spcMonitor as string);
   const processProduct = decodeURIComponent(params.processProduct as string);
   const [processType, productType] = processProduct.split('-');
+  
 
   return (
     <div className="min-h-screen bg-gray-50">

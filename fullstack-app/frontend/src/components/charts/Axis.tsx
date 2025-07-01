@@ -71,7 +71,7 @@ export default function Axis({
         // For right axis with potentially small ranges, be more conservative
         if (orientation === 'right') {
           const domain = scale.domain ? scale.domain() : [0, 1];
-          const range = Math.abs(domain[1] - domain[0]);
+          const range = Math.abs(Number(domain[1]) - Number(domain[0]));
           // If range is very small, reduce tick count to avoid duplicates
           if (range < 0.1) {
             axis = axis.ticks(Math.min(3, tickCount));
@@ -99,7 +99,7 @@ export default function Axis({
         const domain = scale.domain();
         if (domain[0] instanceof Date) {
           // Use shorter date format for narrow screens
-          axis = axis.tickFormat(d3.timeFormat('%-m/%-d'));
+          axis = axis.tickFormat((d: any) => d3.timeFormat('%-m/%-d')(d as Date));
         }
       } else if (!isHorizontal) {
         // Format numbers with abbreviations for Y axes
