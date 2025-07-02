@@ -44,6 +44,13 @@ apiClient.interceptors.response.use(
     
     if (error.code === 'ECONNABORTED') {
       console.error(`❌ Request timeout: ${method} ${url}`);
+    } else if (error.response?.status === 429) {
+      console.error(`⏰ Rate limit exceeded: ${method} ${url} - Status: 429`);
+      const retryAfter = error.response.headers['retry-after'];
+      if (retryAfter) {
+        console.error(`Retry after: ${retryAfter}`);
+      }
+      console.error('Consider reducing request frequency or implementing request queuing');
     } else if (error.response?.status >= 500) {
       console.error(`❌ Server error: ${method} ${url} - Status: ${error.response.status}`);
       console.error('Response data:', error.response.data);
@@ -86,6 +93,31 @@ async function retryRequest<T>(
     } catch (error) {
       if (attempt === maxRetries) {
         throw error;
+      }
+      
+      // Handle 429 rate limit errors with special logic
+      if (error instanceof AxiosError && error.response?.status === 429) {
+        // Get retry-after header if available
+        const retryAfter = error.response.headers['retry-after'];
+        let waitTime = delay;
+        
+        if (retryAfter) {
+          // If retry-after is a number, it's seconds
+          // If it contains a date, parse it
+          waitTime = isNaN(Number(retryAfter)) 
+            ? new Date(retryAfter).getTime() - Date.now()
+            : Number(retryAfter) * 1000;
+          
+          // Ensure minimum wait time
+          waitTime = Math.max(waitTime, delay);
+        } else {
+          // Use exponential backoff for rate limiting
+          waitTime = delay * Math.pow(2, attempt);
+        }
+        
+        console.warn(`Rate limit hit (429). Waiting ${waitTime}ms before retry (attempt ${attempt + 1}/${maxRetries + 1})...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        continue;
       }
       
       // Only retry on network errors, timeouts, 5xx server errors, or JSON parsing errors

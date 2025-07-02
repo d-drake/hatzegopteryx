@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import * as Sentry from '@sentry/nextjs';
 import { fetchCDData, CDDataItem } from '@/services/cdDataService';
@@ -69,8 +69,19 @@ export function CDDataProvider({
   };
 
   const [filters, setFilters] = useState<FilterState>(getDefaultFilters());
+  const loadingRef = useRef(false);
+  const loadRequestIdRef = useRef(0);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadFilteredData = useCallback(async () => {
+    // Prevent multiple simultaneous requests
+    if (loadingRef.current) {
+      console.log('📊 Request already in progress, skipping...');
+      return;
+    }
+
+    // Generate unique request ID
+    const requestId = ++loadRequestIdRef.current;
     // Base params without entity filter
     const baseParams = {
       limit: 1000,
@@ -85,6 +96,7 @@ export function CDDataProvider({
     const cacheKey = JSON.stringify(baseParams);
     
     try {
+      loadingRef.current = true;
       setIsLoading(true);
       
       // Check cache first
@@ -103,6 +115,7 @@ export function CDDataProvider({
         
         setError(null);
         setIsLoading(false);
+        loadingRef.current = false;
         return;
       }
 
@@ -148,7 +161,11 @@ export function CDDataProvider({
         }
       });
     } finally {
-      setIsLoading(false);
+      // Only clear loading if this is still the current request
+      if (requestId === loadRequestIdRef.current) {
+        setIsLoading(false);
+        loadingRef.current = false;
+      }
     }
   }, [spcMonitorName, processType, productType, filters]);
 
@@ -178,7 +195,21 @@ export function CDDataProvider({
   // Load data when initialized or when URL path parameters change
   useEffect(() => {
     if (isInitialized && spcMonitorName && processType && productType) {
-      loadFilteredData();
+      // Clear any existing debounce timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      // Debounce the load to prevent rapid successive calls
+      debounceTimerRef.current = setTimeout(() => {
+        loadFilteredData();
+      }, 100); // Small delay to batch rapid changes
+
+      return () => {
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
+      };
     }
   }, [isInitialized, spcMonitorName, processType, productType, loadFilteredData]);
 
