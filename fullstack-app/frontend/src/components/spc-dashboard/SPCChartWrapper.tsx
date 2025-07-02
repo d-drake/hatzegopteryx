@@ -43,28 +43,28 @@ export default function SPCChartWrapper({
   const [yZoomDomain, setYZoomDomain] = useState<[number, number] | null>(null);
   const [y2ZoomDomain, setY2ZoomDomain] = useState<[number, number] | null>(null);
   const viewportWidth = useViewportWidth();
-  
+
   // Use synced view if enabled, otherwise use local tab state
   const activeTab = syncViews && activeView ? activeView : localActiveTab;
-  
+
   const handleXZoomChange = useCallback((domain: [number, number] | [Date, Date] | null) => {
     setXZoomDomain(domain);
   }, []);
-  
+
   const handleYZoomChange = useCallback((domain: [number, number] | null) => {
     setYZoomDomain(domain);
   }, []);
-  
+
   const handleY2ZoomChange = useCallback((domain: [number, number] | null) => {
     setY2ZoomDomain(domain);
   }, []);
-  
+
   const handleResetZoom = useCallback(() => {
     setXZoomDomain(null);
     setYZoomDomain(null);
     setY2ZoomDomain(null);
   }, []);
-  
+
   const handleTabClick = useCallback((tabId: string) => {
     setLocalActiveTab(tabId);
     if (syncViews && onViewChange && (tabId === 'timeline' || tabId === 'variability')) {
@@ -76,7 +76,7 @@ export default function SPCChartWrapper({
   const injectZoomProps = (content: React.ReactNode, width?: number, isSideBySide: boolean = false): React.ReactNode => {
     if (isValidElement(content)) {
       const contentProps = content.props as any;
-      
+
       // Handle ResponsiveChartWrapper
       if (contentProps.children && typeof contentProps.children === 'function') {
         if (width) {
@@ -124,7 +124,7 @@ export default function SPCChartWrapper({
           } as any);
         }
       }
-      
+
       // Handle direct chart components
       return cloneElement(content, {
         xZoomDomain: xZoomDomain,
@@ -165,17 +165,17 @@ export default function SPCChartWrapper({
     const containerPadding = 32; // 16px * 2 for p-4
     const containerMargin = 32; // Additional margin for the container itself
     const totalPadding = containerPadding + containerMargin;
-    
+
     // Calculate the actual available width inside the bg-white container
     const containerWidth = Math.min(viewportWidth - totalPadding, 1504); // Cap at observed max
-    
+
     // Account for the gap between charts and the internal padding
     const chartAreaPadding = 32; // p-4 inside the container
     const availableWidth = containerWidth - CHART_GAP - chartAreaPadding;
-    
+
     const timelineWidth = Math.floor(availableWidth * TIMELINE_WIDTH_RATIO);
     const variabilityWidth = Math.floor(availableWidth * VARIABILITY_WIDTH_RATIO);
-    
+
     // Find the Timeline and Variability tabs
     const timelineTab = tabs.find(tab => tab.id === 'timeline');
     const variabilityTab = tabs.find(tab => tab.id === 'variability');
@@ -187,14 +187,14 @@ export default function SPCChartWrapper({
           <div className="px-4 pt-4 pb-2">
             <h4 className="text-lg font-medium text-center text-black">{title}</h4>
           </div>
-          
+
           {/* Side-by-side charts */}
           <div className="flex gap-[5px] p-4 pt-16">
             {/* Timeline Chart */}
             <div className="flex-none" style={{ width: `${timelineWidth}px` }}>
               {injectZoomProps(timelineTab.content, timelineWidth, true)}
             </div>
-            
+
             {/* Variability Chart */}
             <div className="flex-none" style={{ width: `${variabilityWidth}px` }}>
               {injectZoomProps(variabilityTab.content, variabilityWidth, true)}
@@ -212,7 +212,7 @@ export default function SPCChartWrapper({
       <div className="px-4 pt-4 pb-1">
         <h4 className="text-lg font-medium text-center text-black">{title}</h4>
       </div>
-      
+
       {/* Tabs Section */}
       <div className="px-4 pb-0">
         <div className="flex border-b border-gray-200">
@@ -234,9 +234,9 @@ export default function SPCChartWrapper({
           ))}
         </div>
       </div>
-      
+
       {/* Tab Content Area - contains the chart which has zoom controls */}
-      <div className="p-4 pt-16">
+      <div className="p-1 pt-4">
         {tabs.map((tab) => {
           if (tab.id !== activeTab) return null;
           return <div key={tab.id}>{injectZoomProps(tab.content)}</div>;

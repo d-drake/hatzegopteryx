@@ -197,16 +197,16 @@ export default function Axis({
         if (orientation === 'left') {
           // Move to top-left corner, horizontal text
           labelX = 0;
-          labelY = -15;
+          labelY = -5;
           rotation = null;
           textAnchor = 'start';
         } else if (orientation === 'right') {
-          // Move to top-right corner, horizontal text
-          const range = scale.range ? scale.range() : [0, 0];
-          labelX = Math.max(...range);
-          labelY = -15;
+          // Move to top of right axis, horizontal text extending toward center
+          // Since the right axis is transformed to the right edge, we need negative X to go left
+          labelX = -50; // Move 50px left from the right axis into the chart area
+          labelY = -20; // Position higher than left axis label (-5) to avoid collision
           rotation = null;
-          textAnchor = 'end';
+          textAnchor = 'middle'; // Center the text at this position
         } else if (orientation === 'bottom') {
           // Increase offset to avoid tick labels
           labelY = labelOffset.y + 20;

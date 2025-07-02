@@ -79,15 +79,15 @@ export default function Timeline<T extends Record<string, any>>({
 }: TimelineProps<T>) {
   // Track if SVG width is narrow (< 800px)
   const isNarrowSVG = width < 800;
-  
+
   // Dynamic right margin state - must be declared before using it
   const [dynamicRightMargin, setDynamicRightMargin] = useState(80);
-  
+
   // Calculate responsive margins with dynamic right margin
   const responsiveMargin = isNarrowSVG
     ? { top: 40, right: y2Field ? Math.max(dynamicRightMargin, 60) : 10, bottom: 80, left: 50 }
     : { ...margin, right: y2Field ? Math.max(margin.right, dynamicRightMargin) : margin.right };
-    
+
   const { innerWidth, innerHeight } = useChartDimensions(width, height, responsiveMargin);
   const { showTooltip, hideTooltip } = useTooltip();
   const svgRef = useRef<SVGSVGElement>(null);
@@ -276,23 +276,23 @@ export default function Timeline<T extends Record<string, any>>({
       onYScaleChange(yScale);
     }
   }, [yScale, externalYScale, onYScaleChange]);
-  
+
   // Measure right axis labels after render
   useEffect(() => {
     if (!y2Field || !svgRef.current) return;
-    
+
     // Find all right axis tick labels
     const rightAxisLabels = svgRef.current.querySelectorAll('.axis:last-of-type .tick text');
     let maxWidth = 0;
-    
+
     rightAxisLabels.forEach((label) => {
       const bbox = (label as SVGTextElement).getBBox();
       maxWidth = Math.max(maxWidth, bbox.width);
     });
-    
+
     // Add padding for the axis label itself and some buffer
-    const totalRightMargin = maxWidth + 80; // 80px for axis label and padding
-    
+    const totalRightMargin = maxWidth + 60; // 80px for axis label and padding
+
     // Only update if significantly different to avoid infinite loops
     if (Math.abs(totalRightMargin - dynamicRightMargin) > 5) {
       setDynamicRightMargin(totalRightMargin);
@@ -303,11 +303,11 @@ export default function Timeline<T extends Record<string, any>>({
   useEffect(() => {
     setXDomain(externalXZoomDomain || null);
   }, [externalXZoomDomain]);
-  
+
   useEffect(() => {
     setYDomain(externalYZoomDomain || null);
   }, [externalYZoomDomain]);
-  
+
   useEffect(() => {
     setY2Domain(externalY2ZoomDomain || null);
   }, [externalY2ZoomDomain]);
@@ -316,7 +316,7 @@ export default function Timeline<T extends Record<string, any>>({
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
-    
+
     const handleWheel = (event: WheelEvent) => {
 
       const rect = svg.getBoundingClientRect();
@@ -363,7 +363,7 @@ export default function Timeline<T extends Record<string, any>>({
 
             const newXDomain: [Date, Date] = [new Date(center - newRange * 0.5), new Date(center + newRange * 0.5)];
             setXDomain(newXDomain);
-            
+
             // Notify parent component
             if (onXZoomChange) {
               onXZoomChange(newXDomain);
@@ -376,7 +376,7 @@ export default function Timeline<T extends Record<string, any>>({
 
             const newXDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
             setXDomain(newXDomain);
-            
+
             // Notify parent component
             if (onXZoomChange) {
               onXZoomChange(newXDomain);
@@ -393,12 +393,12 @@ export default function Timeline<T extends Record<string, any>>({
 
           const newDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
           setYDomain(newDomain);
-          
+
           // Notify parent component of domain change
           if (onYZoomChange) {
             onYZoomChange(newDomain);
           }
-          
+
           // Removed deprecated onYScaleChange handling
         }
 
@@ -411,7 +411,7 @@ export default function Timeline<T extends Record<string, any>>({
 
           const newY2Domain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
           setY2Domain(newY2Domain);
-          
+
           // Notify parent component
           if (onY2ZoomChange) {
             onY2ZoomChange(newY2Domain);
@@ -438,7 +438,7 @@ export default function Timeline<T extends Record<string, any>>({
       setXDomain(null);
       setYDomain(null);
       setY2Domain(null);
-      
+
       // Notify parent of reset via domain change
       if (onXZoomChange) {
         onXZoomChange(null);
@@ -449,7 +449,7 @@ export default function Timeline<T extends Record<string, any>>({
       if (onY2ZoomChange) {
         onY2ZoomChange(null);
       }
-      
+
       // Removed deprecated onYScaleChange handling
     }
   };
@@ -717,7 +717,7 @@ export default function Timeline<T extends Record<string, any>>({
 
         </g>
       </ChartContainer>
-      
+
       {/* Horizontal legends for narrow SVGs */}
       {isNarrowSVG && (
         <div className="mt-2 space-y-2">
@@ -728,7 +728,7 @@ export default function Timeline<T extends Record<string, any>>({
             onItemClick={handleColorLegendClick}
             hasOtherSelections={selectedShapeItems.size > 0}
           />
-          
+
           {shapeLegendItems.length > 0 && (
             <HorizontalLegend
               title={formatFieldName(String(shapeField!))}
@@ -738,7 +738,7 @@ export default function Timeline<T extends Record<string, any>>({
               hasOtherSelections={selectedColorItems.size > 0}
             />
           )}
-          
+
           {/* Reset selections button for mobile */}
           {hasSelections && (
             <button
