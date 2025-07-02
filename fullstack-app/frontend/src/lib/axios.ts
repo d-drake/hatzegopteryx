@@ -3,10 +3,11 @@ import Cookies from 'js-cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-// Create axios instance
+// Create axios instance with timeout
 const axiosInstance = axios.create({
   baseURL: API_URL,
   withCredentials: true,
+  timeout: 10000, // 10 seconds default timeout
 });
 
 // Add request interceptor to include access token

@@ -26,6 +26,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Timeout constants
+const AUTH_CHECK_TIMEOUT = 10000; // 10 seconds
+const MAX_LOADING_TIME = 15000; // 15 seconds
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,27 +41,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const checkAuth = async () => {
+    // Set a maximum loading time failsafe
+    const loadingTimeout = setTimeout(() => {
+      console.error('Auth check timeout - continuing without auth');
+      setLoading(false);
+      setUser(null);
+    }, MAX_LOADING_TIME);
+
     try {
       // Check if we're on the client side
       if (typeof window === 'undefined') {
         setLoading(false);
+        clearTimeout(loadingTimeout);
         return;
       }
       
       const token = localStorage.getItem('access_token');
       if (!token) {
         setLoading(false);
+        clearTimeout(loadingTimeout);
         return;
       }
 
-      const response = await axios.get('/api/auth/me');
+      // Add timeout to request
+      const response = await axios.get('/api/auth/me', {
+        timeout: AUTH_CHECK_TIMEOUT
+      });
       setUser(response.data);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Auth check failed:', error.message);
+      
+      // Log specific error types for debugging
+      if (error.code === 'ECONNABORTED') {
+        console.error('Request timeout - API might be slow');
+      } else if (!error.response) {
+        console.error('Network error - check CORS or API availability');
+      }
+      
       if (typeof window !== 'undefined') {
         localStorage.removeItem('access_token');
       }
     } finally {
       setLoading(false);
+      clearTimeout(loadingTimeout);
     }
   };
 
