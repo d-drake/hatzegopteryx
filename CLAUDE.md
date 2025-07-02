@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## User Preferences
+
+**Feedback Style**: Please provide honest, critical feedback over positive reinforcement. Point out flaws, inefficiencies, and better alternatives. Avoid unnecessary praise or sugar-coating issues.
+
 ## Project Overview
 
 Cloud Critical Dimension Hub is a sophisticated fullstack SPC (Statistical Process Control) data visualization application designed for semiconductor manufacturing analytics. The application features advanced interactive charts, real-time filtering, and comprehensive control limits integration.
@@ -270,10 +274,86 @@ The project uses optimized CI/CD with environment-specific configurations:
 ## Development Guidelines
 
 ### Documentation Conventions
-- **Documentation Location**: Save all project documentation in the root `/docs/` directory, NOT in `/fullstack-app/docs/`
-  - Example: `/home/dwdra/workspace/hatzegopteryx/docs/` for all markdown documentation
-  - This includes implementation guides, testing reports, API documentation, etc.
-- **IMPORTANT**: Without exception, NOTHING in the `/docs/` directory should be committed to Git. The entire `/docs/` directory is in .gitignore to prevent sensitive information from being tracked.
+
+#### Documentation Organization
+The `/docs/` directory follows a structured organization for better discoverability:
+
+```
+/docs/
+├── architecture/      # System design principles and patterns
+├── infrastructure/    # AWS, Docker, deployment guides
+├── security/         # Security implementation and guidelines
+├── testing/          # Testing best practices and organization
+├── development/      # Development guides (responsive design, etc.)
+├── performance/      # Performance optimization guides
+└── archive/          # Completed feature implementations
+    └── features/     # Historical feature documentation
+```
+
+#### Documentation Guidelines
+1. **File Naming**: Use lowercase with hyphens (e.g., `security-implementation-guide.md`)
+2. **Location**: Place new docs in the appropriate subfolder based on content
+3. **Active vs Archive**: 
+   - Keep operational guides in main folders
+   - Move completed feature implementations to `/archive/features/`
+4. **Consolidation**: Merge related documents to avoid redundancy
+5. **Git Policy**: The `/docs/` directory is gitignored - do not commit documentation
+
+#### Creating New Documentation
+- **Architecture**: MUST READ FIRST - Design principles, patterns, anti-patterns → `/docs/architecture/`
+- **Infrastructure**: AWS setup, deployment guides, Docker configs → `/docs/infrastructure/`
+- **Security**: Security features, compliance, incident response → `/docs/security/`
+- **Testing**: Test strategies, best practices, coverage reports → `/docs/testing/`
+- **Development**: Coding guides, responsive design → `/docs/development/`
+- **Performance**: Optimization guides, benchmarks → `/docs/performance/`
+- **Features**: Once implemented, move design docs to → `/docs/archive/features/`
+
+#### Required Reading Before Development
+1. `/docs/architecture/decision-checklist.md` - Complete before writing any code
+2. `/docs/architecture/optimization-principles.md` - Core efficiency patterns
+3. `/docs/architecture/anti-patterns.md` - Common mistakes to avoid
+
+#### Weekly Architecture Documentation Review
+**Reminder**: Once per week, have Claude review `/docs/architecture/` content to:
+- Replace generic examples with actual codebase patterns
+- Calibrate complexity scoring based on real implementation data
+- Add newly discovered anti-patterns
+- Update optimization principles with lessons learned
+- Propose revisions based on codebase evolution
+
+### Sentry Issue Review Strategy
+
+#### Proper Method to Review Sentry Issues
+1. **List Issues by Project**: Use project parameter, not query filters
+   ```
+   mcp__sentry__find_issues(
+     organizationSlug="pdev-zx",
+     projectSlug="ccdh-frontend",  # or "ccdh-backend"
+     regionUrl="https://us.sentry.io"
+   )
+   ```
+
+2. **Avoid Unreliable Queries**: The `is:unresolved` query may not work reliably
+   - Instead, retrieve all issues and check their status
+   - Use `sortBy="last_seen"` to prioritize recent issues
+
+3. **Systematic Resolution Process**:
+   - Create a todo list of all issues to track progress
+   - Group similar issues (same error type, same file)
+   - Investigate root cause before marking as resolved
+   - Update issue status using `mcp__sentry__update_issue`
+
+4. **Common Issue Categories**:
+   - **Build/Deploy Issues**: Module not found, build errors
+   - **Runtime Errors**: Undefined variables, initialization errors
+   - **API Issues**: Rate limiting (429), authentication errors
+   - **Type Errors**: Cannot read properties, type mismatches
+
+5. **Resolution Best Practices**:
+   - Fix the root cause in code when possible
+   - For old/stale issues from previous deployments, mark as resolved
+   - For rate limiting, implement proper retry logic and request throttling
+   - Document any workarounds in relevant code files
 
 ### Testing Conventions
 
@@ -354,7 +434,7 @@ Test-related images should be organized under `/fullstack-app/tests/screenshots/
 3. Unit tests can be co-located with source code in `__tests__` directories
 4. Separate test utilities in `/tests/helpers/` and fixtures in `/tests/fixtures/`
 
-**Note**: See `/docs/TEST_ORGANIZATION_PROPOSAL.md` for detailed guidelines
+**Note**: See `/docs/testing/test-organization-guidelines.md` for detailed guidelines
 
 ### Code Organization Principles
 - **Component hierarchy**: Chart components are highly reusable and composable
