@@ -15,9 +15,10 @@ def generate_cd_data():
 
     # Drop and recreate table to ensure clean schema
     from sqlalchemy import text
-    db.execute(text('DROP TABLE IF EXISTS cd_data CASCADE'))
+
+    db.execute(text("DROP TABLE IF EXISTS cd_data CASCADE"))
     db.commit()
-    
+
     # Recreate table with current model schema
     Base.metadata.create_all(bind=engine)
     print("Table recreated with latest schema")
@@ -52,13 +53,15 @@ def generate_cd_data():
     process_types = ["900", "1000", "1100"]
     product_types = ["XLY1", "XLY2", "BNT44", "VLQR1"]
     spc_monitor_name = "SPC_CD_L1"  # Only one value for now
-    
+
     # Duration ranges by process/product type combinations for consistency
     duration_base_values = defaultdict(lambda: np.random.normal(1850, 100))
     for pt in process_types:
         for prod in product_types:
             key = f"{pt}_{prod}"
-            duration_base_values[key] = np.random.normal(1850, 80)  # Base value for this combination
+            duration_base_values[key] = np.random.normal(
+                1850, 80
+            )  # Base value for this combination
 
     # Initialize bias settings for each combination of entity/spc_monitor_name/product_type/process_type
     bias_settings_by_combo = {}
@@ -145,15 +148,17 @@ def generate_cd_data():
         duration_subseq_process_step = np.clip(
             np.random.normal(base_duration, 50), 1500, 2200
         )
-        
+
         # Generate cd_att with correlation to duration (r ≈ 0.62)
         cd_att_base = bias_value * 2.5  # Scale bias influence
-        
-        # Add ultimate correlation between duration and cd_att (target r ≈ 0.62)  
+
+        # Add ultimate correlation between duration and cd_att (target r ≈ 0.62)
         # Positive correlation: longer duration = higher cd_att values
-        duration_effect = (duration_subseq_process_step - 1850) * 6.0  # Ultimate scale factor to achieve target correlation
+        duration_effect = (
+            duration_subseq_process_step - 1850
+        ) * 6.0  # Ultimate scale factor to achieve target correlation
         cd_att_base += duration_effect
-        
+
         noise_std = 20 * settings["cd_att_noise_factor"]
         cd_att_noise = np.random.normal(0, noise_std)  # Adjusted Gaussian noise
         cd_att = np.clip(cd_att_base + cd_att_noise, -100, 100)

@@ -59,14 +59,18 @@ export default function Axis({
 
       if (availableSpace > 0) {
         // Estimate label dimensions with extra padding to prevent overlap
+        // For narrow screens, use smaller label size estimates
+        const isNarrowScreen = responsive && screenWidth < 800;
         const estimatedLabelSize = isHorizontal
-          ? 100  // Width for date labels like "May 25" with padding
+          ? (isNarrowScreen ? 50 : 100)  // Width for date labels with responsive sizing
           : 25;  // Height for numeric labels like "100" with padding
 
         const maxTicks = Math.floor(availableSpace / estimatedLabelSize);
 
         // Ensure we have at least 2 ticks but not more than would cause overlap
-        const tickCount = Math.max(2, Math.min(10, maxTicks));
+        // For very narrow screens (< 400px), allow more ticks with minimum spacing
+        const minTicks = screenWidth < 400 ? 3 : 2;
+        const tickCount = Math.max(minTicks, Math.min(10, maxTicks));
         
         // For right axis with potentially small ranges, be more conservative
         if (orientation === 'right') {

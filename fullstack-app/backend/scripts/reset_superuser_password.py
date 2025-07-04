@@ -3,7 +3,6 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy.orm import Session
 from database import get_db
 from models import User
 from auth import get_password_hash

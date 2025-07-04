@@ -42,7 +42,7 @@ class SecurityMonitor:
         query = self.db.query(AuditLog).filter(
             and_(
                 AuditLog.action == "login",
-                AuditLog.success == False,
+                AuditLog.success.is_(False),
                 AuditLog.created_at >= window_start,
             )
         )
@@ -107,7 +107,7 @@ class SecurityMonitor:
             .filter(
                 and_(
                     AuditLog.user_id == user_id,
-                    AuditLog.success == False,
+                    AuditLog.success.is_(False),
                     AuditLog.details.op("->>")("error").isnot(None),
                     AuditLog.created_at >= window_start,
                 )
@@ -201,12 +201,17 @@ class SecurityMonitor:
             body = self._format_alert_email(alert_data)
             msg.attach(MIMEText(body, "html"))
 
-            with smtplib.SMTP(
-                os.getenv("SMTP_HOST"), int(os.getenv("SMTP_PORT", 587))
-            ) as server:
+            smtp_host = os.getenv("SMTP_HOST")
+            if not smtp_host:
+                logger.error("SMTP_HOST not configured")
+                return
+
+            with smtplib.SMTP(smtp_host, int(os.getenv("SMTP_PORT", 587))) as server:
                 server.starttls()
-                if os.getenv("SMTP_USER") and os.getenv("SMTP_PASS"):
-                    server.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASS"))
+                smtp_user = os.getenv("SMTP_USER")
+                smtp_pass = os.getenv("SMTP_PASS")
+                if smtp_user and smtp_pass:
+                    server.login(smtp_user, smtp_pass)
                 server.send_message(msg)
 
             logger.info(f"Security alert sent to {recipients}")
@@ -302,7 +307,7 @@ class SecurityScanner:
             .outerjoin(last_activities, User.id == last_activities.c.user_id)
             .filter(
                 and_(
-                    User.is_active == True,
+                    User.is_active.is_(True),
                     func.coalesce(last_activities.c.last_activity, User.created_at)
                     < cutoff_date,
                 )
@@ -338,7 +343,7 @@ class SecurityScanner:
 
         alerts = []
         for log in privilege_changes:
-            if log.details.get("is_superuser") == True:
+            if log.details.get("is_superuser") is True:
                 alerts.append(
                     {
                         "user_id": log.user_id,

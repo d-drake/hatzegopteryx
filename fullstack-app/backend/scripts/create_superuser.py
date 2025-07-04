@@ -3,11 +3,9 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy.orm import Session
 from database import SessionLocal, engine, Base
 from models import User
 from auth import get_password_hash
-from datetime import datetime, timezone
 
 
 def create_superuser(email: str, username: str, password: str):
@@ -41,7 +39,7 @@ def create_superuser(email: str, username: str, password: str):
         db.commit()
         db.refresh(superuser)
 
-        print(f"Superuser created successfully:")
+        print("Superuser created successfully:")
         print(f"  ID: {superuser.id}")
         print(f"  Email: {superuser.email}")
         print(f"  Username: {superuser.username}")

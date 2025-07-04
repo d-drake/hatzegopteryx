@@ -3,16 +3,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import engine, Base
-import models
 from routers import items, cd_data, spc_limits, auth, users, audit, security, system
-from middleware import SecurityHeadersMiddleware, CSRFMiddleware, RateLimitMiddleware
+from middleware import SecurityHeadersMiddleware, RateLimitMiddleware
 
 # Initialize Sentry only if DSN is provided and not in Lambda
 if os.getenv("SENTRY_DSN") and not os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
     import sentry_sdk
     from sentry_sdk.integrations.fastapi import FastApiIntegration
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-    
+
     sentry_sdk.init(
         dsn=os.getenv("SENTRY_DSN"),
         integrations=[
@@ -25,12 +24,13 @@ if os.getenv("SENTRY_DSN") and not os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
 
 Base.metadata.create_all(bind=engine)
 
+
 def init_superuser():
     """Initialize superuser on first run."""
     from models import User
     from auth import get_password_hash
     from sqlalchemy.orm import Session
-    
+
     db = Session(bind=engine)
     try:
         # Check if any user exists
@@ -40,7 +40,7 @@ def init_superuser():
             email = os.getenv("SUPERUSER_EMAIL", "admin@ccdh.me")
             username = os.getenv("SUPERUSER_USERNAME", "admin")
             password = os.getenv("SUPERUSER_PASSWORD", "admin123456")
-            
+
             hashed_password = get_password_hash(password)
             superuser = User(
                 email=email,
@@ -49,7 +49,7 @@ def init_superuser():
                 is_active=True,
                 is_superuser=True,
             )
-            
+
             db.add(superuser)
             db.commit()
             print(f"Superuser created: {email}")
@@ -59,18 +59,17 @@ def init_superuser():
     finally:
         db.close()
 
+
 # Initialize superuser on startup
 init_superuser()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
 
-app = FastAPI(
-    title="Fullstack App API",
-    version="1.0.0",
-    lifespan=lifespan
-)
+
+app = FastAPI(title="Fullstack App API", version="1.0.0", lifespan=lifespan)
 
 # Add security middleware (order matters - add in reverse order of execution)
 app.add_middleware(SecurityHeadersMiddleware)
@@ -99,9 +98,11 @@ app.include_router(items.router, prefix="/api/items", tags=["items"])
 app.include_router(cd_data.router, prefix="/api/cd-data", tags=["cd-data"])
 app.include_router(spc_limits.router, prefix="/api/spc-limits", tags=["spc-limits"])
 
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Fullstack App API"}
+
 
 @app.get("/health")
 async def health_check():

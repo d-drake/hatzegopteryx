@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from '@/lib/axios';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -29,11 +29,7 @@ export default function AuditLogsPage() {
     userId: ''
   });
 
-  useEffect(() => {
-    fetchAuditLogs();
-  }, [filter]);
-
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     try {
       const params: any = {};
       if (filter.action) params.action = filter.action;
@@ -48,7 +44,11 @@ export default function AuditLogsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchAuditLogs();
+  }, [fetchAuditLogs]);
 
   const getActionBadgeColor = (action: string) => {
     const actionColors: { [key: string]: string } = {

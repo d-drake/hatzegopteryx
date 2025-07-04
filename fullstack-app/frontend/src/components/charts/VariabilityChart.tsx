@@ -90,9 +90,12 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
   const isNarrowSVG = width < 800;
   
   // Adjust margins for narrow SVGs
-  const responsiveMargin = isNarrowSVG
-    ? { top: 40, right: 10, bottom: 80, left: 50 }
-    : margin;
+  const responsiveMargin = useMemo(() => 
+    isNarrowSVG
+      ? { top: 40, right: 10, bottom: 80, left: 50 }
+      : margin,
+    [isNarrowSVG, margin]
+  );
 
   const chartWidth = width - responsiveMargin.left - responsiveMargin.right;
   const chartHeight = height - responsiveMargin.top - responsiveMargin.bottom;

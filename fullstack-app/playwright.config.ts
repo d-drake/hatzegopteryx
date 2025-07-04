@@ -47,25 +47,27 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+    // Commented out other browsers due to missing system dependencies
+    // Run `sudo npx playwright install-deps` to enable these browsers
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
 
     /* Test against mobile viewports. */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
+    // {
+    //   name: 'Mobile Chrome',
+    //   use: { ...devices['Pixel 5'] },
+    // },
+    // {
+    //   name: 'Mobile Safari',
+    //   use: { ...devices['iPhone 12'] },
+    // },
 
     /* Test against branded browsers. */
     // {
@@ -79,10 +81,11 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'cd frontend && npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  // webServer commented out since we're using docker compose dev environment
+  // webServer: {
+  //   command: 'cd frontend && npm run dev',
+  //   url: 'http://localhost:3000',
+  //   reuseExistingServer: true, // Always reuse existing server
+  //   timeout: 120 * 1000,
+  // },
 });

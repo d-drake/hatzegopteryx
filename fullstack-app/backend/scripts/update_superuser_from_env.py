@@ -3,7 +3,6 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy.orm import Session
 from database import get_db
 from models import User
 from auth import get_password_hash
@@ -29,9 +28,9 @@ def update_superuser_from_env():
     db.commit()
 
     print(f"Password updated for {superuser.email}")
-    print(f"You can now log in with:")
+    print("You can now log in with:")
     print(f"  Email: {email}")
-    print(f"  Password: [from SUPERUSER_PASSWORD env var]")
+    print("  Password: [from SUPERUSER_PASSWORD env var]")
 
 
 if __name__ == "__main__":
