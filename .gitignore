@@ -62,7 +62,7 @@ postgres_data/
 tokens
 
 # Next.js specific
-.next/
+.next*
 out/
 next-env.d.ts
 tsconfig.tsbuildinfo

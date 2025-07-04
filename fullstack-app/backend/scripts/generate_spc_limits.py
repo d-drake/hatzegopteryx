@@ -19,9 +19,14 @@ def generate_spc_limits():
     # Parameters
     start_date = datetime.now() - timedelta(days=365 * 2)  # Go back 2 years for history
 
-    # Define the combinations and their allowed ranges
-    process_types = ["900", "1000", "1100"]
-    product_types = ["XLY1", "XLY2", "BNT44", "VLQR1"]
+    # Define the combinations and their allowed ranges - Updated after data cleanup
+    # Valid combinations: Process 1000 with BNT44/VLQR1/XLY2, Process 1100 with BNT44 only
+    valid_process_product_combos = [
+        ("1000", "BNT44"),
+        ("1000", "VLQR1"),
+        ("1000", "XLY2"),
+        ("1100", "BNT44"),
+    ]
     spc_monitor_name = "SPC_CD_L1"
     spc_chart_names = ["cd_att", "cd_x_y", "cd_6sig"]
 
@@ -40,8 +45,7 @@ def generate_spc_limits():
     limit_schedules = {}
 
     # Initialize schedules for each combination
-    for process_type in process_types:
-        for product_type in product_types:
+    for process_type, product_type in valid_process_product_combos:
             for chart_name in spc_chart_names:
                 key = f"{process_type}_{product_type}_{chart_name}"
 
@@ -59,8 +63,7 @@ def generate_spc_limits():
 
     # Generate limits over time
     while current_date <= end_date:
-        for process_type in process_types:
-            for product_type in product_types:
+        for process_type, product_type in valid_process_product_combos:
                 for chart_name in spc_chart_names:
                     key = f"{process_type}_{product_type}_{chart_name}"
                     schedule = limit_schedules[key]

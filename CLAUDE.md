@@ -22,21 +22,29 @@ Cloud Critical Dimension Hub is a sophisticated fullstack SPC (Statistical Proce
 ### Development Environment
 ```bash
 # Start all services (PostgreSQL, Backend, Frontend) with hot reload
-dc-dev up
-# Or: docker compose -f docker-compose.dev.yml up
+docker compose -f docker-compose.dev.yml --env-file .env.dev up
 
 # Stop all services
-dc-dev down
+docker compose -f docker-compose.dev.yml --env-file .env.dev down
 
 # Rebuild containers after dependency changes
-dc-dev build
+docker compose -f docker-compose.dev.yml --env-file .env.dev build
+
+# View logs
+docker compose -f docker-compose.dev.yml --env-file .env.dev logs -f [service_name]
+
+# Execute commands in running containers
+docker compose -f docker-compose.dev.yml --env-file .env.dev exec backend python -m scripts.script_name
+docker compose -f docker-compose.dev.yml --env-file .env.dev exec frontend npm run test
 ```
 
 ### Production Environment (Local Testing)
 ```bash
 # Start services with production config
-dc-prod up
-# Or: docker compose -f docker-compose.prod.yml up
+docker compose -f docker-compose.prod.yml --env-file .env.prod up
+
+# Stop all services
+docker compose -f docker-compose.prod.yml --env-file .env.prod down
 
 # Note: Requires RDS endpoint in .env.prod
 ```
@@ -95,9 +103,13 @@ npx tsc --noEmit
   - `items.py` - Items CRUD operations (demo functionality)
   - `cd_data.py` - CD data queries, statistics, and filtering
   - `spc_limits.py` - SPC control limits management and querying
-- **Data Generation**: `backend/scripts/` - Comprehensive data seeding
+- **Scripts**: `backend/scripts/` - Utility scripts and data generation
   - `generate_cd_data.py` - 43,800 CD data records with correlation modeling
   - `generate_spc_limits.py` - 144 SPC limits records for process control
+  - `check_syntax.py` - Python syntax checker for backend files
+  - `create_blacklist_table.py` - Database migration for blacklisted tokens
+  - **Note**: All backend scripts should be placed in `/backend/scripts/` and run with `python -m scripts.script_name` from the backend directory
+  - **Important**: Delete temporary one-time scripts (like analysis or cleanup scripts) after they've served their purpose to keep the scripts directory clean
 - **Deployment**: `backend/deployment/` - Lambda deployment configuration
   - `lambda/lambda_handler.py` - AWS Lambda entry point with Mangum adapter
   - `scripts/build_lambda.sh` - Builds deployment package for AWS Lambda
@@ -216,9 +228,9 @@ npx tsc --noEmit
 ## Environment Configuration
 
 ### Docker Compose Environment Setup:
-The project uses environment-specific Docker Compose files with aliases:
-- **Development**: `dc-dev` (alias for `docker compose -f docker-compose.dev.yml --env-file .env.dev`)
-- **Production**: `dc-prod` (alias for `docker compose -f docker-compose.prod.yml --env-file .env.prod`)
+The project uses environment-specific Docker Compose files:
+- **Development**: `docker compose -f docker-compose.dev.yml --env-file .env.dev`
+- **Production**: `docker compose -f docker-compose.prod.yml --env-file .env.prod`
 
 ### Environment Files:
 - **`.env.dev`** - Development environment (committed to Git)
@@ -287,17 +299,25 @@ The `/docs/` directory follows a structured organization for better discoverabil
 ├── development/      # Development guides (responsive design, etc.)
 ├── performance/      # Performance optimization guides
 └── archive/          # Completed feature implementations
-    └── features/     # Historical feature documentation
+    ├── features/     # Historical feature documentation
+    └── code-quality/ # Code quality audit reports and improvements
 ```
 
 #### Documentation Guidelines
-1. **File Naming**: Use lowercase with hyphens (e.g., `security-implementation-guide.md`)
-2. **Location**: Place new docs in the appropriate subfolder based on content
-3. **Active vs Archive**: 
+1. **File Naming**: Use lowercase with hyphens for all markdown files (e.g., `security-implementation-guide.md`)
+2. **Organization**: Documentation must be organized extremely well with care in the `/docs/` folder
+   - Choose the most appropriate subfolder based on content type
+   - Create new subfolders only when necessary for clear categorization
+3. **Temporary Documentation**: 
+   - Temporary markdown files should go in `/tmp/` folders within the proper organized location
+   - Example: `/docs/development/tmp/` for temporary development notes
+   - Clean up temporary files regularly
+4. **Active vs Archive**: 
    - Keep operational guides in main folders
    - Move completed feature implementations to `/archive/features/`
-4. **Consolidation**: Merge related documents to avoid redundancy
-5. **Git Policy**: The `/docs/` directory is gitignored - do not commit documentation
+   - Move code quality audits to `/archive/code-quality/`
+5. **Consolidation**: Merge related documents to avoid redundancy
+6. **Git Policy**: The `/docs/` directory is gitignored - do not commit documentation
 
 #### Creating New Documentation
 - **Architecture**: MUST READ FIRST - Design principles, patterns, anti-patterns → `/docs/architecture/`
@@ -307,6 +327,7 @@ The `/docs/` directory follows a structured organization for better discoverabil
 - **Development**: Coding guides, responsive design → `/docs/development/`
 - **Performance**: Optimization guides, benchmarks → `/docs/performance/`
 - **Features**: Once implemented, move design docs to → `/docs/archive/features/`
+- **Code Quality**: Audit reports, linting results, quality improvements → `/docs/archive/code-quality/`
 
 #### Required Reading Before Development
 1. `/docs/architecture/decision-checklist.md` - Complete before writing any code

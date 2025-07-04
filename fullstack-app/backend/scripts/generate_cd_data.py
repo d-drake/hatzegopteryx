@@ -49,27 +49,33 @@ def generate_cd_data():
     possible_bias = list(range(-30, 31, 1))  # -30, -29, -28, ..., 29, 30
     possible_bias_x_y = list(range(-15, 16, 1))  # -15, -14, -13, ..., 14, 15
 
-    # New ordinal category values
-    process_types = ["900", "1000", "1100"]
-    product_types = ["XLY1", "XLY2", "BNT44", "VLQR1"]
+    # New ordinal category values - Updated after data cleanup
+    # Valid combinations: Process 1000 with BNT44/VLQR1/XLY2, Process 1100 with BNT44 only
+    process_types = ["1000", "1100"]
+    product_types = ["BNT44", "VLQR1", "XLY2"]
+    # Define valid combinations explicitly
+    valid_process_product_combos = [
+        ("1000", "BNT44"),
+        ("1000", "VLQR1"),
+        ("1000", "XLY2"),
+        ("1100", "BNT44"),
+    ]
     spc_monitor_name = "SPC_CD_L1"  # Only one value for now
 
     # Duration ranges by process/product type combinations for consistency
     duration_base_values = defaultdict(lambda: np.random.normal(1850, 100))
-    for pt in process_types:
-        for prod in product_types:
-            key = f"{pt}_{prod}"
-            duration_base_values[key] = np.random.normal(
-                1850, 80
-            )  # Base value for this combination
+    for pt, prod in valid_process_product_combos:
+        key = f"{pt}_{prod}"
+        duration_base_values[key] = np.random.normal(
+            1850, 80
+        )  # Base value for this combination
 
     # Initialize bias settings for each combination of entity/spc_monitor_name/product_type/process_type
     bias_settings_by_combo = {}
 
     # Pre-generate all possible combinations
     for entity in entities:
-        for process_type in process_types:
-            for product_type in product_types:
+        for process_type, product_type in valid_process_product_combos:
                 combo_key = (entity, spc_monitor_name, product_type, process_type)
 
                 # Initialize with random bias values
@@ -95,8 +101,8 @@ def generate_cd_data():
     for timestamp in timestamps:
         # Select random attributes for this data point
         entity = random.choice(entities)
-        process_type = random.choice(process_types)
-        product_type = random.choice(product_types)
+        # Select from valid process/product combinations only
+        process_type, product_type = random.choice(valid_process_product_combos)
 
         # Get the combination key
         combo_key = (entity, spc_monitor_name, product_type, process_type)

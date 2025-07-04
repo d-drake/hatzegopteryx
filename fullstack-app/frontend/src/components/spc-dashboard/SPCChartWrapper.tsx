@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, cloneElement, ReactElement, isValidElement } from 'react';
+import React, { useState, useCallback, cloneElement, ReactElement, isValidElement } from 'react';
 import { useViewportWidth } from '@/hooks/useViewportWidth';
 import ResponsiveChartWrapper from '@/components/charts/ResponsiveChartWrapper';
 
@@ -43,6 +43,13 @@ export default function SPCChartWrapper({
   const [yZoomDomain, setYZoomDomain] = useState<[number, number] | null>(null);
   const [y2ZoomDomain, setY2ZoomDomain] = useState<[number, number] | null>(null);
   const viewportWidth = useViewportWidth();
+
+  // Keep localActiveTab in sync with activeView when sync is enabled
+  React.useEffect(() => {
+    if (syncViews && activeView) {
+      setLocalActiveTab(activeView);
+    }
+  }, [syncViews, activeView]);
 
   // Use synced view if enabled, otherwise use local tab state
   const activeTab = syncViews && activeView ? activeView : localActiveTab;
@@ -236,7 +243,8 @@ export default function SPCChartWrapper({
       </div>
 
       {/* Tab Content Area - contains the chart which has zoom controls */}
-      <div className="p-1 pt-4">
+      {/* In tabbed view, always reserve space for zoom controls */}
+      <div className="p-1 pt-16">
         {tabs.map((tab) => {
           if (tab.id !== activeTab) return null;
           return <div key={tab.id}>{injectZoomProps(tab.content)}</div>;

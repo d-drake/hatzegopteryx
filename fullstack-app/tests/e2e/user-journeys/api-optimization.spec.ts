@@ -98,7 +98,7 @@ test.describe('API Optimization Tests', () => {
     const initialCalls = { ...apiCallsByType };
     
     // Navigate to a different combination
-    await page.click('button:has-text("1100 VLQR1")');
+    await page.click('button:has-text("1100 BNT44")');
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
     
