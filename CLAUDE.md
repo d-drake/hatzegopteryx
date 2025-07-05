@@ -77,6 +77,14 @@ npx tsc --noEmit
 - API Documentation (Swagger): http://localhost:8000/docs
 - Database Admin (Adminer): http://localhost:8080
 
+#### SPC Dashboard Routes
+**IMPORTANT**: The SPC dashboard uses the following route structure:
+- `/spc-dashboard/[spcMonitor]/[processProduct]`
+- The `processProduct` parameter is a **combined** value using a HYPHEN: `processType-productType`
+- Example: `/spc-dashboard/SPC_CD_L1/1000-BNT44?selectedEntities=FAKE_TOOL1,FAKE_TOOL2`
+- Do NOT use separate process and product in the URL path
+- Do NOT use underscore - use HYPHEN (-) to combine process and product
+
 #### Production (AWS)
 - Frontend: https://ccdh.me (DNS → CloudFront → ALB → ECS)
 - Backend API: https://t3f3cvzjv4.execute-api.us-west-1.amazonaws.com (API Gateway → Lambda)

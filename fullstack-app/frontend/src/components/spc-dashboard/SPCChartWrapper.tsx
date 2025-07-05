@@ -44,6 +44,11 @@ export default function SPCChartWrapper({
   const [xZoomDomain, setXZoomDomain] = useState<[number, number] | [Date, Date] | null>(null);
   const [yZoomDomain, setYZoomDomain] = useState<[number, number] | null>(null);
   const [y2ZoomDomain, setY2ZoomDomain] = useState<[number, number] | null>(null);
+  
+  // Legend selection state - shared across view changes
+  const [selectedColorItems, setSelectedColorItems] = useState<Set<string>>(new Set());
+  const [selectedShapeItems, setSelectedShapeItems] = useState<Set<string>>(new Set());
+  
   const viewportWidth = useViewportWidth();
 
   // Keep localActiveTab in sync with activeView when sync is enabled
@@ -72,6 +77,36 @@ export default function SPCChartWrapper({
     setXZoomDomain(null);
     setYZoomDomain(null);
     setY2ZoomDomain(null);
+  }, []);
+
+  // Legend selection handlers
+  const handleColorLegendClick = useCallback((label: string) => {
+    setSelectedColorItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleShapeLegendClick = useCallback((label: string) => {
+    setSelectedShapeItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleResetLegendSelections = useCallback(() => {
+    setSelectedColorItems(new Set());
+    setSelectedShapeItems(new Set());
   }, []);
 
   const handleTabClick = useCallback((tabId: string) => {
@@ -106,6 +141,12 @@ export default function SPCChartWrapper({
                   onY2ZoomChange: handleY2ZoomChange,
                   onResetZoom: handleResetZoom,
                   isSideBySide: isSideBySide,
+                  // Legend props
+                  selectedColorItems: selectedColorItems,
+                  selectedShapeItems: selectedShapeItems,
+                  onColorLegendClick: handleColorLegendClick,
+                  onShapeLegendClick: handleShapeLegendClick,
+                  onResetLegendSelections: handleResetLegendSelections,
                 } as any);
               }
               return child;
@@ -126,6 +167,12 @@ export default function SPCChartWrapper({
                   onYZoomChange: handleYZoomChange,
                   onY2ZoomChange: handleY2ZoomChange,
                   onResetZoom: handleResetZoom,
+                  // Legend props
+                  selectedColorItems: selectedColorItems,
+                  selectedShapeItems: selectedShapeItems,
+                  onColorLegendClick: handleColorLegendClick,
+                  onShapeLegendClick: handleShapeLegendClick,
+                  onResetLegendSelections: handleResetLegendSelections,
                 } as any);
               }
               return child;
@@ -144,6 +191,12 @@ export default function SPCChartWrapper({
         onY2ZoomChange: handleY2ZoomChange,
         onResetZoom: handleResetZoom,
         isSideBySide: isSideBySide,
+        // Legend props
+        selectedColorItems: selectedColorItems,
+        selectedShapeItems: selectedShapeItems,
+        onColorLegendClick: handleColorLegendClick,
+        onShapeLegendClick: handleShapeLegendClick,
+        onResetLegendSelections: handleResetLegendSelections,
       } as any);
     }
     return content;

@@ -54,6 +54,13 @@ interface TimelineProps<T extends Record<string, any>> {
   onResetZoom?: () => void; // Callback for reset zoom
   unitMapping?: UnitMapping; // Optional unit mapping for field formatting
   fieldFormatterOptions?: FieldFormatterOptions; // Optional field formatter options
+  // Legend selection props (optional - when provided from parent)
+  selectedColorItems?: Set<string>;
+  selectedShapeItems?: Set<string>;
+  onColorLegendClick?: (label: string) => void;
+  onShapeLegendClick?: (label: string) => void;
+  onResetLegendSelections?: () => void;
+  containerPaddingTop?: number; // Optional padding above the chart container
 }
 
 
@@ -69,7 +76,7 @@ export default function Timeline<T extends Record<string, any>>({
   lineGroupField,
   width = 800,
   height = 500,
-  margin = { top: 60, right: 240, bottom: 60, left: 70 },
+  margin = { top: 90, right: 240, bottom: 60, left: 70 },
   renderOverlays,
   tooltipMetadata,
   yScale: externalYScale,
@@ -84,6 +91,12 @@ export default function Timeline<T extends Record<string, any>>({
   onResetZoom,
   unitMapping,
   fieldFormatterOptions,
+  selectedColorItems: externalSelectedColorItems,
+  selectedShapeItems: externalSelectedShapeItems,
+  onColorLegendClick: externalOnColorLegendClick,
+  onShapeLegendClick: externalOnShapeLegendClick,
+  onResetLegendSelections: externalOnResetLegendSelections,
+  containerPaddingTop = 0,
 }: TimelineProps<T>) {
   // Track if SVG width is narrow (< 800px)
   const isNarrowSVG = width < 800;
@@ -92,12 +105,24 @@ export default function Timeline<T extends Record<string, any>>({
   const [dynamicRightMargin, setDynamicRightMargin] = useState(80);
 
   // Calculate responsive margins with dynamic right margin
-  const responsiveMargin = useMemo(() =>
-    isNarrowSVG
-      ? { top: 40, right: y2Field ? Math.max(dynamicRightMargin, 60) : 10, bottom: 80, left: 50 }
-      : { ...margin, right: y2Field ? Math.max(margin.right, dynamicRightMargin) : margin.right },
-    [isNarrowSVG, y2Field, dynamicRightMargin, margin]
-  );
+  const responsiveMargin = useMemo(() => {
+    if (isNarrowSVG) {
+      // In narrow mode, use smaller margins
+      const baseRightMargin = y2Field ? Math.max(dynamicRightMargin, 60) : 10;
+      return {
+        top: 40,
+        right: baseRightMargin,
+        bottom: 80,
+        left: 50
+      };
+    } else {
+      // In wide mode, use provided margin with dynamic adjustment for Y2
+      return {
+        ...margin,
+        right: y2Field ? Math.max(margin.right, dynamicRightMargin) : margin.right
+      };
+    }
+  }, [isNarrowSVG, y2Field, dynamicRightMargin, margin]);
 
   const chartDimensions = useEnhancedChartDimensions(width, height, responsiveMargin, {
     hasY2Axis: !!y2Field,
@@ -113,9 +138,13 @@ export default function Timeline<T extends Record<string, any>>({
   const [yDomain, setYDomain] = useState<[any, any] | null>(externalYZoomDomain || null);
   const [y2Domain, setY2Domain] = useState<[any, any] | null>(null);
 
-  // Legend selection state
-  const [selectedColorItems, setSelectedColorItems] = useState<Set<string>>(new Set());
-  const [selectedShapeItems, setSelectedShapeItems] = useState<Set<string>>(new Set());
+  // Legend selection state - use external state if provided, otherwise local state
+  const [localSelectedColorItems, setLocalSelectedColorItems] = useState<Set<string>>(new Set());
+  const [localSelectedShapeItems, setLocalSelectedShapeItems] = useState<Set<string>>(new Set());
+
+  // Use external props if available, otherwise use local state
+  const selectedColorItems = externalSelectedColorItems ?? localSelectedColorItems;
+  const selectedShapeItems = externalSelectedShapeItems ?? localSelectedShapeItems;
 
   // Field formatter function using generic formatter with Timeline options
   const formatFieldName = (field: string): string => {
@@ -485,35 +514,47 @@ export default function Timeline<T extends Record<string, any>>({
   const yZoomLevel = yDomain ? getZoomLevel(originalYExtent, yDomain) : 1;
   const y2ZoomLevel = y2Domain ? getZoomLevel(originalY2Extent, y2Domain) : 1;
 
-  // Handle legend item clicks
+  // Handle legend item clicks - use external handlers if provided, otherwise local handlers
   const handleColorLegendClick = (label: string) => {
-    setSelectedColorItems(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(label)) {
-        newSet.delete(label);
-      } else {
-        newSet.add(label);
-      }
-      return newSet;
-    });
+    if (externalOnColorLegendClick) {
+      externalOnColorLegendClick(label);
+    } else {
+      setLocalSelectedColorItems(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(label)) {
+          newSet.delete(label);
+        } else {
+          newSet.add(label);
+        }
+        return newSet;
+      });
+    }
   };
 
   const handleShapeLegendClick = (label: string) => {
-    setSelectedShapeItems(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(label)) {
-        newSet.delete(label);
-      } else {
-        newSet.add(label);
-      }
-      return newSet;
-    });
+    if (externalOnShapeLegendClick) {
+      externalOnShapeLegendClick(label);
+    } else {
+      setLocalSelectedShapeItems(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(label)) {
+          newSet.delete(label);
+        } else {
+          newSet.add(label);
+        }
+        return newSet;
+      });
+    }
   };
 
-  // Reset legend selections
+  // Reset legend selections - use external handler if provided, otherwise local reset
   const resetLegendSelections = () => {
-    setSelectedColorItems(new Set());
-    setSelectedShapeItems(new Set());
+    if (externalOnResetLegendSelections) {
+      externalOnResetLegendSelections();
+    } else {
+      setLocalSelectedColorItems(new Set());
+      setLocalSelectedShapeItems(new Set());
+    }
   };
 
   // Check if any legend items are selected
@@ -632,42 +673,6 @@ export default function Timeline<T extends Record<string, any>>({
             clipPathId
           })}
 
-          {/* Reset button aligned with middle of ZoomControls */}
-          {hasSelections && (
-            <g
-              transform={`translate(${innerWidth + (y2Field ? 85 : 20)}, -40)`}
-              onClick={resetLegendSelections}
-              style={{ cursor: 'pointer' }}
-            >
-              <rect
-                x={0}
-                y={0}
-                width={100}
-                height={20}
-                rx={3}
-                fill="#f9fafb"
-                stroke="#6b7280"
-                strokeWidth={1}
-                onMouseEnter={(e) => {
-                  e.currentTarget.setAttribute('fill', '#f3f4f6');
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.setAttribute('fill', '#f9fafb');
-                }}
-              />
-              <text
-                x={50}
-                y={13}
-                textAnchor="middle"
-                fontSize={11}
-                fill="#374151"
-                fontWeight="500"
-                style={{ pointerEvents: 'none' }}
-              >
-                Reset Selections
-              </text>
-            </g>
-          )}
 
           {/* Legends - render inside SVG for wide SVGs, outside for narrow */}
           {!isNarrowSVG && (
@@ -701,6 +706,7 @@ export default function Timeline<T extends Record<string, any>>({
               )}
             </>
           )}
+
 
           {/* Zoom areas for user guidance - using centralized axis regions */}
 
@@ -741,6 +747,41 @@ export default function Timeline<T extends Record<string, any>>({
           )}
 
         </g>
+
+        {/* Reset Selections button - positioned below the legend titles */}
+        {!isNarrowSVG && hasSelections && (
+          <g transform={`translate(${margin.left + innerWidth + (y2Field ? 10 : 20)}, -40)`}>
+            <rect
+              x={0}
+              y={0}
+              width={100}
+              height={24}
+              rx={3}
+              fill="#f9fafb"
+              stroke="#6b7280"
+              strokeWidth={1}
+              style={{ cursor: 'pointer' }}
+              onClick={resetLegendSelections}
+              onMouseEnter={(e) => {
+                e.currentTarget.setAttribute('fill', '#f3f4f6');
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.setAttribute('fill', '#f9fafb');
+              }}
+            />
+            <text
+              x={50}
+              y={16}
+              textAnchor="middle"
+              fontSize={11}
+              fontWeight={500}
+              fill="#374151"
+              style={{ cursor: 'pointer', pointerEvents: 'none' }}
+            >
+              Reset Selections
+            </text>
+          </g>
+        )}
       </ChartContainer>
 
       {/* Horizontal legends for narrow SVGs */}

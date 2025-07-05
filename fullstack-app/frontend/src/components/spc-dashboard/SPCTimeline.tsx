@@ -30,6 +30,13 @@ interface SPCTimelineProps {
   onYZoomChange?: (domain: [number, number] | null) => void; // Callback for Y zoom
   onY2ZoomChange?: (domain: [number, number] | null) => void; // Callback for Y2 zoom
   onResetZoom?: () => void; // Callback for reset zoom
+  // Legend selection props
+  selectedColorItems?: Set<string>;
+  selectedShapeItems?: Set<string>;
+  onColorLegendClick?: (label: string) => void;
+  onShapeLegendClick?: (label: string) => void;
+  onResetLegendSelections?: () => void;
+  containerPaddingTop?: number; // Optional padding above the chart container
 }
 
 export default function SPCTimeline({
@@ -55,6 +62,12 @@ export default function SPCTimeline({
   onYZoomChange,
   onY2ZoomChange,
   onResetZoom,
+  selectedColorItems,
+  selectedShapeItems,
+  onColorLegendClick,
+  onShapeLegendClick,
+  onResetLegendSelections,
+  containerPaddingTop = 64, // Default to 64px for SPCChartWrapper's pt-16
 }: SPCTimelineProps) {
   // Use SPC limits from context instead of fetching independently
   const { getLimitsForChart, isLoading: limitsLoading } = useSPCLimits();
@@ -113,6 +126,12 @@ export default function SPCTimeline({
       onY2ZoomChange={onY2ZoomChange}
       onResetZoom={onResetZoom}
       unitMapping={getUnitsForMonitor(spcMonitorName || '')}
+      selectedColorItems={selectedColorItems}
+      selectedShapeItems={selectedShapeItems}
+      onColorLegendClick={onColorLegendClick}
+      onShapeLegendClick={onShapeLegendClick}
+      onResetLegendSelections={onResetLegendSelections}
+      containerPaddingTop={containerPaddingTop}
       renderOverlays={(scales) => {
         // Only render SPC limits if metadata is available
         if (!processType || !productType || !spcMonitorName) {
