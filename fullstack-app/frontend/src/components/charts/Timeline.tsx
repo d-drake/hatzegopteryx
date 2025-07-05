@@ -574,13 +574,15 @@ export default function Timeline<T extends Record<string, any>>({
       />
 
 
-      <ChartContainer width={width} height={height} margin={responsiveMargin} ref={svgRef}>
+      <ChartContainer width={width} height={height + 30} margin={responsiveMargin} ref={svgRef}>
         <defs>
           <clipPath id={clipPathId}>
             <rect x={30} y={0} width={innerWidth - 60} height={innerHeight} />
           </clipPath>
         </defs>
-        <g ref={chartRef}>
+        {/* Spacer to create room for Reset Selections button */}
+        <rect x={0} y={-10} width={width} height={40} fill="transparent" />
+        <g ref={chartRef} transform={`translate(0, 30)`}>
           {/* Axes */}
           <Axis
             scale={xScale}
@@ -750,7 +752,7 @@ export default function Timeline<T extends Record<string, any>>({
 
         {/* Reset Selections button - positioned below the legend titles */}
         {!isNarrowSVG && hasSelections && (
-          <g transform={`translate(${margin.left + innerWidth + (y2Field ? 10 : 20)}, -40)`}>
+          <g transform={`translate(${margin.left + innerWidth + (y2Field ? 10 : -55)}, -10)`}>
             <rect
               x={0}
               y={0}

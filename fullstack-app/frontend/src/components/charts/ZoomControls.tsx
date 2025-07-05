@@ -47,7 +47,7 @@ export default function ZoomControls({
   return (
     <div ref={containerRef} className="zoom-controls" style={{
       position: 'absolute',
-      top: -57, // Position just above the chart SVG to avoid overlap
+      top: -7, // Position just above the chart SVG to avoid overlap (adjusted for spacer)
       left: 0, // Align with left edge of chart/tab group
       zIndex: 10,
       background: 'rgba(255,255,255,0.95)',

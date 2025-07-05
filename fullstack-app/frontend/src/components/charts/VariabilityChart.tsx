@@ -152,7 +152,7 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
       <ChartContainer 
         ref={svgRef} 
         width={width} 
-        height={height} 
+        height={height + 30} 
         margin={responsiveMargin}
       >
         <defs>
@@ -160,6 +160,9 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
             <rect x={0} y={0} width={chartWidth} height={chartHeight} />
           </clipPath>
         </defs>
+        {/* Spacer to align with Timeline chart */}
+        <rect x={0} y={-10} width={width} height={40} fill="transparent" />
+        <g transform="translate(0, 30)">
           <g className="chart-area data-area" clipPath="url(#variability-clip)">
             <BoxPlotRenderer
               data={data}
@@ -210,6 +213,7 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
             fill="transparent"
             style={{ cursor: 'ns-resize' }}
           />
+        </g>
       </ChartContainer>
       
       <BoxPlotTooltip

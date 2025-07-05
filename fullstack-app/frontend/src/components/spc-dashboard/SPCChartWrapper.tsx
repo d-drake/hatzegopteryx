@@ -44,11 +44,11 @@ export default function SPCChartWrapper({
   const [xZoomDomain, setXZoomDomain] = useState<[number, number] | [Date, Date] | null>(null);
   const [yZoomDomain, setYZoomDomain] = useState<[number, number] | null>(null);
   const [y2ZoomDomain, setY2ZoomDomain] = useState<[number, number] | null>(null);
-  
+
   // Legend selection state - shared across view changes
   const [selectedColorItems, setSelectedColorItems] = useState<Set<string>>(new Set());
   const [selectedShapeItems, setSelectedShapeItems] = useState<Set<string>>(new Set());
-  
+
   const viewportWidth = useViewportWidth();
 
   // Keep localActiveTab in sync with activeView when sync is enabled
@@ -256,7 +256,7 @@ export default function SPCChartWrapper({
           </div>
 
           {/* Side-by-side charts */}
-          <div className="flex gap-[5px] p-4 pt-16">
+          <div className="flex gap-[5px] p-4">
             {/* Timeline Chart */}
             <div className="flex-none" style={{ width: `${timelineWidth}px` }}>
               {injectZoomProps(timelineTab.content, timelineWidth, true)}
@@ -267,7 +267,7 @@ export default function SPCChartWrapper({
               {injectZoomProps(variabilityTab.content, variabilityWidth, true)}
             </div>
           </div>
-          
+
           {bottomContent && (
             <div className="px-4 pb-4">
               {bottomContent}
@@ -310,13 +310,13 @@ export default function SPCChartWrapper({
 
       {/* Tab Content Area - contains the chart which has zoom controls */}
       {/* In tabbed view, always reserve space for zoom controls */}
-      <div className="p-1 pt-16">
+      <div className="p-1 pt-4">
         {tabs.map((tab) => {
           if (tab.id !== activeTab) return null;
           return <div key={tab.id}>{injectZoomProps(tab.content)}</div>;
         })}
       </div>
-      
+
       {bottomContent && (
         <div className="px-4 pb-4">
           {bottomContent}
