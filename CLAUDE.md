@@ -168,7 +168,8 @@ npx tsc --noEmit
 
 ### Database Schema
 
-#### CD Data Table (`cd_data`) - 43,800 records
+#### SPC CD L1 Table (`spc_cd_l1`) - 43,800 records
+**IMPORTANT**: This table was formerly named `cd_data` but has been renamed to `spc_cd_l1`
 - **Core measurements**: `cd_att`, `cd_x_y`, `cd_6sig` (Critical Dimension data)
 - **Bias measurements**: `bias`, `bias_x_y` (Process bias indicators)
 - **Process metadata**: `process_type` (1000-3000), `product_type` (BNT44, BNT45, etc.)
@@ -186,6 +187,13 @@ npx tsc --noEmit
 #### Items Table (`items`) - Demo functionality
 - Basic CRUD operations for application demonstration
 - Timestamp tracking with `created_at`, `updated_at`
+
+#### User Tables (Production-Only - Preserve During Migration)
+- **`users`** - User accounts with authentication data
+- **`registration_requests`** - User registration workflow
+- **`refresh_tokens`** - JWT refresh token management
+- **`audit_logs`** - Security audit trails
+- **`blacklisted_tokens`** - Token revocation list
 
 ## Current Development Status
 
@@ -224,6 +232,17 @@ npx tsc --noEmit
 - **Real-time updates**: WebSocket integration for live manufacturing data
 - **Data validation**: Enhanced input validation and error handling
 - **Performance monitoring**: Query optimization and caching strategies
+
+## Infrastructure and Database Access
+
+### **CRITICAL**: Database Table Name Change
+The main data table was renamed from `cd_data` to `spc_cd_l1` to better reflect SPC naming conventions.
+
+### Production Database Access
+For production database access and migration procedures, refer to:
+- **Main Guide**: `/docs/infrastructure/serverless_deployment_guide.md`
+- **Bastion Setup**: `/docs/infrastructure/aws_bastion_host_setup.md`  
+- **Management Script**: `/infrastructure/scripts/manage-bastion.sh`
 
 ## Environment Configuration
 

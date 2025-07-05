@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/auth/Header';
@@ -10,6 +10,8 @@ export default function Home() {
   const { user } = useAuth();
   const router = useRouter();
   const [showEmail, setShowEmail] = useState(false);
+  const [activeImage, setActiveImage] = useState<number | null>(null);
+  const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleExploreDashboard = () => {
     router.push('/spc-dashboard/SPC_CD_L1/1000-BNT44');
@@ -24,6 +26,67 @@ export default function Home() {
     setTimeout(() => {
       setShowEmail(false);
     }, 3000);
+  };
+
+  const handleImageClick = (imageIndex: number) => {
+    setActiveImage(imageIndex);
+    // Clear any existing timer when clicking
+    if (resetTimerRef.current) {
+      clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = null;
+    }
+  };
+
+  const handleMouseLeaveImages = () => {
+    // Start 3-second timer to reset images
+    resetTimerRef.current = setTimeout(() => {
+      setActiveImage(null);
+    }, 3000);
+  };
+
+  const handleMouseEnterImages = () => {
+    // Cancel reset timer if mouse re-enters
+    if (resetTimerRef.current) {
+      clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = null;
+    }
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (resetTimerRef.current) {
+        clearTimeout(resetTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Calculate z-index for each image based on active selection
+  const getImageZIndex = (imageNumber: number): string => {
+    if (activeImage === null) {
+      // Default order when no image is selected
+      switch (imageNumber) {
+        case 1: return 'z-10';
+        case 2: return 'z-20';
+        case 3: return 'z-30';
+        default: return 'z-0';
+      }
+    }
+    
+    // When an image is selected
+    if (imageNumber === activeImage) return 'z-40';
+    
+    // Determine order for non-selected images
+    switch (activeImage) {
+      case 1: // Image 1 selected: 1→front, 3→middle, 2→back
+        return imageNumber === 3 ? 'z-20' : 'z-10';
+      case 2: // Image 2 selected: 2→front, 1→middle, 3→back
+        return imageNumber === 1 ? 'z-20' : 'z-10';
+      case 3: // Image 3 selected: 3→front, 2→middle, 1→back
+        return imageNumber === 2 ? 'z-20' : 'z-10';
+      default:
+        return 'z-0';
+    }
   };
 
   return (
@@ -93,43 +156,56 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl blur-3xl"></div>
 
               {/* Layered Images Container */}
-              <div className="relative h-full flex items-center justify-center">
+              <div 
+                className="relative h-full flex items-center justify-center"
+                onMouseEnter={handleMouseEnterImages}
+                onMouseLeave={handleMouseLeaveImages}
+              >
 
                 {/* Image 1 - Back layer (positioned right-center for visibility) */}
-                <div className="absolute top-1/2 right-16 lg:right-24 transform -translate-y-1/2 translate-x-8 w-72 h-96 lg:w-80 lg:h-[480px] rotate-[3deg] shadow-2xl rounded-lg overflow-hidden hover:z-40 transition-all duration-300">
+                <div 
+                  className={`absolute top-1/2 right-16 lg:right-24 transform -translate-y-1/2 translate-x-8 w-72 h-96 lg:w-80 lg:h-[480px] rotate-[3deg] shadow-2xl rounded-lg overflow-hidden transition-z cursor-pointer ${getImageZIndex(1)}`}
+                  onClick={() => handleImageClick(1)}
+                >
                   <Image
                     src="/images/profile-1.jpg"
                     alt="Alpine skiing adventure"
                     fill
-                    className="object-cover filter grayscale-50 hover:grayscale-0 transition-all duration-500"
+                    className={`object-cover filter transition-all duration-1200 ease-smooth-out ${activeImage === 1 ? 'grayscale-0' : 'grayscale-50'}`}
                     sizes="(max-width: 768px) 288px, 320px"
                     priority
                   />
-                  <div className="absolute inset-0 bg-black/10 hover:bg-black/0 transition-all duration-500"></div>
+                  <div className={`absolute inset-0 transition-all duration-800 ease-smooth pointer-events-none ${activeImage === 1 ? 'bg-black/0' : 'bg-black/10'}`}></div>
                 </div>
 
                 {/* Image 2 - Middle layer (more centered, less rotation) */}
-                <div className="absolute top-1/2 left-16 lg:left-24 transform -translate-y-1/2 -translate-x-8 w-64 h-80 lg:w-72 lg:h-96 rotate-[-4deg] shadow-2xl rounded-lg overflow-hidden hover:z-40 transition-all duration-300">
+                <div 
+                  className={`absolute top-1/2 left-16 lg:left-24 transform -translate-y-1/2 -translate-x-8 w-64 h-80 lg:w-72 lg:h-96 rotate-[-4deg] shadow-2xl rounded-lg overflow-hidden transition-z cursor-pointer ${getImageZIndex(2)}`}
+                  onClick={() => handleImageClick(2)}
+                >
                   <Image
                     src="/images/profile-2.jpg"
                     alt="Engineering and adventure"
                     fill
-                    className="object-cover filter sepia-50 hover:sepia-0 transition-all duration-500"
+                    className={`object-cover filter transition-all duration-1200 ease-smooth-out ${activeImage === 2 ? 'sepia-0' : 'sepia-50'}`}
                     sizes="(max-width: 768px) 256px, 288px"
                   />
-                  <div className="absolute inset-0 bg-amber-900/20 hover:bg-amber-900/0 transition-all duration-500"></div>
+                  <div className={`absolute inset-0 transition-all duration-800 ease-smooth pointer-events-none ${activeImage === 2 ? 'bg-amber-900/0' : 'bg-amber-900/20'}`}></div>
                 </div>
 
                 {/* Image 3 - Front layer (centered) */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 translate-y-12 w-56 h-72 lg:w-64 lg:h-80 rotate-[1deg] shadow-2xl rounded-lg overflow-hidden hover:z-40 transition-all duration-300">
+                <div 
+                  className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 translate-y-12 w-56 h-72 lg:w-64 lg:h-80 rotate-[1deg] shadow-2xl rounded-lg overflow-hidden transition-z cursor-pointer ${getImageZIndex(3)}`}
+                  onClick={() => handleImageClick(3)}
+                >
                   <Image
                     src="/images/profile-3.jpg"
                     alt="Outdoor exploration"
                     fill
-                    className="object-cover filter brightness-95 hover:brightness-100 transition-all duration-500"
+                    className={`object-cover filter transition-all duration-1200 ease-smooth-out ${activeImage === 3 ? 'brightness-100' : 'brightness-95'}`}
                     sizes="(max-width: 768px) 224px, 256px"
                   />
-                  <div className="absolute inset-0 bg-slate-900/10 hover:bg-slate-900/0 transition-all duration-500"></div>
+                  <div className={`absolute inset-0 transition-all duration-800 ease-smooth pointer-events-none ${activeImage === 3 ? 'bg-slate-900/0' : 'bg-slate-900/10'}`}></div>
                 </div>
 
                 {/* Hover effect handled via Tailwind classes in each image div */}
