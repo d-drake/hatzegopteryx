@@ -5,8 +5,7 @@ import * as d3 from 'd3';
 import Axis from './Axis';
 import ChartContainer from './ChartContainer';
 import ZoomControls from './ZoomControls';
-import { formatTimelineFieldName } from '@/lib/formatters/fieldFormatter';
-import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
+import { formatTimelineFieldName, UnitMapping } from '@/lib/formatters/fieldFormatter';
 
 interface DataPoint {
   [key: string]: any;
@@ -41,6 +40,7 @@ interface VariabilityChartProps {
   onResetZoom?: () => void; // Callback for reset zoom
   isSideBySide?: boolean; // Whether chart is in side-by-side layout
   renderOverlays?: (scales: { xScale: d3.ScaleBand<string>; yScale: d3.ScaleLinear<number, number> }) => React.ReactNode;
+  unitMapping?: UnitMapping; // Optional unit mapping for field formatting
 }
 
 // Simple tooltip component
@@ -81,11 +81,17 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
   onResetZoom,
   isSideBySide = false,
   renderOverlays,
+  unitMapping,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [hoveredData, setHoveredData] = useState<any>(null);
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
   const [yDomain, setYDomain] = useState<[number, number] | null>(yZoomDomain || null);
+  
+  // Format field names for axis labels using unit mapping
+  const formatFieldName = (field: string): string => {
+    return formatTimelineFieldName(field, unitMapping);
+  };
   
   // Track if SVG width is narrow (< 800px)
   const isNarrowSVG = width < 800;
@@ -537,8 +543,3 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
   );
 };
 
-// Format field names for axis labels (matching Timeline implementation)
-// Use shared formatter with SPC units
-function formatFieldName(field: string): string {
-  return formatTimelineFieldName(field, SpcCDUnits);
-}

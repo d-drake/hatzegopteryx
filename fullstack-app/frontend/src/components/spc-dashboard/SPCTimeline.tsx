@@ -4,7 +4,7 @@ import Timeline from '@/components/charts/Timeline';
 import { SPCCdL1Item, SPCLimit } from '@/services/spcCdL1Service';
 import LimitLine from './LimitLine';
 import { useSPCLimits } from '@/contexts/SPCLimitsContext';
-import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
+import { getUnitsForMonitor } from '@/lib/spc-dashboard/unitRegistry';
 import * as d3 from 'd3';
 
 interface SPCTimelineProps {
@@ -112,7 +112,7 @@ export default function SPCTimeline({
       onYZoomChange={onYZoomChange}
       onY2ZoomChange={onY2ZoomChange}
       onResetZoom={onResetZoom}
-      unitMapping={SpcCDUnits}
+      unitMapping={getUnitsForMonitor(spcMonitorName || '')}
       renderOverlays={(scales) => {
         // Only render SPC limits if metadata is available
         if (!processType || !productType || !spcMonitorName) {

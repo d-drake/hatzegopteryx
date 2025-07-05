@@ -4,6 +4,7 @@ import React from 'react';
 import { VariabilityChart } from '../charts/VariabilityChart';
 import LimitLine from './LimitLine';
 import { useSPCLimits } from '@/contexts/SPCLimitsContext';
+import { getUnitsForMonitor } from '@/lib/spc-dashboard/unitRegistry';
 import type { ScaleLinear, ScaleBand } from 'd3-scale';
 
 interface SPCVariabilityChartProps {
@@ -77,6 +78,7 @@ export const SPCVariabilityChart: React.FC<SPCVariabilityChartProps> = ({
       onYZoomChange={onYZoomChange}
       onResetZoom={onResetZoom}
       isSideBySide={isSideBySide}
+      unitMapping={getUnitsForMonitor(spcMonitorName || '')}
       renderOverlays={(scales) => {
         // Only render SPC limits if all required props are available
         if (!processType || !productType || !spcMonitorName) {
