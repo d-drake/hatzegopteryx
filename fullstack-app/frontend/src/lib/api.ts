@@ -1,5 +1,5 @@
 import api from '@/lib/axios';
-import { Item, CreateItem, UpdateItem, CDData, CDDataStats } from '@/types';
+import { Item, CreateItem, UpdateItem, SPCCdL1, SPCCdL1Stats } from '@/types';
 
 // Items API
 export const itemsApi = {
@@ -28,16 +28,16 @@ export const itemsApi = {
   },
 };
 
-// CD Data API
-export const cdDataApi = {
+// SPC CD L1 Data API
+export const spcCdL1Api = {
   getAll: async (params?: {
     skip?: number;
     limit?: number;
     start_date?: string;
     end_date?: string;
     entity?: string;
-  }): Promise<CDData[]> => {
-    const response = await api.get<CDData[]>('/api/cd-data/', { params });
+  }): Promise<SPCCdL1[]> => {
+    const response = await api.get<SPCCdL1[]>('/api/spc-cd-l1/', { params });
     return response.data;
   },
 
@@ -45,13 +45,13 @@ export const cdDataApi = {
     start_date?: string;
     end_date?: string;
     entity?: string;
-  }): Promise<CDDataStats> => {
-    const response = await api.get<CDDataStats>('/api/cd-data/stats', { params });
+  }): Promise<SPCCdL1Stats> => {
+    const response = await api.get<SPCCdL1Stats>('/api/spc-cd-l1/stats', { params });
     return response.data;
   },
 
   getEntities: async (): Promise<string[]> => {
-    const response = await api.get<string[]>('/api/cd-data/entities');
+    const response = await api.get<string[]>('/api/spc-cd-l1/entities');
     return response.data;
   },
 };

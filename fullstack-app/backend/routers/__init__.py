@@ -1,5 +1,5 @@
 from . import items as items
-from . import cd_data as cd_data
+from . import spc_cd_l1 as spc_cd_l1
 from . import spc_limits as spc_limits
 from . import auth as auth
 from . import users as users

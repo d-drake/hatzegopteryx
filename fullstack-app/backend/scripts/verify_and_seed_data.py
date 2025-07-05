@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 Data verification and seeding script for the backend database.
-Checks if cd_data and spc_limits tables have data, and generates it if missing.
+Checks if spc_cd_l1 and spc_limits tables have data, and generates it if missing.
 """
 
 import os
 import sys
 import subprocess
 from database import SessionLocal, engine
-from models import Base, CDData, SPCLimits
+from models import Base, SPCCdL1, SPCLimits
 
 
 def check_table_data(db, model_class):
@@ -77,17 +77,17 @@ def verify_and_seed_data():
     db = SessionLocal()
 
     try:
-        # Check cd_data table
-        print("\nChecking cd_data table...")
-        has_cd_data = check_table_data(db, CDData)
+        # Check spc_cd_l1 table
+        print("\nChecking spc_cd_l1 table...")
+        has_cd_data = check_table_data(db, SPCCdL1)
 
         if has_cd_data:
-            cd_count = db.query(CDData).count()
-            print(f"✓ cd_data table has {cd_count} records")
+            cd_count = db.query(SPCCdL1).count()
+            print(f"✓ spc_cd_l1 table has {cd_count} records")
         else:
-            print("⚠ cd_data table is empty, generating data...")
-            if not run_generation_script("generate_cd_data.py"):
-                print("✗ Failed to generate cd_data")
+            print("⚠ spc_cd_l1 table is empty, generating data...")
+            if not run_generation_script("generate_spc_cd_l1_data.py"):
+                print("✗ Failed to generate spc_cd_l1 data")
                 return False
 
         # Check spc_limits table
@@ -106,10 +106,10 @@ def verify_and_seed_data():
         # Final verification
         print("\n" + "=" * 60)
         print("Final Data Verification:")
-        cd_final_count = db.query(CDData).count()
+        cd_final_count = db.query(SPCCdL1).count()
         spc_final_count = db.query(SPCLimits).count()
 
-        print(f"• cd_data records: {cd_final_count}")
+        print(f"• spc_cd_l1 records: {cd_final_count}")
         print(f"• spc_limits records: {spc_final_count}")
 
         if cd_final_count > 0 and spc_final_count > 0:

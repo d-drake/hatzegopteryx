@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchEntities } from '@/services/cdDataService';
+import { fetchEntities } from '@/services/spcCdL1Service';
 import { useAuth } from '@/contexts/AuthContext';
 import { DatePicker } from '@/components/ui/date-picker';
 

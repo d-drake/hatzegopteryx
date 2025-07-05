@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import SPCChartWithSharedData from '@/components/spc-dashboard/SPCChartWithSharedData';
-import { fetchCDData, CDDataItem } from '@/services/cdDataService';
+import { fetchSPCCdL1Data, SPCCdL1Item } from '@/services/spcCdL1Service';
 
 const TEST_WIDTHS = [
   { width: 500, name: 'Mobile' },
@@ -19,14 +19,14 @@ const TEST_WIDTHS = [
 export default function TestSideBySidePage() {
   const [selectedWidth, setSelectedWidth] = useState(1920);
   const [showRuler, setShowRuler] = useState(true);
-  const [data, setData] = useState<CDDataItem[]>([]);
+  const [data, setData] = useState<SPCCdL1Item[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Load sample data
   useEffect(() => {
     const loadData = async () => {
       try {
-        const response = await fetchCDData({
+        const response = await fetchSPCCdL1Data({
           limit: 100,
           process_type: '1000',
           product_type: 'BNT44',

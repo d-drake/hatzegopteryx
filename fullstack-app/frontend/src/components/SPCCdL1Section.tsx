@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { CDData, CDDataStats } from '@/types';
-import { cdDataApi } from '@/lib/api';
+import { SPCCdL1, SPCCdL1Stats } from '@/types';
+import { spcCdL1Api } from '@/lib/api';
 
-export default function CDDataSection() {
-  const [cdData, setCdData] = useState<CDData[]>([]);
-  const [stats, setStats] = useState<CDDataStats | null>(null);
+export default function SPCCdL1Section() {
+  const [cdData, setCdData] = useState<SPCCdL1[]>([]);
+  const [stats, setStats] = useState<SPCCdL1Stats | null>(null);
   const [entities, setEntities] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,7 @@ export default function CDDataSection() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
 
-  const fetchCDData = useCallback(async () => {
+  const fetchSPCCdL1Data = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -23,11 +23,11 @@ export default function CDDataSection() {
         ...(startDate && { start_date: startDate }),
         ...(endDate && { end_date: endDate }),
       };
-      const data = await cdDataApi.getAll(params);
+      const data = await spcCdL1Api.getAll(params);
       setCdData(data);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch CD data');
+      setError('Failed to fetch SPC CD L1 data');
       console.error(err);
     } finally {
       setLoading(false);
@@ -41,7 +41,7 @@ export default function CDDataSection() {
         ...(startDate && { start_date: startDate }),
         ...(endDate && { end_date: endDate }),
       };
-      const statsData = await cdDataApi.getStats(params);
+      const statsData = await spcCdL1Api.getStats(params);
       setStats(statsData);
     } catch (err) {
       console.error('Failed to fetch stats:', err);
@@ -51,25 +51,25 @@ export default function CDDataSection() {
   const fetchInitialData = useCallback(async () => {
     try {
       const [entitiesData] = await Promise.all([
-        cdDataApi.getEntities(),
+        spcCdL1Api.getEntities(),
       ]);
       setEntities(entitiesData);
-      await fetchCDData();
+      await fetchSPCCdL1Data();
       await fetchStats();
     } catch (err) {
       setError('Failed to fetch initial data');
       console.error(err);
     }
-  }, [fetchCDData, fetchStats]);
+  }, [fetchSPCCdL1Data, fetchStats]);
 
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
 
   useEffect(() => {
-    fetchCDData();
+    fetchSPCCdL1Data();
     fetchStats();
-  }, [selectedEntity, startDate, endDate, fetchCDData, fetchStats]);
+  }, [selectedEntity, startDate, endDate, fetchSPCCdL1Data, fetchStats]);
 
   const clearFilters = () => {
     setSelectedEntity('');
@@ -243,7 +243,7 @@ export default function CDDataSection() {
         
         {cdData.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            No CD data found with the current filters.
+            No SPC CD L1 data found with the current filters.
           </div>
         )}
       </div>

@@ -126,7 +126,7 @@ async function retryRequest<T>(
   throw new Error('Max retries exceeded');
 }
 
-export interface CDDataItem {
+export interface SPCCdL1Item {
   lot: string;
   date_process: string;
   bias: number;
@@ -143,7 +143,7 @@ export interface CDDataItem {
   spc_monitor_name: string;
 }
 
-export interface CDDataFilters {
+export interface SPCCdL1Filters {
   entity?: string;
   startDate?: string;
   endDate?: string;
@@ -154,7 +154,7 @@ export interface CDDataFilters {
   spc_monitor_name?: string;
 }
 
-export interface CDDataStats {
+export interface SPCCdL1Stats {
   count: number;
   avg_cd_att: number;
   avg_bias: number;
@@ -164,7 +164,7 @@ export interface CDDataStats {
   max_bias: number;
 }
 
-export async function fetchCDData(filters?: CDDataFilters): Promise<CDDataItem[]> {
+export async function fetchSPCCdL1Data(filters?: SPCCdL1Filters): Promise<SPCCdL1Item[]> {
   return retryRequest(async () => {
     const params = new URLSearchParams();
     
@@ -179,7 +179,7 @@ export async function fetchCDData(filters?: CDDataFilters): Promise<CDDataItem[]
       if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
     }
 
-    const response = await apiClient.get<CDDataItem[]>('/api/cd-data/', {
+    const response = await apiClient.get<SPCCdL1Item[]>('/api/spc-cd-l1/', {
       params: params.toString() ? params : undefined,
     });
     
@@ -187,7 +187,7 @@ export async function fetchCDData(filters?: CDDataFilters): Promise<CDDataItem[]
   });
 }
 
-export async function fetchCDDataStats(filters?: CDDataFilters): Promise<CDDataStats> {
+export async function fetchSPCCdL1Stats(filters?: SPCCdL1Filters): Promise<SPCCdL1Stats> {
   try {
     const params = new URLSearchParams();
     
@@ -200,20 +200,20 @@ export async function fetchCDDataStats(filters?: CDDataFilters): Promise<CDDataS
       if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
     }
 
-    const response = await apiClient.get<CDDataStats>('/api/cd-data/stats', {
+    const response = await apiClient.get<SPCCdL1Stats>('/api/spc-cd-l1/stats', {
       params: params.toString() ? params : undefined,
     });
     
     return response.data;
   } catch (error) {
-    // Error fetching CD data stats
+    // Error fetching SPC CD L1 data stats
     throw error;
   }
 }
 
 export async function fetchEntities(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/cd-data/entities');
+    const response = await apiClient.get<string[]>('/api/spc-cd-l1/entities');
     return response.data;
   } catch (error) {
     // Error fetching entities
@@ -223,7 +223,7 @@ export async function fetchEntities(): Promise<string[]> {
 
 export async function fetchProcessTypes(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/cd-data/process-types');
+    const response = await apiClient.get<string[]>('/api/spc-cd-l1/process-types');
     return response.data;
   } catch (error) {
     // Error fetching process types
@@ -233,7 +233,7 @@ export async function fetchProcessTypes(): Promise<string[]> {
 
 export async function fetchProductTypes(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/cd-data/product-types');
+    const response = await apiClient.get<string[]>('/api/spc-cd-l1/product-types');
     return response.data;
   } catch (error) {
     // Error fetching product types
@@ -243,7 +243,7 @@ export async function fetchProductTypes(): Promise<string[]> {
 
 export async function fetchSPCMonitorNames(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/cd-data/spc-monitor-names');
+    const response = await apiClient.get<string[]>('/api/spc-cd-l1/spc-monitor-names');
     return response.data;
   } catch (error) {
     // Error fetching SPC monitor names
@@ -277,7 +277,7 @@ export interface SPCLimitsFilters {
 
 export async function fetchProcessProductCombinations(): Promise<ProcessProductCombination[]> {
   return retryRequest(async () => {
-    const response = await apiClient.get<ProcessProductCombination[]>('/api/cd-data/process-product-combinations');
+    const response = await apiClient.get<ProcessProductCombination[]>('/api/spc-cd-l1/process-product-combinations');
     return response.data;
   });
 }
@@ -293,7 +293,7 @@ export async function fetchSPCLimits(filters?: SPCLimitsFilters): Promise<SPCLim
       if (filters.spc_chart_name) params.append('spc_chart_name', filters.spc_chart_name);
     }
 
-    const response = await apiClient.get<SPCLimit[]>('/api/cd-data/spc-limits', {
+    const response = await apiClient.get<SPCLimit[]>('/api/spc-cd-l1/spc-limits', {
       params: params.toString() ? params : undefined,
     });
     

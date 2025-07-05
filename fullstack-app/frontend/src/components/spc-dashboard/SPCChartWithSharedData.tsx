@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { CDDataItem } from '@/services/cdDataService';
-import { useCDData } from '@/contexts/CDDataContext';
+import { SPCCdL1Item } from '@/services/spcCdL1Service';
+import { useSPCCdL1 } from '@/contexts/SPCCdL1Context';
 import SPCTimeline from './SPCTimeline';
 import { SPCVariabilityChart } from './SPCVariabilityChart';
 import ResponsiveChartWrapper from '@/components/charts/ResponsiveChartWrapper';
@@ -10,11 +10,11 @@ import SPCChartWrapper from './SPCChartWrapper';
 
 interface SPCChartWithSharedDataProps {
   title: string;
-  data: CDDataItem[];
-  yField: keyof CDDataItem;
-  y2Field?: keyof CDDataItem;
-  colorField?: keyof CDDataItem;
-  shapeField?: keyof CDDataItem;
+  data: SPCCdL1Item[];
+  yField: keyof SPCCdL1Item;
+  y2Field?: keyof SPCCdL1Item;
+  colorField?: keyof SPCCdL1Item;
+  shapeField?: keyof SPCCdL1Item;
   processType: string;
   productType: string;
   spcMonitor: string;
@@ -37,7 +37,7 @@ export default function SPCChartWithSharedData({
   activeView = 'timeline',
   onViewChange,
 }: SPCChartWithSharedDataProps) {
-  const { allEntityData } = useCDData();
+  const { allEntityData } = useSPCCdL1();
 
   // Use all entity data for scale calculation (variability chart needs all entities)
   const dataForScaleCalculation = allEntityData.length > 0 ? allEntityData : data;

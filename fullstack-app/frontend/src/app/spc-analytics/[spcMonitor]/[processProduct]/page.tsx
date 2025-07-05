@@ -3,13 +3,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import * as Sentry from '@sentry/nextjs';
-import { CDData, CDDataStats } from '@/types';
-import { cdDataApi } from '@/lib/api';
+import { SPCCdL1, SPCCdL1Stats } from '@/types';
+import { spcCdL1Api } from '@/lib/api';
 import Header from '@/components/auth/Header';
 import AppTabs from '@/components/AppTabs';
 import SPCTabs from '@/components/spc-dashboard/SPCTabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
+import { SPCCdL1Provider, useSPCCdL1 } from '@/contexts/SPCCdL1Context';
 import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -20,7 +20,7 @@ function SPCAnalyticsInner() {
   const router = useRouter();
   const { user } = useAuth();
   
-  // Use CDDataContext for shared data
+  // Use SPCCdL1Context for shared data
   const { 
     data: contextData,
     allEntityData, 
@@ -28,7 +28,7 @@ function SPCAnalyticsInner() {
     error: contextError,
     filters: contextFilters,
     handleFiltersChange 
-  } = useCDData();
+  } = useSPCCdL1();
 
   const spcMonitor = params.spcMonitor as string;
   const processProduct = params.processProduct as string;
@@ -38,8 +38,8 @@ function SPCAnalyticsInner() {
 
   // Local state for pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [localData, setLocalData] = useState<CDData[]>([]);
-  const [stats, setStats] = useState<CDDataStats | null>(null);
+  const [localData, setLocalData] = useState<SPCCdL1[]>([]);
+  const [stats, setStats] = useState<SPCCdL1Stats | null>(null);
   const [entities, setEntities] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,7 +110,7 @@ function SPCAnalyticsInner() {
   const needsServerFetch = currentPage > totalPages && dataForAnalytics.length === 1000;
   
   // Sort data function
-  const sortData = useCallback((data: CDData[]) => {
+  const sortData = useCallback((data: SPCCdL1[]) => {
     return [...data].sort((a, b) => {
       let aValue: any;
       let bValue: any;
@@ -196,7 +196,7 @@ function SPCAnalyticsInner() {
         ...(startDate && { start_date: startDate }),
         ...(endDate && { end_date: endDate }),
       };
-      const data = await cdDataApi.getAll(params);
+      const data = await spcCdL1Api.getAll(params);
       
       setLocalData(data);
       setError(null);
@@ -754,7 +754,7 @@ export default function SPCAnalyticsPage() {
   
   return (
     <ErrorBoundary errorMessage="Unable to load SPC Analytics">
-      <CDDataProvider
+      <SPCCdL1Provider
         processType={processType}
         productType={productType}
         spcMonitorName={spcMonitor}
@@ -767,7 +767,7 @@ export default function SPCAnalyticsPage() {
         >
           <SPCAnalyticsInner />
         </SPCLimitsProvider>
-      </CDDataProvider>
+      </SPCCdL1Provider>
     </ErrorBoundary>
   );
 }

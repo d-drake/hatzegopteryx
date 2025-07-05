@@ -11,7 +11,7 @@ import SPCChartWrapper from '@/components/spc-dashboard/SPCChartWrapper';
 import { SPCVariabilityChart } from '@/components/spc-dashboard/SPCVariabilityChart';
 import SPCChartWithSharedData from '@/components/spc-dashboard/SPCChartWithSharedData';
 import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
-import { CDDataProvider, useCDData } from '@/contexts/CDDataContext';
+import { SPCCdL1Provider, useSPCCdL1 } from '@/contexts/SPCCdL1Context';
 import Header from '@/components/auth/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardInstructions from '@/components/spc-dashboard/DashboardInstructions';
@@ -27,7 +27,7 @@ function SPCDashboardInner() {
     filters,
     handleFiltersChange,
     refetch
-  } = useCDData();
+  } = useSPCCdL1();
 
   const isGuest = !user;
   const viewportWidth = useViewportWidth();
@@ -214,7 +214,7 @@ function SPCDashboardContent() {
   const [processType, productType] = processProduct.split('-');
 
   return (
-    <CDDataProvider
+    <SPCCdL1Provider
       processType={processType}
       productType={productType}
       spcMonitorName={spcMonitor}
@@ -227,7 +227,7 @@ function SPCDashboardContent() {
       >
         <SPCDashboardInner />
       </SPCLimitsProvider>
-    </CDDataProvider>
+    </SPCCdL1Provider>
   );
 }
 

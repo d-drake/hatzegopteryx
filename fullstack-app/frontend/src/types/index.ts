@@ -19,7 +19,7 @@ export interface UpdateItem {
   completed?: boolean;
 }
 
-export interface CDData {
+export interface SPCCdL1 {
   lot: string;
   date_process: string;
   bias: number;
@@ -36,7 +36,7 @@ export interface CDData {
   spc_monitor_name: string;
 }
 
-export interface CDDataStats {
+export interface SPCCdL1Stats {
   total_count: number;
   avg_cd_att: number;
   min_cd_att: number;

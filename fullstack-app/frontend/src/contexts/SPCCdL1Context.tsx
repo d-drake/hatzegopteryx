@@ -3,12 +3,12 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import * as Sentry from '@sentry/nextjs';
-import { fetchCDData, CDDataItem } from '@/services/cdDataService';
+import { fetchSPCCdL1Data, SPCCdL1Item } from '@/services/spcCdL1Service';
 import { FilterState } from '@/components/spc-dashboard/FilterControls';
 
-interface CDDataContextValue {
-  data: CDDataItem[];
-  allEntityData: CDDataItem[]; // Data without entity filter
+interface SPCCdL1ContextValue {
+  data: SPCCdL1Item[];
+  allEntityData: SPCCdL1Item[]; // Data without entity filter
   isLoading: boolean;
   error: string | null;
   filters: FilterState;
@@ -18,9 +18,9 @@ interface CDDataContextValue {
   refetch: () => Promise<void>;
 }
 
-const CDDataContext = createContext<CDDataContextValue | null>(null);
+const SPCCdL1Context = createContext<SPCCdL1ContextValue | null>(null);
 
-interface CDDataProviderProps {
+interface SPCCdL1ProviderProps {
   children: React.ReactNode;
   processType: string;
   productType: string;
@@ -29,21 +29,21 @@ interface CDDataProviderProps {
 }
 
 // Cache for storing data by key
-const dataCache = new Map<string, { data: CDDataItem[], timestamp: number }>();
+const dataCache = new Map<string, { data: SPCCdL1Item[], timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-export function CDDataProvider({ 
+export function SPCCdL1Provider({ 
   children, 
   processType, 
   productType, 
   spcMonitorName,
   processProduct
-}: CDDataProviderProps) {
+}: SPCCdL1ProviderProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const [data, setData] = useState<CDDataItem[]>([]);
-  const [allEntityData, setAllEntityData] = useState<CDDataItem[]>([]);
+  const [data, setData] = useState<SPCCdL1Item[]>([]);
+  const [allEntityData, setAllEntityData] = useState<SPCCdL1Item[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -121,7 +121,7 @@ export function CDDataProvider({
 
       // Fetch data without entity filter (for variability charts and analytics)
       console.log('📊 Fetching all entity data with params:', baseParams);
-      const allDataResponse = await fetchCDData(baseParams);
+      const allDataResponse = await fetchSPCCdL1Data(baseParams);
       
       // Cache the response
       dataCache.set(cacheKey, { data: allDataResponse, timestamp: Date.now() });
@@ -149,7 +149,7 @@ export function CDDataProvider({
       // Track error in Sentry with context
       Sentry.captureException(err, {
         tags: {
-          component: 'CDDataContext',
+          component: 'SPCCdL1Context',
           action: 'loadFilteredData'
         },
         extra: {
@@ -255,7 +255,7 @@ export function CDDataProvider({
     });
   }, []);
 
-  const value: CDDataContextValue = useMemo(() => ({
+  const value: SPCCdL1ContextValue = useMemo(() => ({
     data,
     allEntityData,
     isLoading,
@@ -268,16 +268,16 @@ export function CDDataProvider({
   }), [data, allEntityData, isLoading, error, filters, isInitialized, handleFiltersChange, clearFilters, loadFilteredData]);
 
   return (
-    <CDDataContext.Provider value={value}>
+    <SPCCdL1Context.Provider value={value}>
       {children}
-    </CDDataContext.Provider>
+    </SPCCdL1Context.Provider>
   );
 }
 
-export function useCDData() {
-  const context = useContext(CDDataContext);
+export function useSPCCdL1() {
+  const context = useContext(SPCCdL1Context);
   if (!context) {
-    throw new Error('useCDData must be used within CDDataProvider');
+    throw new Error('useSPCCdL1 must be used within SPCCdL1Provider');
   }
   return context;
 }

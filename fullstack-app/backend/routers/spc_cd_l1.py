@@ -11,8 +11,8 @@ import schemas
 router = APIRouter()
 
 
-@router.get("/", response_model=List[schemas.CDData])
-async def get_cd_data(
+@router.get("/", response_model=List[schemas.SPCCdL1])
+async def get_spc_cd_l1_data(
     skip: int = 0,
     limit: int = Query(default=100, le=1000),
     start_date: Optional[date] = None,
@@ -42,42 +42,42 @@ async def get_cd_data(
                 detail="Guest access is limited to the past 30 days of data",
             )
 
-    query = db.query(models.CDData)
+    query = db.query(models.SPCCdL1)
 
     # Apply filters
     filters = []
     if start_date:
         filters.append(
-            models.CDData.date_process
+            models.SPCCdL1.date_process
             >= datetime.combine(start_date, datetime.min.time())
         )
     if end_date:
         filters.append(
-            models.CDData.date_process
+            models.SPCCdL1.date_process
             <= datetime.combine(end_date, datetime.max.time())
         )
     if entity:
-        filters.append(models.CDData.entity == entity)
+        filters.append(models.SPCCdL1.entity == entity)
     if process_type:
-        filters.append(models.CDData.process_type == process_type)
+        filters.append(models.SPCCdL1.process_type == process_type)
     if product_type:
-        filters.append(models.CDData.product_type == product_type)
+        filters.append(models.SPCCdL1.product_type == product_type)
     if spc_monitor_name:
-        filters.append(models.CDData.spc_monitor_name == spc_monitor_name)
+        filters.append(models.SPCCdL1.spc_monitor_name == spc_monitor_name)
 
     if filters:
         query = query.filter(and_(*filters))
 
     # Sort by date_process descending (newest first)
-    query = query.order_by(models.CDData.date_process.desc())
+    query = query.order_by(models.SPCCdL1.date_process.desc())
 
     # Apply pagination and return
-    cd_data = query.offset(skip).limit(limit).all()
-    return cd_data
+    spc_cd_l1_data = query.offset(skip).limit(limit).all()
+    return spc_cd_l1_data
 
 
 @router.get("/stats")
-async def get_cd_data_stats(
+async def get_spc_cd_l1_stats(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     entity: Optional[str] = None,
@@ -105,28 +105,28 @@ async def get_cd_data_stats(
                 detail="Guest access is limited to the past 30 days of data",
             )
 
-    query = db.query(models.CDData)
+    query = db.query(models.SPCCdL1)
 
     # Apply filters
     filters = []
     if start_date:
         filters.append(
-            models.CDData.date_process
+            models.SPCCdL1.date_process
             >= datetime.combine(start_date, datetime.min.time())
         )
     if end_date:
         filters.append(
-            models.CDData.date_process
+            models.SPCCdL1.date_process
             <= datetime.combine(end_date, datetime.max.time())
         )
     if entity:
-        filters.append(models.CDData.entity == entity)
+        filters.append(models.SPCCdL1.entity == entity)
     if process_type:
-        filters.append(models.CDData.process_type == process_type)
+        filters.append(models.SPCCdL1.process_type == process_type)
     if product_type:
-        filters.append(models.CDData.product_type == product_type)
+        filters.append(models.SPCCdL1.product_type == product_type)
     if spc_monitor_name:
-        filters.append(models.CDData.spc_monitor_name == spc_monitor_name)
+        filters.append(models.SPCCdL1.spc_monitor_name == spc_monitor_name)
 
     if filters:
         query = query.filter(and_(*filters))
@@ -135,11 +135,11 @@ async def get_cd_data_stats(
     from sqlalchemy import func
 
     query = db.query(
-        func.count(models.CDData.lot).label("total_count"),
-        func.avg(models.CDData.cd_att).label("avg_cd_att"),
-        func.min(models.CDData.cd_att).label("min_cd_att"),
-        func.max(models.CDData.cd_att).label("max_cd_att"),
-        func.avg(models.CDData.cd_6sig).label("avg_cd_6sig"),
+        func.count(models.SPCCdL1.lot).label("total_count"),
+        func.avg(models.SPCCdL1.cd_att).label("avg_cd_att"),
+        func.min(models.SPCCdL1.cd_att).label("min_cd_att"),
+        func.max(models.SPCCdL1.cd_att).label("max_cd_att"),
+        func.avg(models.SPCCdL1.cd_6sig).label("avg_cd_6sig"),
     )
 
     if filters:
@@ -169,25 +169,25 @@ async def get_cd_data_stats(
 
 @router.get("/entities")
 def get_entities(db: Session = Depends(get_db)):
-    entities = db.query(models.CDData.entity).distinct().all()
+    entities = db.query(models.SPCCdL1.entity).distinct().all()
     return [entity[0] for entity in entities]
 
 
 @router.get("/process-types")
 def get_process_types(db: Session = Depends(get_db)):
-    process_types = db.query(models.CDData.process_type).distinct().all()
+    process_types = db.query(models.SPCCdL1.process_type).distinct().all()
     return [pt[0] for pt in process_types]
 
 
 @router.get("/product-types")
 def get_product_types(db: Session = Depends(get_db)):
-    product_types = db.query(models.CDData.product_type).distinct().all()
+    product_types = db.query(models.SPCCdL1.product_type).distinct().all()
     return [pt[0] for pt in product_types]
 
 
 @router.get("/spc-monitor-names")
 def get_spc_monitor_names(db: Session = Depends(get_db)):
-    spc_monitor_names = db.query(models.CDData.spc_monitor_name).distinct().all()
+    spc_monitor_names = db.query(models.SPCCdL1.spc_monitor_name).distinct().all()
     return [smn[0] for smn in spc_monitor_names]
 
 
@@ -195,7 +195,7 @@ def get_spc_monitor_names(db: Session = Depends(get_db)):
 def get_process_product_combinations(db: Session = Depends(get_db)):
     """Get unique combinations of process_type and product_type, sorted."""
     combinations = (
-        db.query(models.CDData.process_type, models.CDData.product_type)
+        db.query(models.SPCCdL1.process_type, models.SPCCdL1.product_type)
         .distinct()
         .all()
     )

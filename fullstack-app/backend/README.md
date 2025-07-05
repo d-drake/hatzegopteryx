@@ -17,12 +17,12 @@ backend/
 │   └── security.py
 ├── routers/              # API route handlers
 │   ├── auth.py          # Authentication endpoints
-│   ├── cd_data.py       # CD data endpoints
+│   ├── spc_cd_l1.py     # SPC CD L1 data endpoints
 │   ├── items.py         # Items CRUD
 │   ├── spc_limits.py    # SPC limits endpoints
 │   └── users.py         # User management
 ├── scripts/              # Database scripts
-│   ├── generate_cd_data.py
+│   ├── generate_spc_cd_l1_data.py
 │   ├── generate_spc_limits.py
 │   └── create_superuser.py
 ├── security/             # Security utilities

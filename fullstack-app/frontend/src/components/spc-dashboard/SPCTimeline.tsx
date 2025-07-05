@@ -1,18 +1,18 @@
 'use client';
 
 import Timeline from '@/components/charts/Timeline';
-import { CDDataItem, SPCLimit } from '@/services/cdDataService';
+import { SPCCdL1Item, SPCLimit } from '@/services/spcCdL1Service';
 import LimitLine from './LimitLine';
 import { useSPCLimits } from '@/contexts/SPCLimitsContext';
 import * as d3 from 'd3';
 
 interface SPCTimelineProps {
-  data: CDDataItem[];
-  xField: keyof CDDataItem;
-  yField: keyof CDDataItem;
-  y2Field?: keyof CDDataItem; // Secondary Y-axis field
-  colorField?: keyof CDDataItem;
-  shapeField?: keyof CDDataItem;
+  data: SPCCdL1Item[];
+  xField: keyof SPCCdL1Item;
+  yField: keyof SPCCdL1Item;
+  y2Field?: keyof SPCCdL1Item; // Secondary Y-axis field
+  colorField?: keyof SPCCdL1Item;
+  shapeField?: keyof SPCCdL1Item;
   width?: number;
   height?: number;
   margin?: { top: number; right: number; bottom: number; left: number };
@@ -21,7 +21,7 @@ interface SPCTimelineProps {
   spcMonitorName?: string;
   yScale?: d3.ScaleLinear<number, number>; // External Y scale for synchronization (deprecated)
   onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Callback when Y scale changes (deprecated)
-  allData?: CDDataItem[]; // All data for scale calculation
+  allData?: SPCCdL1Item[]; // All data for scale calculation
   xZoomDomain?: [number, number] | [Date, Date] | null; // X-axis zoom domain
   yZoomDomain?: [number, number] | null; // Y-axis zoom domain
   y2ZoomDomain?: [number, number] | null; // Y2-axis zoom domain
@@ -65,7 +65,7 @@ export default function SPCTimeline({
   const effectiveShapeField = yField === 'cd_att' ? 'fake_property1' : shapeField;
 
   // Map yField to chart name for SPC limits
-  const getChartName = (field: keyof CDDataItem): string => {
+  const getChartName = (field: keyof SPCCdL1Item): string => {
     switch (field) {
       case 'cd_att': return 'cd_att';
       case 'cd_x_y': return 'cd_x_y';
@@ -89,7 +89,7 @@ export default function SPCTimeline({
   } : undefined;
 
   return (
-    <Timeline<CDDataItem>
+    <Timeline<SPCCdL1Item>
       data={data}
       xField={xField}
       yField={yField}

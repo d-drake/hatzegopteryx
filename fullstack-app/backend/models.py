@@ -27,8 +27,8 @@ class Item(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
 
-class CDData(Base):
-    __tablename__ = "cd_data"
+class SPCCdL1(Base):
+    __tablename__ = "spc_cd_l1"
 
     lot = Column(String, primary_key=True, index=True)  # Lot100000, Lot100001, etc.
     date_process = Column(DateTime, nullable=False, index=True)

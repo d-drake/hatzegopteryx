@@ -127,8 +127,8 @@ class EmailSchema(BaseModel):
     body: str
 
 
-# CD Data schemas
-class CDDataBase(BaseModel):
+# SPC CD L1 Data schemas
+class SPCCdL1Base(BaseModel):
     lot: str
     date_process: datetime
     bias: int
@@ -145,7 +145,7 @@ class CDDataBase(BaseModel):
     spc_monitor_name: str
 
 
-class CDData(CDDataBase):
+class SPCCdL1(SPCCdL1Base):
     model_config = ConfigDict(from_attributes=True)
 
 

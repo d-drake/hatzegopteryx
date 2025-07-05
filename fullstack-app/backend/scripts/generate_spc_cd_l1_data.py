@@ -2,21 +2,21 @@ import random
 import numpy as np
 from datetime import datetime, timedelta
 from database import SessionLocal, engine
-from models import Base, CDData
+from models import Base, SPCCdL1
 from collections import defaultdict
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
 
 
-def generate_cd_data():
-    """Generate 365 days of fake CD data with ~40 points per day"""
+def generate_spc_cd_l1_data():
+    """Generate 365 days of fake SPC CD L1 data with ~40 points per day"""
     db = SessionLocal()
 
     # Drop and recreate table to ensure clean schema
     from sqlalchemy import text
 
-    db.execute(text("DROP TABLE IF EXISTS cd_data CASCADE"))
+    db.execute(text("DROP TABLE IF EXISTS spc_cd_l1 CASCADE"))
     db.commit()
 
     # Recreate table with current model schema
@@ -197,7 +197,7 @@ def generate_cd_data():
 
         # Create data point with lot ID
         lot_id = f"Lot{lot_counter}"
-        data_point = CDData(
+        data_point = SPCCdL1(
             lot=lot_id,
             date_process=timestamp,
             bias=bias_value,
@@ -221,11 +221,11 @@ def generate_cd_data():
     db.commit()
 
     # Verify the data
-    count = db.query(CDData).count()
-    print(f"Successfully generated {count} CD data points")
+    count = db.query(SPCCdL1).count()
+    print(f"Successfully generated {count} SPC CD L1 data points")
 
     # Show sample data
-    sample_data = db.query(CDData).limit(5).all()
+    sample_data = db.query(SPCCdL1).limit(5).all()
     print("\nSample data:")
     for data in sample_data:
         print(
@@ -238,4 +238,4 @@ def generate_cd_data():
 
 
 if __name__ == "__main__":
-    generate_cd_data()
+    generate_spc_cd_l1_data()

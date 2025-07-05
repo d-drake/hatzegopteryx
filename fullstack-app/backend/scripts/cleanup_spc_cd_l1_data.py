@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Clean up cd_data table by removing specified records.
+Clean up spc_cd_l1 table by removing specified records.
 
 This script removes:
 1. All rows where Process_Type == 900
@@ -17,13 +17,13 @@ from sqlalchemy.orm import sessionmaker
 
 # Add parent directory to path to import models
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models import CDData, SPCLimits
+from models import SPCCdL1, SPCLimits
 from config import get_settings
 
 
-def cleanup_cd_data(dry_run=True, force=False):
+def cleanup_spc_cd_l1_data(dry_run=True, force=False):
     """
-    Clean up cd_data table by removing specified records.
+    Clean up spc_cd_l1 table by removing specified records.
     
     Args:
         dry_run (bool): If True, only show what would be deleted without actually deleting.
@@ -37,7 +37,7 @@ def cleanup_cd_data(dry_run=True, force=False):
     
     try:
         # Get initial record count
-        initial_count = session.query(func.count(CDData.lot)).scalar()
+        initial_count = session.query(func.count(SPCCdL1.lot)).scalar()
         print(f"\nInitial record count: {initial_count:,}")
         
         if dry_run:
@@ -49,27 +49,27 @@ def cleanup_cd_data(dry_run=True, force=False):
         print("\n=== Records to be deleted ===")
         
         # Deletion 1: Process_Type == 900
-        deletion1_query = session.query(CDData).filter(
-            CDData.process_type == '900'
+        deletion1_query = session.query(SPCCdL1).filter(
+            SPCCdL1.process_type == '900'
         )
         deletion1_count = deletion1_query.count()
         print(f"\n1. Process_Type == '900': {deletion1_count:,} records")
         
         # Deletion 2: Process_Type == 1000 AND Product_Type == 'XLY1'
-        deletion2_query = session.query(CDData).filter(
+        deletion2_query = session.query(SPCCdL1).filter(
             and_(
-                CDData.process_type == '1000',
-                CDData.product_type == 'XLY1'
+                SPCCdL1.process_type == '1000',
+                SPCCdL1.product_type == 'XLY1'
             )
         )
         deletion2_count = deletion2_query.count()
         print(f"2. Process_Type == '1000' AND Product_Type == 'XLY1': {deletion2_count:,} records")
         
         # Deletion 3: Process_Type == 1100 AND Product_Type IN ('VLQR1', 'XLY1', 'XLY2')
-        deletion3_query = session.query(CDData).filter(
+        deletion3_query = session.query(SPCCdL1).filter(
             and_(
-                CDData.process_type == '1100',
-                CDData.product_type.in_(['VLQR1', 'XLY1', 'XLY2'])
+                SPCCdL1.process_type == '1100',
+                SPCCdL1.product_type.in_(['VLQR1', 'XLY1', 'XLY2'])
             )
         )
         deletion3_count = deletion3_query.count()
@@ -125,7 +125,7 @@ def cleanup_cd_data(dry_run=True, force=False):
             
             print("\n🗑️  Deleting records...")
             
-            # Delete CD data
+            # Delete SPC CD L1 data
             deleted1 = deletion1_query.delete(synchronize_session=False)
             print(f"✓ Deleted {deleted1:,} records where Process_Type == '900'")
             
@@ -161,7 +161,7 @@ def cleanup_cd_data(dry_run=True, force=False):
             session.commit()
             
             # Verify final count
-            final_count = session.query(func.count(CDData.lot)).scalar()
+            final_count = session.query(func.count(SPCCdL1.lot)).scalar()
             print(f"\n✅ Deletion complete!")
             print(f"Final record count: {final_count:,} (expected: {remaining_count:,})")
             
@@ -185,7 +185,7 @@ def cleanup_cd_data(dry_run=True, force=False):
 if __name__ == "__main__":
     import argparse
     
-    parser = argparse.ArgumentParser(description="Clean up cd_data table")
+    parser = argparse.ArgumentParser(description="Clean up spc_cd_l1 table")
     parser.add_argument(
         "--execute", 
         action="store_true", 
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    print("CD Data Cleanup Script")
+    print("SPC CD L1 Data Cleanup Script")
     print("=" * 50)
     
-    cleanup_cd_data(dry_run=not args.execute, force=args.force)
+    cleanup_spc_cd_l1_data(dry_run=not args.execute, force=args.force)

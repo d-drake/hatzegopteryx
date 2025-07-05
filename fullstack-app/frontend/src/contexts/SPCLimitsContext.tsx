@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
-import { fetchSPCLimits, SPCLimit } from '@/services/cdDataService';
+import { fetchSPCLimits, SPCLimit } from '@/services/spcCdL1Service';
 
 interface SPCLimitsContextValue {
   limits: SPCLimit[];

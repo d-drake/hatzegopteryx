@@ -6,7 +6,7 @@ import {
   fetchSPCMonitorNames, 
   fetchProcessProductCombinations, 
   ProcessProductCombination 
-} from '@/services/cdDataService';
+} from '@/services/spcCdL1Service';
 
 interface SPCTabsProps {
   spcMonitor: string;
