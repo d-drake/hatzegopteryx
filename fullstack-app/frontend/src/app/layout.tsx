@@ -3,14 +3,14 @@ import { Inter } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Cloud Critical Dimension Hub",
-  description: "Plotting your past, present, and well-controlled future.",
+  description: "Charting the past, present, and well-controlled future.",
   icons: {
     icon: [
       { url: '/favicon.ico', type: 'image/x-icon' },

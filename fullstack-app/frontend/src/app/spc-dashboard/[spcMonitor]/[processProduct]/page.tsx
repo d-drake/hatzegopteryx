@@ -31,11 +31,11 @@ function SPCDashboardInner() {
 
   const isGuest = !user;
   const viewportWidth = useViewportWidth();
-  
+
   // State for synchronized view switching
   const [syncViews, setSyncViews] = useState(true); // Default to synced
   const [activeView, setActiveView] = useState<'timeline' | 'variability'>('timeline');
-  
+
   // Tabs are visible when viewport < 1500px (matching SPCChartWrapper logic)
   const SIDE_BY_SIDE_BREAKPOINT = 1500;
   const areTabsVisible = viewportWidth < SIDE_BY_SIDE_BREAKPOINT;
@@ -44,7 +44,7 @@ function SPCDashboardInner() {
   const spcMonitor = decodeURIComponent(params.spcMonitor as string);
   const processProduct = decodeURIComponent(params.processProduct as string);
   const [processType, productType] = processProduct.split('-');
-  
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -53,7 +53,7 @@ function SPCDashboardInner() {
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold">Cloud Critical Dimension Hub</h1>
           <p className="text-slate-300 mt-2">
-            Plotting your past, present, and well-controlled future.
+            Charting the past, present, and well-controlled future.
           </p>
         </div>
       </header>
@@ -136,12 +136,10 @@ function SPCDashboardInner() {
                       onChange={(e) => setSyncViews(e.target.checked)}
                       className="sr-only"
                     />
-                    <div className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${
-                      syncViews ? 'bg-blue-600' : 'bg-gray-200'
-                    }`}>
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                        syncViews ? 'translate-x-6' : 'translate-x-1'
-                      }`} />
+                    <div className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${syncViews ? 'bg-blue-600' : 'bg-gray-200'
+                      }`}>
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${syncViews ? 'translate-x-6' : 'translate-x-1'
+                        }`} />
                     </div>
                     <span className="ml-2 text-sm text-gray-700">Sync Chart Views</span>
                   </label>

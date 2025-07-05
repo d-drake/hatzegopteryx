@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cloud Critical Dimension Hub is a sophisticated fullstack SPC (Statistical Process Control) data visualization application designed for semiconductor manufacturing analytics. The application features advanced interactive charts, real-time filtering, and comprehensive control limits integration.
+Cloud Critical Dimension Hub is a sophisticated fullstack SPC (Statistical Process Control) data visualization application designed for manufacturing analytics. The application features advanced interactive charts, real-time filtering, and comprehensive control limits integration.
 
 **Core Technologies:**
 - **Backend**: FastAPI (Python 3.13) with SQLAlchemy ORM
