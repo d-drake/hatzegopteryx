@@ -32,6 +32,11 @@ export default function FilterControls({
   
   const isGuest = !user;
   const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to midnight for consistent date comparisons
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  
   const thirtyDaysAgo = new Date(today);
   thirtyDaysAgo.setDate(today.getDate() - 30);
 
@@ -61,11 +66,40 @@ export default function FilterControls({
     
     // For guests, enforce date restrictions
     if (isGuest && (key === 'startDate' || key === 'endDate')) {
-      if (key === 'startDate' && value && new Date(value) < thirtyDaysAgo) {
-        value = thirtyDaysAgo.toISOString().split('T')[0];
+      if (key === 'startDate' && value) {
+        // Parse date string as local date to avoid timezone issues
+        const [year, month, day] = value.split('-').map(Number);
+        const selectedDate = new Date(year, month - 1, day);
+        
+        // Create thirty days ago at midnight local time
+        const thirtyDaysAgoMidnight = new Date(today);
+        thirtyDaysAgoMidnight.setDate(today.getDate() - 30);
+        thirtyDaysAgoMidnight.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < thirtyDaysAgoMidnight) {
+          const year = thirtyDaysAgoMidnight.getFullYear();
+          const month = String(thirtyDaysAgoMidnight.getMonth() + 1).padStart(2, '0');
+          const day = String(thirtyDaysAgoMidnight.getDate()).padStart(2, '0');
+          value = `${year}-${month}-${day}`;
+        }
       }
-      if (key === 'endDate' && value && new Date(value) > today) {
-        value = today.toISOString().split('T')[0];
+      if (key === 'endDate' && value) {
+        // Parse date string as local date to avoid timezone issues
+        const [year, month, day] = value.split('-').map(Number);
+        const selectedDate = new Date(year, month - 1, day);
+        
+        // Create tomorrow's date at midnight local time
+        const tomorrowMidnight = new Date(today);
+        tomorrowMidnight.setDate(today.getDate() + 1);
+        tomorrowMidnight.setHours(0, 0, 0, 0);
+        
+        
+        if (selectedDate > tomorrowMidnight) {
+          const year = tomorrowMidnight.getFullYear();
+          const month = String(tomorrowMidnight.getMonth() + 1).padStart(2, '0');
+          const day = String(tomorrowMidnight.getDate()).padStart(2, '0');
+          value = `${year}-${month}-${day}`;
+        }
       }
     }
     
@@ -155,7 +189,7 @@ export default function FilterControls({
             onChange={(date) => handleDateChange('startDate', date)}
             disabled={loading}
             minDate={isGuest ? thirtyDaysAgo : undefined}
-            maxDate={isGuest ? today : undefined}
+            maxDate={isGuest ? tomorrow : undefined}
             placeholder="Select start date"
           />
         </div>
@@ -170,7 +204,7 @@ export default function FilterControls({
             onChange={(date) => handleDateChange('endDate', date)}
             disabled={loading}
             minDate={isGuest ? thirtyDaysAgo : undefined}
-            maxDate={isGuest ? today : undefined}
+            maxDate={isGuest ? tomorrow : undefined}
             placeholder="Select end date"
           />
         </div>

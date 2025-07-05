@@ -31,7 +31,12 @@ export function DatePicker({
   className
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
-  const date = value ? new Date(value) : undefined
+  
+  // Parse date string as local date to avoid timezone issues
+  const date = value ? (() => {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  })() : undefined
 
   const handleSelect = (newDate: Date | undefined) => {
     if (newDate && onChange) {
@@ -73,9 +78,23 @@ export function DatePicker({
           selected={date}
           onSelect={handleSelect}
           disabled={(date) => {
-            if (minDate && date < minDate) return true
-            if (maxDate && date > maxDate) return true
-            return false
+            // Set time to midnight for date-only comparison
+            const compareDate = new Date(date);
+            compareDate.setHours(0, 0, 0, 0);
+            
+            if (minDate) {
+              const minCompare = new Date(minDate);
+              minCompare.setHours(0, 0, 0, 0);
+              if (compareDate < minCompare) return true;
+            }
+            
+            if (maxDate) {
+              const maxCompare = new Date(maxDate);
+              maxCompare.setHours(0, 0, 0, 0);
+              if (compareDate > maxCompare) return true;
+            }
+            
+            return false;
           }}
           initialFocus
           className="rounded-md border"

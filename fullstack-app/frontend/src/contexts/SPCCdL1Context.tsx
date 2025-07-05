@@ -50,9 +50,15 @@ export function SPCCdL1Provider({
 
   // Create default filters
   const getDefaultFilters = (): FilterState => {
-    const endDate = new Date();
-    const startDate = new Date();
+    const today = new Date();
+    
+    // Set start date to 30 days ago
+    const startDate = new Date(today);
     startDate.setDate(startDate.getDate() - 30);
+    
+    // Set end date to tomorrow (today + 1 day)
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + 1);
 
     const formatDate = (date: Date) => {
       const year = date.getFullYear();
@@ -61,11 +67,14 @@ export function SPCCdL1Provider({
       return `${year}-${month}-${day}`;
     };
 
-    return {
+    const filters = {
       entity: 'FAKE_TOOL1',
       startDate: formatDate(startDate),
       endDate: formatDate(endDate)
     };
+    
+
+    return filters;
   };
 
   const [filters, setFilters] = useState<FilterState>(getDefaultFilters());
