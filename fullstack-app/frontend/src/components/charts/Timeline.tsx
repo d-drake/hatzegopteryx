@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useRef, useEffect, useState, useId, useCallback } from 'react';
-import ChartContainer, { useChartDimensions } from './ChartContainer';
+import ChartContainer, { useEnhancedChartDimensions } from './ChartContainer';
 import Axis from './Axis';
 import Circles from './Circles';
 import Symbols from './Symbols';
@@ -22,6 +22,9 @@ import {
 } from '@/lib/charts/scales';
 import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
 import * as d3 from 'd3';
+
+// Removed obsolete DOM-based coordinate system types
+
 interface TimelineProps<T extends Record<string, any>> {
   data: T[];
   xField: keyof T;
@@ -52,6 +55,8 @@ interface TimelineProps<T extends Record<string, any>> {
   onResetZoom?: () => void; // Callback for reset zoom
 }
 
+
+// Removed obsolete DOM-based coordinate system functions
 
 export default function Timeline<T extends Record<string, any>>({
   data,
@@ -84,11 +89,17 @@ export default function Timeline<T extends Record<string, any>>({
   const [dynamicRightMargin, setDynamicRightMargin] = useState(80);
 
   // Calculate responsive margins with dynamic right margin
-  const responsiveMargin = isNarrowSVG
-    ? { top: 40, right: y2Field ? Math.max(dynamicRightMargin, 60) : 10, bottom: 80, left: 50 }
-    : { ...margin, right: y2Field ? Math.max(margin.right, dynamicRightMargin) : margin.right };
+  const responsiveMargin = useMemo(() => 
+    isNarrowSVG
+      ? { top: 40, right: y2Field ? Math.max(dynamicRightMargin, 60) : 10, bottom: 80, left: 50 }
+      : { ...margin, right: y2Field ? Math.max(margin.right, dynamicRightMargin) : margin.right },
+    [isNarrowSVG, y2Field, dynamicRightMargin, margin]
+  );
 
-  const { innerWidth, innerHeight } = useChartDimensions(width, height, responsiveMargin);
+  const chartDimensions = useEnhancedChartDimensions(width, height, responsiveMargin, {
+    hasY2Axis: !!y2Field,
+  });
+  const { innerWidth, innerHeight, axisRegions, screenToChart, getAxisRegion } = chartDimensions;
   const { showTooltip, hideTooltip } = useTooltip();
   const svgRef = useRef<SVGSVGElement>(null);
   const chartRef = useRef<SVGGElement>(null);
@@ -317,31 +328,30 @@ export default function Timeline<T extends Record<string, any>>({
     const svg = svgRef.current;
     if (!svg) return;
 
-    const handleWheel = (event: WheelEvent) => {
-
+    const handleMouseMove = (event: MouseEvent) => {
       const rect = svg.getBoundingClientRect();
-      const mouseX = event.clientX - rect.left;
-      const mouseY = event.clientY - rect.top;
+      const { x: chartX, y: chartY } = screenToChart(event.clientX, event.clientY, rect);
 
-      // X-axis zone should be from the X-axis line to the bottom of the SVG
-      const xAxisLineY = margin.top + innerHeight;
-      const xAxisZoneStart = xAxisLineY;  // Start exactly at the X-axis line
-      const xAxisZoneEnd = height;        // End at the bottom of the entire SVG
+      // Use centralized axis region detection
+      const axisRegion = getAxisRegion(chartX, chartY);
+      
+      // Update cursor based on which axis region we're in
+      if (axisRegion && axisRegions[axisRegion]) {
+        svg.style.cursor = axisRegions[axisRegion].cursor;
+      } else {
+        svg.style.cursor = 'default';
+      }
+    };
 
-      // Check if mouse is over x-axis area (from X-axis line to bottom of chart)
-      const isOverXAxis = mouseY >= xAxisZoneStart && mouseY <= xAxisZoneEnd &&
-        mouseX >= margin.left && mouseX <= margin.left + innerWidth;
+    const handleWheel = (event: WheelEvent) => {
+      const rect = svg.getBoundingClientRect();
+      const { x: chartX, y: chartY } = screenToChart(event.clientX, event.clientY, rect);
 
-      // Check if mouse is over y-axis area (to the left of the chart, in the margin area)
-      const isOverYAxis = mouseX >= 0 && mouseX <= margin.left &&
-        mouseY >= margin.top && mouseY <= margin.top + innerHeight;
+      // Use centralized axis region detection
+      const axisRegion = getAxisRegion(chartX, chartY);
 
-      // Check if mouse is over secondary y-axis area (to the right of the chart, when y2Field exists)
-      const isOverY2Axis = y2Field && mouseX >= margin.left + innerWidth && mouseX <= margin.left + innerWidth + 75 &&
-        mouseY >= margin.top && mouseY <= margin.top + innerHeight;
-
-      // Only prevent default and handle zoom if we're in a zoom area
-      if (isOverXAxis || isOverYAxis || isOverY2Axis) {
+      // Only prevent default and handle zoom if we're in an axis region
+      if (axisRegion) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -349,7 +359,7 @@ export default function Timeline<T extends Record<string, any>>({
         const zoomIn = event.deltaY < 0;
         const scale = zoomIn ? zoomFactor : 1 / zoomFactor;
 
-        if (isOverXAxis) {
+        if (axisRegion === 'bottom') {
           // Zoom X-axis by updating the domain state
           const [min, max] = currentXExtent;
 
@@ -384,7 +394,7 @@ export default function Timeline<T extends Record<string, any>>({
           }
         }
 
-        if (isOverYAxis) {
+        if (axisRegion === 'left') {
           // Zoom Y-axis by updating the domain state
           const [min, max] = currentYExtent;
           const range = max - min;
@@ -402,7 +412,7 @@ export default function Timeline<T extends Record<string, any>>({
           // Removed deprecated onYScaleChange handling
         }
 
-        if (isOverY2Axis) {
+        if (axisRegion === 'right') {
           // Zoom secondary Y-axis by updating the domain state
           const [min, max] = currentY2Extent;
           const range = max - min;
@@ -420,13 +430,15 @@ export default function Timeline<T extends Record<string, any>>({
       }
     };
 
-    // Add non-passive event listener directly to the SVG element
+    // Add event listeners directly to the SVG element
+    svg.addEventListener('mousemove', handleMouseMove);
     svg.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
+      svg.removeEventListener('mousemove', handleMouseMove);
       svg.removeEventListener('wheel', handleWheel);
     };
-  }, [currentXExtent, currentYExtent, currentY2Extent, innerWidth, innerHeight, margin, clipPathId, height, y2Field, width, onXZoomChange, onYZoomChange, onY2ZoomChange]);
+  }, [currentXExtent, currentYExtent, currentY2Extent, screenToChart, getAxisRegion, axisRegions, onXZoomChange, onYZoomChange, onY2ZoomChange]);
 
   // Reset zoom function
   const resetZoom = () => {
@@ -682,36 +694,41 @@ export default function Timeline<T extends Record<string, any>>({
             </>
           )}
 
-          {/* Zoom areas for user guidance */}
-          {/* X-axis zoom area - from X-axis line to bottom of chart */}
-          <rect
-            x={0}
-            y={innerHeight}
-            width={innerWidth}
-            height={responsiveMargin.bottom}
-            fill="transparent"
-            style={{ cursor: 'ew-resize' }}
-          />
-
-          {/* Y-axis zoom area */}
-          <rect
-            x={-responsiveMargin.left}
-            y={0}
-            width={responsiveMargin.left}
-            height={innerHeight}
-            fill="transparent"
-            style={{ cursor: 'ns-resize' }}
-          />
-
-          {/* Secondary Y-axis zoom area (right side) */}
-          {y2Field && (
+          {/* Zoom areas for user guidance - using centralized axis regions */}
+          
+          {/* Bottom axis (X-axis) zoom area */}
+          {axisRegions.bottom && (
             <rect
-              x={innerWidth}
-              y={0}
-              width={75} // 50% of original margin.right (150px)
-              height={innerHeight}
+              x={axisRegions.bottom.x}
+              y={axisRegions.bottom.y}
+              width={axisRegions.bottom.width}
+              height={axisRegions.bottom.height}
               fill="transparent"
-              style={{ cursor: 'ns-resize' }}
+              style={{ cursor: axisRegions.bottom.cursor }}
+            />
+          )}
+
+          {/* Left axis (Y-axis) zoom area */}
+          {axisRegions.left && (
+            <rect
+              x={axisRegions.left.x}
+              y={axisRegions.left.y}
+              width={axisRegions.left.width}
+              height={axisRegions.left.height}
+              fill="transparent"
+              style={{ cursor: axisRegions.left.cursor }}
+            />
+          )}
+
+          {/* Right axis (Y2-axis) zoom area */}
+          {axisRegions.right && (
+            <rect
+              x={axisRegions.right.x}
+              y={axisRegions.right.y}
+              width={axisRegions.right.width}
+              height={axisRegions.right.height}
+              fill="transparent"
+              style={{ cursor: axisRegions.right.cursor }}
             />
           )}
 

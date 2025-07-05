@@ -43,16 +43,7 @@ ChartContainer.displayName = 'ChartContainer';
 
 export default ChartContainer;
 
-export function useChartDimensions(
-  width: number,
-  height: number,
-  margin: { top: number; right: number; bottom: number; left: number }
-) {
-  return {
-    innerWidth: width - margin.left - margin.right,
-    innerHeight: height - margin.top - margin.bottom,
-    width,
-    height,
-    margin,
-  };
-}
+// Re-export the simple version for backward compatibility
+export { useChartDimensionsSimple as useChartDimensions } from '../../hooks/useChartDimensions';
+// Export the new enhanced version
+export { useChartDimensions as useEnhancedChartDimensions, type ChartDimensions, type AxisRegion } from '../../hooks/useChartDimensions';
