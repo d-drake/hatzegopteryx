@@ -57,12 +57,3 @@ export interface SPCLimits {
   effective_date: string;
 }
 
-export interface SPCLimitsCreate {
-  process_type: string;
-  product_type: string;
-  spc_monitor_name: string;
-  spc_chart_name: string;
-  cl?: number;
-  lcl?: number;
-  ucl?: number;
-}

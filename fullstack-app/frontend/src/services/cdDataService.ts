@@ -1,17 +1,17 @@
 import apiClient from '@/lib/axios';
 import { AxiosError } from 'axios';
 
-// Add request interceptor for debugging
+// Add request interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
-    if (config.params) {
-      console.log('Request params:', config.params);
-    }
+    // In development, you can uncomment the following for debugging:
+    // console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    // if (config.params) {
+    //   console.log('Request params:', config.params);
+    // }
     return config;
   },
   (error) => {
-    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -19,18 +19,12 @@ apiClient.interceptors.request.use(
 // Add response interceptor to handle errors better
 apiClient.interceptors.response.use(
   (response) => {
-    // Log successful responses for debugging
-    console.log(`✅ API Success: ${response.config.method?.toUpperCase()} ${response.config.url} - Status: ${response.status}`);
-    
     // Validate JSON response content
     if (response.headers['content-type']?.includes('application/json')) {
       try {
         // Check if response data is valid JSON by trying to stringify it
         JSON.stringify(response.data);
-        console.log('Response data validation: ✅ Valid JSON');
       } catch (e) {
-        console.error('Response data validation: ❌ Invalid JSON structure');
-        console.error('Problematic response data:', response.data);
         throw new Error('Invalid JSON response from server');
       }
     }
@@ -43,37 +37,29 @@ apiClient.interceptors.response.use(
     const url = error.config?.url || 'unknown';
     
     if (error.code === 'ECONNABORTED') {
-      console.error(`❌ Request timeout: ${method} ${url}`);
+      // Request timeout
     } else if (error.response?.status === 429) {
-      console.error(`⏰ Rate limit exceeded: ${method} ${url} - Status: 429`);
+      // Rate limit exceeded
       const retryAfter = error.response.headers['retry-after'];
       if (retryAfter) {
-        console.error(`Retry after: ${retryAfter}`);
+        // Retry after header available
       }
-      console.error('Consider reducing request frequency or implementing request queuing');
+      // Consider reducing request frequency or implementing request queuing
     } else if (error.response?.status >= 500) {
-      console.error(`❌ Server error: ${method} ${url} - Status: ${error.response.status}`);
-      console.error('Response data:', error.response.data);
+      // Server error
+      // Response data available for debugging if needed
     } else if (!error.response) {
-      console.error(`❌ Network error: ${method} ${url} - ${error.message}`);
+      // Network error
     } else {
-      console.error(`❌ API Error: ${method} ${url} - Status: ${error.response.status}`);
-      // Safely access response data
-      if (error.response.data !== undefined) {
-        console.error('Response data:', error.response.data);
-      }
+      // API Error with status code
     }
     
-    // Log the raw response if it's a JSON parsing issue
+    // Handle JSON parsing issues
     if (error.message?.includes('JSON')) {
-      console.error('Raw response that failed to parse:', error.response?.data);
-      console.error('Response headers:', error.response?.headers);
-      console.error('Response status:', error.response?.status);
-      console.error('Response content-type:', error.response?.headers['content-type']);
-      
       // Check if we got HTML instead of JSON (common in server errors)
       if (typeof error.response?.data === 'string' && error.response.data.includes('<html>')) {
-        console.error('⚠️ Received HTML response instead of JSON - likely a server error page');
+        // Received HTML response instead of JSON - likely a server error page
+        throw new Error('Server returned HTML instead of JSON - possible server error');
       }
     }
     
@@ -115,7 +101,7 @@ async function retryRequest<T>(
           waitTime = delay * Math.pow(2, attempt);
         }
         
-        console.warn(`Rate limit hit (429). Waiting ${waitTime}ms before retry (attempt ${attempt + 1}/${maxRetries + 1})...`);
+        // Rate limit hit (429). Waiting before retry
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
       }
@@ -129,7 +115,7 @@ async function retryRequest<T>(
            error.message?.includes('Invalid JSON response'));
            
       if (shouldRetry) {
-        console.warn(`Request failed (attempt ${attempt + 1}/${maxRetries + 1}): ${error.message}, retrying in ${delay}ms...`);
+        // Request failed, retrying
         await new Promise(resolve => setTimeout(resolve, delay));
         delay *= 2; // Exponential backoff
       } else {
@@ -220,7 +206,7 @@ export async function fetchCDDataStats(filters?: CDDataFilters): Promise<CDDataS
     
     return response.data;
   } catch (error) {
-    console.error('Error fetching CD data stats:', error);
+    // Error fetching CD data stats
     throw error;
   }
 }
@@ -230,7 +216,7 @@ export async function fetchEntities(): Promise<string[]> {
     const response = await apiClient.get<string[]>('/api/cd-data/entities');
     return response.data;
   } catch (error) {
-    console.error('Error fetching entities:', error);
+    // Error fetching entities
     throw error;
   }
 }
@@ -240,7 +226,7 @@ export async function fetchProcessTypes(): Promise<string[]> {
     const response = await apiClient.get<string[]>('/api/cd-data/process-types');
     return response.data;
   } catch (error) {
-    console.error('Error fetching process types:', error);
+    // Error fetching process types
     throw error;
   }
 }
@@ -250,7 +236,7 @@ export async function fetchProductTypes(): Promise<string[]> {
     const response = await apiClient.get<string[]>('/api/cd-data/product-types');
     return response.data;
   } catch (error) {
-    console.error('Error fetching product types:', error);
+    // Error fetching product types
     throw error;
   }
 }
@@ -260,7 +246,7 @@ export async function fetchSPCMonitorNames(): Promise<string[]> {
     const response = await apiClient.get<string[]>('/api/cd-data/spc-monitor-names');
     return response.data;
   } catch (error) {
-    console.error('Error fetching SPC monitor names:', error);
+    // Error fetching SPC monitor names
     throw error;
   }
 }
