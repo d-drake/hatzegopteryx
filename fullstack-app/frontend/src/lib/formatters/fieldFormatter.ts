@@ -61,16 +61,16 @@ export function formatFieldName(
     formattedField = `${field} (${unitMapping[field]})`;
   }
 
-  // Convert underscores to spaces
-  if (options.convertUnderscores) {
-    formattedField = formattedField.replace(/_/g, ' ');
-  }
-
-  // Apply custom text replacements
+  // Apply custom text replacements BEFORE underscore conversion
   if (options.textReplacements) {
     for (const [search, replace] of Object.entries(options.textReplacements)) {
       formattedField = formattedField.replace(new RegExp(search, 'g'), replace);
     }
+  }
+
+  // Convert underscores to spaces
+  if (options.convertUnderscores) {
+    formattedField = formattedField.replace(/_/g, ' ');
   }
 
   // Apply abbreviation logic for long field names
