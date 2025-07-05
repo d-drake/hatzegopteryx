@@ -6,7 +6,6 @@ import Axis from './Axis';
 import Circles from './Circles';
 import Symbols from './Symbols';
 import Line from './Line';
-import Legend from './Legend';
 import MultiColumnLegend from './MultiColumnLegend';
 import HorizontalLegend from './HorizontalLegend';
 import { useTooltip, formatTooltipContent } from './Tooltip';
@@ -89,7 +88,7 @@ export default function Timeline<T extends Record<string, any>>({
   const [dynamicRightMargin, setDynamicRightMargin] = useState(80);
 
   // Calculate responsive margins with dynamic right margin
-  const responsiveMargin = useMemo(() => 
+  const responsiveMargin = useMemo(() =>
     isNarrowSVG
       ? { top: 40, right: y2Field ? Math.max(dynamicRightMargin, 60) : 10, bottom: 80, left: 50 }
       : { ...margin, right: y2Field ? Math.max(margin.right, dynamicRightMargin) : margin.right },
@@ -334,7 +333,7 @@ export default function Timeline<T extends Record<string, any>>({
 
       // Use centralized axis region detection
       const axisRegion = getAxisRegion(chartX, chartY);
-      
+
       // Update cursor based on which axis region we're in
       if (axisRegion && axisRegions[axisRegion]) {
         svg.style.cursor = axisRegions[axisRegion].cursor;
@@ -695,7 +694,7 @@ export default function Timeline<T extends Record<string, any>>({
           )}
 
           {/* Zoom areas for user guidance - using centralized axis regions */}
-          
+
           {/* Bottom axis (X-axis) zoom area */}
           {axisRegions.bottom && (
             <rect
