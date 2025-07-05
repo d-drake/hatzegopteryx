@@ -19,7 +19,7 @@ export default function Home() {
     setShowEmail(true);
     // Copy email to clipboard
     navigator.clipboard.writeText('dwdrake90@gmail.com');
-    
+
     // Auto-hide after 3 seconds
     setTimeout(() => {
       setShowEmail(false);
@@ -51,7 +51,7 @@ export default function Home() {
                 <p className="text-lg leading-relaxed text-slate-100">
                   I am an engineer, an alpine skier, a lifelong learner, and a dedicated fan of the underdog.
                   My favorite things are club sandwiches, classic literature by Leo Tolstoy, and running
-                  breathlessly with a stinky pack of dogs. I have worked in semiconductors for 8 years;
+                  breathlessly with a stinking pack of dogs. I have worked in semiconductors for 8 years;
                   along the way, I have developed a passion for simplifying complicated data analysis for end users.
                 </p>
                 <p className="text-lg leading-relaxed text-slate-100 mt-4">
@@ -96,7 +96,7 @@ export default function Home() {
               <div className="relative h-full flex items-center justify-center">
 
                 {/* Image 1 - Back layer (positioned right-center for visibility) */}
-                <div className="absolute top-1/2 right-16 lg:right-24 transform -translate-y-1/2 translate-x-8 w-72 h-96 lg:w-80 lg:h-[480px] rotate-[3deg] shadow-2xl rounded-lg overflow-hidden">
+                <div className="absolute top-1/2 right-16 lg:right-24 transform -translate-y-1/2 translate-x-8 w-72 h-96 lg:w-80 lg:h-[480px] rotate-[3deg] shadow-2xl rounded-lg overflow-hidden hover:z-40 transition-all duration-300">
                   <Image
                     src="/images/profile-1.jpg"
                     alt="Alpine skiing adventure"
@@ -109,7 +109,7 @@ export default function Home() {
                 </div>
 
                 {/* Image 2 - Middle layer (more centered, less rotation) */}
-                <div className="absolute top-1/2 left-16 lg:left-24 transform -translate-y-1/2 -translate-x-8 w-64 h-80 lg:w-72 lg:h-96 rotate-[-4deg] shadow-2xl rounded-lg overflow-hidden">
+                <div className="absolute top-1/2 left-16 lg:left-24 transform -translate-y-1/2 -translate-x-8 w-64 h-80 lg:w-72 lg:h-96 rotate-[-4deg] shadow-2xl rounded-lg overflow-hidden hover:z-40 transition-all duration-300">
                   <Image
                     src="/images/profile-2.jpg"
                     alt="Engineering and adventure"
@@ -121,7 +121,7 @@ export default function Home() {
                 </div>
 
                 {/* Image 3 - Front layer (centered) */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 translate-y-12 w-56 h-72 lg:w-64 lg:h-80 rotate-[1deg] shadow-2xl rounded-lg overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 translate-y-12 w-56 h-72 lg:w-64 lg:h-80 rotate-[1deg] shadow-2xl rounded-lg overflow-hidden hover:z-40 transition-all duration-300">
                   <Image
                     src="/images/profile-3.jpg"
                     alt="Outdoor exploration"
@@ -132,12 +132,7 @@ export default function Home() {
                   <div className="absolute inset-0 bg-slate-900/10 hover:bg-slate-900/0 transition-all duration-500"></div>
                 </div>
 
-                {/* Hover effect to bring images forward */}
-                <style jsx>{`
-                  div:hover {
-                    z-index: 40 !important;
-                  }
-                `}</style>
+                {/* Hover effect handled via Tailwind classes in each image div */}
 
                 {/* Floating accent elements */}
                 <div className="absolute top-4 right-4 w-3 h-3 bg-blue-400 rounded-full opacity-60 animate-pulse"></div>
@@ -223,7 +218,7 @@ export default function Home() {
             </div>
           </div>
         )}
-        
+
         {/* Contact Button */}
         <button
           onClick={handleContactClick}
@@ -231,14 +226,14 @@ export default function Home() {
         >
           {/* Pulse animation ring - subtle, once per minute with slower pulse */}
           <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-[slowPulse_60s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
-          
+
           {/* Button content */}
           <div className="relative w-full h-full flex items-center justify-center">
             <svg className="w-6 h-6 text-slate-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          
+
           {/* Hover glow effect */}
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-600/0 via-blue-500/0 to-purple-600/0 group-hover:from-blue-600/20 group-hover:via-blue-500/20 group-hover:to-purple-600/20 transition-all duration-300"></div>
         </button>
