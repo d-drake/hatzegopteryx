@@ -123,62 +123,32 @@ export default function SPCChartWrapper({
 
       // Handle ResponsiveChartWrapper
       if (contentProps.children && typeof contentProps.children === 'function') {
-        if (width) {
-          // In side-by-side mode, pass the calculated width to ResponsiveChartWrapper
-          // by setting maxWidth to prevent it from using its default 800px
-          return cloneElement(content, {
-            maxWidth: width,
-            children: (resWidth: number) => {
-              const child = contentProps.children(resWidth);
-              if (isValidElement(child)) {
-                return cloneElement(child, {
-                  width: Math.min(resWidth, width), // Ensure we don't exceed calculated width
-                  xZoomDomain: xZoomDomain,
-                  yZoomDomain: yZoomDomain,
-                  y2ZoomDomain: y2ZoomDomain,
-                  onXZoomChange: handleXZoomChange,
-                  onYZoomChange: handleYZoomChange,
-                  onY2ZoomChange: handleY2ZoomChange,
-                  onResetZoom: handleResetZoom,
-                  isSideBySide: isSideBySide,
-                  // Legend props
-                  selectedColorItems: selectedColorItems,
-                  selectedShapeItems: selectedShapeItems,
-                  onColorLegendClick: handleColorLegendClick,
-                  onShapeLegendClick: handleShapeLegendClick,
-                  onResetLegendSelections: handleResetLegendSelections,
-                } as any);
-              }
-              return child;
+        // Let ResponsiveChartWrapper work normally in all cases
+        return cloneElement(content, {
+          children: (resWidth: number) => {
+            const child = contentProps.children(resWidth);
+            if (isValidElement(child)) {
+              return cloneElement(child, {
+                width: resWidth,
+                xZoomDomain: xZoomDomain,
+                yZoomDomain: yZoomDomain,
+                y2ZoomDomain: y2ZoomDomain,
+                onXZoomChange: handleXZoomChange,
+                onYZoomChange: handleYZoomChange,
+                onY2ZoomChange: handleY2ZoomChange,
+                onResetZoom: handleResetZoom,
+                isSideBySide: isSideBySide,
+                // Legend props
+                selectedColorItems: selectedColorItems,
+                selectedShapeItems: selectedShapeItems,
+                onColorLegendClick: handleColorLegendClick,
+                onShapeLegendClick: handleShapeLegendClick,
+                onResetLegendSelections: handleResetLegendSelections,
+              } as any);
             }
-          } as any);
-        } else {
-          // In tabbed mode, let ResponsiveChartWrapper work normally
-          return cloneElement(content, {
-            children: (resWidth: number) => {
-              const child = contentProps.children(resWidth);
-              if (isValidElement(child)) {
-                return cloneElement(child, {
-                  width: resWidth,
-                  xZoomDomain: xZoomDomain,
-                  yZoomDomain: yZoomDomain,
-                  y2ZoomDomain: y2ZoomDomain,
-                  onXZoomChange: handleXZoomChange,
-                  onYZoomChange: handleYZoomChange,
-                  onY2ZoomChange: handleY2ZoomChange,
-                  onResetZoom: handleResetZoom,
-                  // Legend props
-                  selectedColorItems: selectedColorItems,
-                  selectedShapeItems: selectedShapeItems,
-                  onColorLegendClick: handleColorLegendClick,
-                  onShapeLegendClick: handleShapeLegendClick,
-                  onResetLegendSelections: handleResetLegendSelections,
-                } as any);
-              }
-              return child;
-            }
-          } as any);
-        }
+            return child;
+          }
+        } as any);
       }
 
       // Handle direct chart components
@@ -224,25 +194,8 @@ export default function SPCChartWrapper({
   // Check if we should use side-by-side layout
   const isSideBySide = viewportWidth >= SIDE_BY_SIDE_BREAKPOINT && tabs.length === 2;
 
-  // Calculate widths for side-by-side mode
+  // Side-by-side layout using flexbox
   if (isSideBySide) {
-    // The actual container has padding: p-4 (16px) on each side
-    // Plus the container itself has margins/padding from its parent
-    // Let's be more conservative with the calculation
-    const containerPadding = 32; // 16px * 2 for p-4
-    const containerMargin = 32; // Additional margin for the container itself
-    const totalPadding = containerPadding + containerMargin;
-
-    // Calculate the actual available width inside the bg-white container
-    const containerWidth = Math.min(viewportWidth - totalPadding, 1504); // Cap at observed max
-
-    // Account for the gap between charts and the internal padding
-    const chartAreaPadding = 32; // p-4 inside the container
-    const availableWidth = containerWidth - CHART_GAP - chartAreaPadding;
-
-    const timelineWidth = Math.floor(availableWidth * TIMELINE_WIDTH_RATIO);
-    const variabilityWidth = Math.floor(availableWidth * VARIABILITY_WIDTH_RATIO);
-
     // Find the Timeline and Variability tabs
     const timelineTab = tabs.find(tab => tab.id === 'timeline');
     const variabilityTab = tabs.find(tab => tab.id === 'variability');
@@ -255,16 +208,16 @@ export default function SPCChartWrapper({
             <h4 className="text-lg font-medium text-center text-black">{title}</h4>
           </div>
 
-          {/* Side-by-side charts */}
+          {/* Side-by-side charts with flexible sizing */}
           <div className="flex gap-[5px] p-4">
-            {/* Timeline Chart */}
-            <div className="flex-none" style={{ width: `${timelineWidth}px` }}>
-              {injectZoomProps(timelineTab.content, timelineWidth, true)}
+            {/* Timeline Chart - 55% of available space */}
+            <div className="flex-[55] min-w-0">
+              {injectZoomProps(timelineTab.content, undefined, true)}
             </div>
 
-            {/* Variability Chart */}
-            <div className="flex-none" style={{ width: `${variabilityWidth}px` }}>
-              {injectZoomProps(variabilityTab.content, variabilityWidth, true)}
+            {/* Variability Chart - 45% of available space */}
+            <div className="flex-[45] min-w-0">
+              {injectZoomProps(variabilityTab.content, undefined, true)}
             </div>
           </div>
 
