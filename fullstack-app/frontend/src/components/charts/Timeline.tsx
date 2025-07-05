@@ -19,7 +19,7 @@ import {
   getNumericExtent,
   getDateExtent,
 } from '@/lib/charts/scales';
-import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
+import { formatTimelineFieldName, UnitMapping, FieldFormatterOptions } from '@/lib/formatters/fieldFormatter';
 import * as d3 from 'd3';
 
 // Removed obsolete DOM-based coordinate system types
@@ -52,6 +52,8 @@ interface TimelineProps<T extends Record<string, any>> {
   onYZoomChange?: (domain: [number, number] | null) => void; // Callback for Y zoom
   onY2ZoomChange?: (domain: [number, number] | null) => void; // Callback for Y2 zoom
   onResetZoom?: () => void; // Callback for reset zoom
+  unitMapping?: UnitMapping; // Optional unit mapping for field formatting
+  fieldFormatterOptions?: FieldFormatterOptions; // Optional field formatter options
 }
 
 
@@ -80,6 +82,8 @@ export default function Timeline<T extends Record<string, any>>({
   onYZoomChange,
   onY2ZoomChange,
   onResetZoom,
+  unitMapping,
+  fieldFormatterOptions,
 }: TimelineProps<T>) {
   // Track if SVG width is narrow (< 800px)
   const isNarrowSVG = width < 800;
@@ -112,6 +116,11 @@ export default function Timeline<T extends Record<string, any>>({
   // Legend selection state
   const [selectedColorItems, setSelectedColorItems] = useState<Set<string>>(new Set());
   const [selectedShapeItems, setSelectedShapeItems] = useState<Set<string>>(new Set());
+
+  // Field formatter function using generic formatter with Timeline options
+  const formatFieldName = (field: string): string => {
+    return formatTimelineFieldName(field, unitMapping);
+  };
 
   // Get original extents
   const originalXExtent = useMemo(() => {
@@ -770,29 +779,3 @@ export default function Timeline<T extends Record<string, any>>({
   );
 }
 
-function formatFieldName(field: string): string {
-  if (Object.keys(SpcCDUnits).includes(field as SpcCDUnits)) {
-    field = field + ` (${SpcCDUnits[field as keyof typeof SpcCDUnits]})`
-  }
-
-  field = field.replace(/_/g, ' ')
-  if (field.includes("x_y")) {
-    field = field.replace("x_y", "x-y")
-  }
-  // abbreviate long field names rendered on the Timeline
-  if (field.length > 15) {
-    field = field
-      .split(' ')
-      .map((word: string) => {
-        if (word.length <= 4) {
-          return word;
-        }
-        else {
-          return word.slice(0, 4) + '.';
-        }
-      })
-      .join(' ');
-
-  }
-  return field
-}

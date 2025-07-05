@@ -36,6 +36,26 @@ function SPCDashboardInner() {
   const [syncViews, setSyncViews] = useState(true); // Default to synced
   const [activeView, setActiveView] = useState<'timeline' | 'variability'>('timeline');
 
+  // State for synchronized statistics collapse/expand
+  const [statisticsCollapsed, setStatisticsCollapsed] = useState(() => {
+    // Check localStorage on mount
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('spc-dashboard-statistics-collapsed') === 'true';
+    }
+    return true; // Default to collapsed
+  });
+
+  // Save statistics preference to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('spc-dashboard-statistics-collapsed', statisticsCollapsed.toString());
+    }
+  }, [statisticsCollapsed]);
+
+  const toggleStatisticsCollapsed = () => {
+    setStatisticsCollapsed(!statisticsCollapsed);
+  };
+
   // Tabs are visible when viewport < 1500px (matching SPCChartWrapper logic)
   const SIDE_BY_SIDE_BREAKPOINT = 1500;
   const areTabsVisible = viewportWidth < SIDE_BY_SIDE_BREAKPOINT;
@@ -161,6 +181,8 @@ function SPCDashboardInner() {
                 syncViews={syncViews}
                 activeView={activeView}
                 onViewChange={setActiveView}
+                statisticsCollapsed={statisticsCollapsed}
+                onToggleStatisticsCollapsed={toggleStatisticsCollapsed}
               />
 
               {/* CD X/Y vs Date */}
@@ -175,6 +197,8 @@ function SPCDashboardInner() {
                 syncViews={syncViews}
                 activeView={activeView}
                 onViewChange={setActiveView}
+                statisticsCollapsed={statisticsCollapsed}
+                onToggleStatisticsCollapsed={toggleStatisticsCollapsed}
               />
 
               {/* CD 6-Sigma vs Date */}
@@ -188,6 +212,8 @@ function SPCDashboardInner() {
                 syncViews={syncViews}
                 activeView={activeView}
                 onViewChange={setActiveView}
+                statisticsCollapsed={statisticsCollapsed}
+                onToggleStatisticsCollapsed={toggleStatisticsCollapsed}
               />
             </div>
           </div>

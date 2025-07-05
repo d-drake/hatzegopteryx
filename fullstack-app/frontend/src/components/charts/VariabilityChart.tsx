@@ -5,6 +5,7 @@ import * as d3 from 'd3';
 import Axis from './Axis';
 import ChartContainer from './ChartContainer';
 import ZoomControls from './ZoomControls';
+import { formatTimelineFieldName } from '@/lib/formatters/fieldFormatter';
 import { SpcCDUnits } from '@/lib/spc-dashboard/units_cd';
 
 interface DataPoint {
@@ -537,29 +538,7 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
 };
 
 // Format field names for axis labels (matching Timeline implementation)
+// Use shared formatter with SPC units
 function formatFieldName(field: string): string {
-  if (Object.keys(SpcCDUnits).includes(field as keyof typeof SpcCDUnits)) {
-    field = field + ` (${SpcCDUnits[field as keyof typeof SpcCDUnits]})`
-  }
-
-  field = field.replace(/_/g, ' ')
-  if (field.includes("x_y")) {
-    field = field.replace("x_y", "x-y")
-  }
-  // abbreviate long field names rendered on the Timeline
-  if (field.length > 15) {
-    field = field
-      .split(' ')
-      .map((word: string) => {
-        if (word.length <= 4) {
-          return word;
-        }
-        else {
-          return word.slice(0, 4) + '.';
-        }
-      })
-      .join(' ');
-
-  }
-  return field
+  return formatTimelineFieldName(field, SpcCDUnits);
 }

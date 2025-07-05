@@ -114,8 +114,8 @@ pytest --cov=.
 ### Generate Test Data
 
 ```bash
-# Generate CD data
-python scripts/generate_cd_data.py
+# Generate SPC CD L1 data
+python scripts/generate_spc_cd_l1_data.py
 
 # Generate SPC limits
 python scripts/generate_spc_limits.py

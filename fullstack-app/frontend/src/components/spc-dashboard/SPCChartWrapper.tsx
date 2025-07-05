@@ -18,6 +18,7 @@ interface SPCChartWrapperProps {
   syncViews?: boolean;
   activeView?: 'timeline' | 'variability';
   onViewChange?: (view: 'timeline' | 'variability') => void;
+  bottomContent?: React.ReactNode;
 }
 
 // Constants for side-by-side layout
@@ -36,7 +37,8 @@ export default function SPCChartWrapper({
   children,
   syncViews = false,
   activeView,
-  onViewChange
+  onViewChange,
+  bottomContent
 }: SPCChartWrapperProps) {
   const [localActiveTab, setLocalActiveTab] = useState(defaultTab);
   const [xZoomDomain, setXZoomDomain] = useState<[number, number] | [Date, Date] | null>(null);
@@ -157,6 +159,11 @@ export default function SPCChartWrapper({
         <div className="p-4 pt-0">
           {children}
         </div>
+        {bottomContent && (
+          <div className="px-4 pb-4">
+            {bottomContent}
+          </div>
+        )}
       </div>
     );
   }
@@ -207,6 +214,12 @@ export default function SPCChartWrapper({
               {injectZoomProps(variabilityTab.content, variabilityWidth, true)}
             </div>
           </div>
+          
+          {bottomContent && (
+            <div className="px-4 pb-4">
+              {bottomContent}
+            </div>
+          )}
         </div>
       );
     }
@@ -250,6 +263,12 @@ export default function SPCChartWrapper({
           return <div key={tab.id}>{injectZoomProps(tab.content)}</div>;
         })}
       </div>
+      
+      {bottomContent && (
+        <div className="px-4 pb-4">
+          {bottomContent}
+        </div>
+      )}
     </div>
   );
 }
