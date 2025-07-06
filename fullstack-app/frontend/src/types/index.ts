@@ -1,3 +1,7 @@
+import { SPCDataItem } from './spc-common';
+
+export * from './spc-common';
+
 export interface Item {
   id: number;
   title: string;
@@ -19,21 +23,22 @@ export interface UpdateItem {
   completed?: boolean;
 }
 
-export interface SPCCdL1 {
-  lot: string;
-  date_process: string;
+export interface SPCCdL1 extends SPCDataItem {
   bias: number;
   bias_x_y: number;
   cd_att: number;
   cd_x_y: number;
   cd_6sig: number;
-  duration_subseq_process_step: number;  // Duration in seconds (1500-2200s)
-  entity: string;
-  fake_property1: string;
-  fake_property2: string;
-  process_type: string;
-  product_type: string;
-  spc_monitor_name: string;
+  date_read: string;
+}
+
+export interface SPCRegL1 extends SPCDataItem {
+  registration: number;
+  reg_x: number;
+  reg_y: number;
+  field_x: number;
+  field_y: number;
+  date_read: string;
 }
 
 export interface SPCCdL1Stats {
