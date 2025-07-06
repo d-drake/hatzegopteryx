@@ -1,5 +1,6 @@
-import { useSPCCdL1 } from "@/contexts/SPCCdL1Context";
-import { useSPCRegL1 } from "@/contexts/SPCRegL1Context";
+import { SPCCdL1Provider, useSPCCdL1 } from "@/contexts/SPCCdL1Context";
+import { SPCRegL1Provider, useSPCRegL1 } from "@/contexts/SPCRegL1Context";
+import { ComponentType } from "react";
 
 export interface SPCDataSourceConfig {
   name: string;
@@ -22,6 +23,7 @@ export interface SPCDataSourceConfig {
     shapeFields?: string[]; // Optional grouping fields
   };
   contextHook: () => any; // Function that returns context data
+  Provider: ComponentType<any>; // Provider component
   statisticsConfig: {
     supportedMetrics: string[];
     groupByEntity: boolean;
@@ -50,6 +52,7 @@ export const SPC_DATA_SOURCES: Record<string, SPCDataSourceConfig> = {
       shapeFields: ["fake_property1", "fake_property2"],
     },
     contextHook: useSPCCdL1,
+    Provider: SPCCdL1Provider,
     statisticsConfig: {
       supportedMetrics: ["cd_att", "cd_x_y", "cd_6sig"],
       groupByEntity: true,
@@ -84,6 +87,7 @@ export const SPC_DATA_SOURCES: Record<string, SPCDataSourceConfig> = {
       shapeFields: ["fake_property1", "fake_property2"],
     },
     contextHook: useSPCRegL1,
+    Provider: SPCRegL1Provider,
     statisticsConfig: {
       supportedMetrics: [
         "scale_x",

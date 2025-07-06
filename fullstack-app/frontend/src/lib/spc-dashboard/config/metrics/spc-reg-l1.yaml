@@ -164,11 +164,6 @@ analytics:
       sortable: true
       unit: mRad
       precision: 2
-    - key: duration_subseq_process_step
-      label: Duration
-      sortable: true
-      unit: s
-      precision: 1
     - key: fake_property1
       label: P1
       sortable: false
