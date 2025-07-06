@@ -118,3 +118,6 @@ infrastructure/terraform/outputs.txt
 
 # Sensitive documentation
 docs
+
+# Generated files
+fullstack-app/frontend/src/lib/spc-dashboard/config/metrics/generated/

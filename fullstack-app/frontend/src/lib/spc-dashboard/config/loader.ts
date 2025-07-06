@@ -1,16 +1,15 @@
 import { SPCMonitorConfig, MetricDefinition, ChartConfig, ColumnConfig } from './types';
-
-// Import configurations directly (in production, these would be generated from YAML)
-import spcCdL1Config from './metrics/spc-cd-l1.json';
-import spcRegL1Config from './metrics/spc-reg-l1.json';
+// Import TypeScript configurations (generated from YAML files)
+import { spcCdL1Config } from './metrics/generated/spc-cd-l1';
+import { spcRegL1Config } from './metrics/generated/spc-reg-l1';
 
 // Configuration cache
 const configCache = new Map<string, SPCMonitorConfig>();
 
 // Pre-load configurations
 const configs: Record<string, SPCMonitorConfig> = {
-  'SPC_CD_L1': spcCdL1Config as SPCMonitorConfig,
-  'SPC_REG_L1': spcRegL1Config as SPCMonitorConfig,
+  'SPC_CD_L1': spcCdL1Config,
+  'SPC_REG_L1': spcRegL1Config,
 };
 
 // Initialize cache

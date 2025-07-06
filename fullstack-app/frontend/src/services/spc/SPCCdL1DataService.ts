@@ -6,7 +6,8 @@ import {
   DataResponse,
   MetricConfig,
   ColumnConfig,
-  SPCLimits 
+  SPCLimits,
+  ProcessProductCombination
 } from '@/types';
 import apiClient from '@/lib/axios';
 import { retryRequest } from './utils';
@@ -149,9 +150,19 @@ export class SPCCdL1DataService implements ISPCDataService<SPCCdL1> {
     });
   }
 
+  async fetchProcessProductCombinations(): Promise<ProcessProductCombination[]> {
+    return retryRequest(async () => {
+      const response = await apiClient.get<ProcessProductCombination[]>(`${this.apiBasePath}/process-product-combinations`);
+      return response.data;
+    });
+  }
+
   getMetricConfig(): MetricConfig[] {
     // Import from configuration
-    const config = require('@/lib/spc-dashboard/config/metrics/spc-cd-l1.json');
+    const { loadSPCConfig, getMetricConfig } = require('@/lib/spc-dashboard/config/loader');
+    const config = loadSPCConfig('SPC_CD_L1');
+    if (!config) return [];
+    
     const statisticMetrics = config.analytics.statisticMetrics;
     
     return statisticMetrics.map((metricKey: string) => {
@@ -167,7 +178,10 @@ export class SPCCdL1DataService implements ISPCDataService<SPCCdL1> {
 
   getColumnConfig(): ColumnConfig[] {
     // Import from configuration
-    const config = require('@/lib/spc-dashboard/config/metrics/spc-cd-l1.json');
+    const { loadSPCConfig } = require('@/lib/spc-dashboard/config/loader');
+    const config = loadSPCConfig('SPC_CD_L1');
+    if (!config) return [];
+    
     const tableColumns = config.analytics.tableColumns;
     
     return tableColumns.map((col: any) => {

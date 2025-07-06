@@ -97,9 +97,9 @@ function SPCAnalyticsInner() {
         
         <div className="mt-6">
           <SPCTabs
-            activeTab="analytics"
             processProduct={processProduct}
             spcMonitor={spcMonitor}
+            basePath="/spc-analytics"
           />
         </div>
 
@@ -125,17 +125,21 @@ function SPCAnalyticsInner() {
                 </select>
               </div>
               
-              <div className="flex items-end">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date
+                </label>
                 <DatePicker
-                  label="Start Date"
                   value={contextFilters.startDate}
                   onChange={(date) => handleDateChange('startDate', date)}
                 />
               </div>
               
-              <div className="flex items-end">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  End Date
+                </label>
                 <DatePicker
-                  label="End Date"
                   value={contextFilters.endDate}
                   onChange={(date) => handleDateChange('endDate', date)}
                 />

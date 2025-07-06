@@ -2,15 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  fetchSPCMonitorNames as fetchCdL1SPCMonitorNames, 
-  fetchProcessProductCombinations as fetchCdL1ProcessProductCombinations, 
-  ProcessProductCombination 
-} from '@/services/spcCdL1Service';
-import { 
-  fetchSPCMonitorNames as fetchRegL1SPCMonitorNames, 
-  fetchProcessProductCombinations as fetchRegL1ProcessProductCombinations
-} from '@/services/spcRegL1Service';
+import { SPCMonitorDiscovery } from '@/services/spc/SPCMonitorDiscovery';
+import { ProcessProductCombination } from '@/types';
 
 interface SPCTabsProps {
   spcMonitor: string;
@@ -31,33 +24,11 @@ export default function SPCTabs({ spcMonitor, processProduct, basePath = '/spc-d
   const loadTabOptions = async () => {
     try {
       setLoading(true);
-      // Fetch data from both CD L1 and REG L1 services
-      const [
-        cdL1SpcMonitors, 
-        cdL1ProcessProducts,
-        regL1SpcMonitors,
-        regL1ProcessProducts
-      ] = await Promise.all([
-        fetchCdL1SPCMonitorNames(),
-        fetchCdL1ProcessProductCombinations(),
-        fetchRegL1SPCMonitorNames(),
-        fetchRegL1ProcessProductCombinations()
-      ]);
+      // Fetch all monitor data using the discovery service
+      const monitorData = await SPCMonitorDiscovery.fetchAllMonitorData();
       
-      // Combine SPC monitor names from both services
-      const allSpcMonitors = [...new Set([...cdL1SpcMonitors, ...regL1SpcMonitors])];
-      
-      // Combine process-product combinations from both services
-      const allProcessProducts = [...new Set([
-        ...cdL1ProcessProducts.map(p => `${p.process_type}-${p.product_type}`),
-        ...regL1ProcessProducts.map(p => `${p.process_type}-${p.product_type}`)
-      ])].map(combo => {
-        const [process_type, product_type] = combo.split('-');
-        return { process_type, product_type };
-      });
-      
-      setSpcMonitors(allSpcMonitors);
-      setProcessProductCombinations(allProcessProducts);
+      setSpcMonitors(monitorData.monitors);
+      setProcessProductCombinations(monitorData.processProductCombinations);
     } catch (error) {
       console.error('Error loading tab options:', error);
     } finally {

@@ -25,9 +25,9 @@ export default function SPCAnalyticsPage() {
         
         <div className="mt-6">
           <SPCTabs
-            activeTab="analytics"
             processProduct={processProduct}
             spcMonitor={spcMonitor}
+            basePath="/spc-analytics"
           />
         </div>
 

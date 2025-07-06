@@ -1,0 +1,187 @@
+monitor:
+  id: SPC_REG_L1
+  name: SPC Registration L1
+  dataType: reg_l1
+
+# Define all available metrics for this monitor
+metrics:
+  scale_x:
+    key: scale_x
+    label: Scale X
+    unit: ppt
+    precision: 2
+    description: Registration scale X measurement
+    
+  scale_y:
+    key: scale_y
+    label: Scale Y
+    unit: ppt
+    precision: 2
+    description: Registration scale Y measurement
+    
+  ortho:
+    key: ortho
+    label: Ortho
+    unit: mRad
+    precision: 2
+    description: Orthogonality measurement
+    
+  centrality_x:
+    key: centrality_x
+    label: Centrality X
+    unit: mm
+    precision: 2
+    description: Centrality X measurement
+    
+  centrality_y:
+    key: centrality_y
+    label: Centrality Y
+    unit: mm
+    precision: 2
+    description: Centrality Y measurement
+    
+  centrality_rotation:
+    key: centrality_rotation
+    label: Centrality Rotation
+    unit: mRad
+    precision: 2
+    description: Centrality rotation measurement
+
+# Dashboard chart configurations
+charts:
+  - id: scale_x_chart
+    title: Scale X vs Date
+    metric: scale_x
+    type: timeline
+    yAxis:
+      field: scale_x
+      label: scale x (ppt)
+    colorField: recipe_scale_x
+    showStatistics: true
+    showLimits: true
+    
+  - id: scale_y_chart
+    title: Scale Y vs Date
+    metric: scale_y
+    type: timeline
+    yAxis:
+      field: scale_y
+      label: scale y (ppt)
+    colorField: recipe_scale_y
+    showStatistics: true
+    showLimits: true
+    
+  - id: ortho_chart
+    title: Ortho vs Date
+    metric: ortho
+    type: timeline
+    yAxis:
+      field: ortho
+      label: ortho (mRad)
+    colorField: recipe_ortho
+    showStatistics: true
+    showLimits: true
+    
+  - id: centrality_x_chart
+    title: Centrality X vs Date
+    metric: centrality_x
+    type: timeline
+    yAxis:
+      field: centrality_x
+      label: cent. x (mm)
+    showStatistics: true
+    showLimits: true
+    
+  - id: centrality_y_chart
+    title: Centrality Y vs Date
+    metric: centrality_y
+    type: timeline
+    yAxis:
+      field: centrality_y
+      label: cent. y (mm)
+    showStatistics: true
+    showLimits: true
+    
+  - id: centrality_rotation_chart
+    title: Centrality Rotation vs Date
+    metric: centrality_rotation
+    type: timeline
+    yAxis:
+      field: centrality_rotation
+      label: cent. rota. (mRa.
+    showStatistics: true
+    showLimits: true
+
+# Analytics configuration
+analytics:
+  # Metrics to show in statistics tabs
+  statisticMetrics:
+    - scale_x
+    - scale_y
+    - ortho
+  
+  # Table columns configuration
+  tableColumns:
+    - key: entity
+      label: Entity
+      sortable: true
+      align: left
+    - key: lot
+      label: Lot
+      sortable: true
+      align: left
+    - key: date_process
+      label: Process Date
+      sortable: true
+      format: datetime
+    - key: scale_x
+      label: Scale X
+      sortable: true
+      unit: ppt
+      precision: 2
+    - key: scale_y
+      label: Scale Y
+      sortable: true
+      unit: ppt
+      precision: 2
+    - key: ortho
+      label: Ortho
+      sortable: true
+      unit: mRad
+      precision: 2
+    - key: centrality_x
+      label: Centrality X
+      sortable: true
+      unit: mm
+      precision: 2
+    - key: centrality_y
+      label: Centrality Y
+      sortable: true
+      unit: mm
+      precision: 2
+    - key: centrality_rotation
+      label: Centrality Rotation
+      sortable: true
+      unit: mRad
+      precision: 2
+    - key: duration_subseq_process_step
+      label: Duration
+      sortable: true
+      unit: s
+      precision: 1
+    - key: fake_property1
+      label: P1
+      sortable: false
+    - key: fake_property2
+      label: P2
+      sortable: false
+
+# Field definitions for color/shape mapping  
+fields:
+  colorFields:
+    - recipe_scale_x
+    - recipe_scale_y
+    - recipe_ortho
+  shapeFields:
+    - fake_property1
+    - fake_property2

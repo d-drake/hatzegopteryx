@@ -4,14 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run convert-yaml && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest ../tests/unit/frontend",
     "test:unit": "jest ../tests/unit/frontend",
     "test:integration": "jest ../tests/integration/frontend",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "convert-yaml": "node scripts/convert-yaml-to-ts.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -20,12 +21,14 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@sentry/nextjs": "^9.32.0",
     "@types/d3": "^7.4.3",
+    "@types/js-yaml": "^4.0.9",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
     "date-fns": "^2.30.0",
     "js-cookie": "^3.0.5",
+    "js-yaml": "^4.1.0",
     "lucide-react": "^0.525.0",
     "next": "15.3.4",
     "playwright": "^1.53.1",

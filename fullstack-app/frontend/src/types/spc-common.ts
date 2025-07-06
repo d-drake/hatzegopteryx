@@ -70,3 +70,8 @@ export interface DataResponse<T> {
   page: number;
   pageSize: number;
 }
+
+export interface ProcessProductCombination {
+  process_type: string;
+  product_type: string;
+}

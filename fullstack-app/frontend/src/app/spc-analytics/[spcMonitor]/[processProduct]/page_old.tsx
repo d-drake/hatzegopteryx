@@ -776,7 +776,7 @@ export default function SPCAnalyticsPage() {
         <SPCLimitsProvider
           processType={processType}
           productType={productType}
-          spcMonitorName={spcMonitor}
+          spcMonitor={spcMonitor}
         >
           <SPCAnalyticsInner />
         </SPCLimitsProvider>

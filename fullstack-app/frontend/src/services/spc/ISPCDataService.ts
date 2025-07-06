@@ -4,9 +4,10 @@ import {
   FilterParams, 
   DataResponse,
   MetricConfig,
-  ColumnConfig 
+  ColumnConfig,
+  ProcessProductCombination,
+  SPCLimits
 } from '@/types';
-import { SPCLimits } from '@/types';
 
 export interface ISPCDataService<T extends SPCDataItem> {
   // Fetch paginated data
@@ -49,4 +50,7 @@ export interface ISPCDataService<T extends SPCDataItem> {
 
   // Get API base path
   getApiBasePath(): string;
+
+  // Fetch available process-product combinations
+  fetchProcessProductCombinations(): Promise<ProcessProductCombination[]>;
 }

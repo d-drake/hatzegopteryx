@@ -6,6 +6,18 @@ import { SPCDataItem } from '@/types';
 export class SPCDataServiceFactory {
   private static serviceCache = new Map<string, ISPCDataService<any>>();
 
+  // Registry of supported monitors and their service classes
+  private static readonly MONITOR_REGISTRY = {
+    'CD': {
+      monitors: ['SPC_CD_L1', 'SPC_CD_L2', 'SPC_CD_L3'],
+      serviceClass: SPCCdL1DataService
+    },
+    'REG': {
+      monitors: ['SPC_REG_L1', 'SPC_REG_L2', 'SPC_REG_L3'],
+      serviceClass: SPCRegL1DataService
+    }
+  };
+
   static create(spcMonitor: string): ISPCDataService<any> {
     // Check cache first
     const cachedService = this.serviceCache.get(spcMonitor);
@@ -13,25 +25,19 @@ export class SPCDataServiceFactory {
       return cachedService;
     }
 
-    let service: ISPCDataService<any>;
+    let service: ISPCDataService<any> | null = null;
 
-    switch (spcMonitor) {
-      case 'SPC_CD_L1':
-      case 'SPC_CD_L2':
-      case 'SPC_CD_L3':
-        // All CD monitors use the same service but different data
-        service = new SPCCdL1DataService();
+    // Find the appropriate service for this monitor
+    for (const [, config] of Object.entries(this.MONITOR_REGISTRY)) {
+      if (config.monitors.includes(spcMonitor)) {
+        service = new config.serviceClass();
         break;
-      
-      case 'SPC_REG_L1':
-      case 'SPC_REG_L2':
-      case 'SPC_REG_L3':
-        // All REG monitors use the same service but different data
-        service = new SPCRegL1DataService();
-        break;
-      
-      default:
-        throw new Error(`Unknown SPC monitor: ${spcMonitor}. Supported monitors are: SPC_CD_L1, SPC_CD_L2, SPC_CD_L3, SPC_REG_L1, SPC_REG_L2, SPC_REG_L3`);
+      }
+    }
+
+    if (!service) {
+      const supportedMonitors = this.getSupportedMonitors().join(', ');
+      throw new Error(`Unknown SPC monitor: ${spcMonitor}. Supported monitors are: ${supportedMonitors}`);
     }
 
     // Cache the service instance
@@ -46,6 +52,14 @@ export class SPCDataServiceFactory {
       return 'REG';
     }
     return 'UNKNOWN';
+  }
+
+  static getSupportedMonitors(): string[] {
+    const monitors: string[] = [];
+    for (const config of Object.values(this.MONITOR_REGISTRY)) {
+      monitors.push(...config.monitors);
+    }
+    return monitors;
   }
 
   static clearCache(): void {
