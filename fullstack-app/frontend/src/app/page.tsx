@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/auth/Header";
 import Image from "next/image";
+import { getDefaultSPCRouteSync } from "@/lib/spc-dashboard/defaultRouteUtils";
 
 export default function Home() {
   const { user } = useAuth();
@@ -13,8 +14,14 @@ export default function Home() {
   const [activeImage, setActiveImage] = useState<number | null>(null);
   const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Get default route dynamically
+  const defaultDashboardRoute = useMemo(
+    () => getDefaultSPCRouteSync("/spc-dashboard"),
+    []
+  );
+
   const handleExploreDashboard = () => {
-    router.push("/spc-dashboard/SPC_CD_L1/1000-BNT44");
+    router.push(defaultDashboardRoute);
   };
 
   const handleContactClick = () => {

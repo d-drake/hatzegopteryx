@@ -13,7 +13,7 @@ export class SPCMonitorDiscovery {
   /**
    * Gets monitors that have metric configuration files
    */
-  private static getConfiguredMonitors(): string[] {
+  static getConfiguredMonitors(): string[] {
     const allMonitors = SPCDataServiceFactory.getSupportedMonitors();
     const configuredMonitors: string[] = [];
 

@@ -2,6 +2,8 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMemo } from "react";
+import { getDefaultSPCRouteSync } from "@/lib/spc-dashboard/defaultRouteUtils";
 
 interface Tab {
   id: string;
@@ -22,17 +24,27 @@ export default function AppTabs({
   const pathname = usePathname();
   const { user } = useAuth();
 
+  // Get default routes dynamically
+  const defaultDashboardRoute = useMemo(
+    () => getDefaultSPCRouteSync("/spc-dashboard"),
+    []
+  );
+  const defaultAnalyticsRoute = useMemo(
+    () => getDefaultSPCRouteSync("/spc-analytics"),
+    []
+  );
+
   // Define all tabs
   const allTabs: Tab[] = [
     {
       id: "spc-dashboard",
       label: "SPC Dashboard",
-      href: "/spc-dashboard/SPC_CD_L1/1000-BNT44",
+      href: defaultDashboardRoute,
     },
     {
       id: "spc-analytics",
       label: "SPC Analytics",
-      href: "/spc-analytics/SPC_CD_L1/1000-BNT44",
+      href: defaultAnalyticsRoute,
     },
     { id: "items", label: "To Do Items", href: "/todo-items" },
   ];
