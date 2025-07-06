@@ -6,6 +6,7 @@ import { useSPCLimits } from "@/contexts/SPCLimitsContext";
 
 interface GenericStatisticsTabsProps<T extends SPCDataItem> {
   data: T[];
+  allData: T[];
   selectedEntity?: string;
   metrics: MetricConfig[];
   defaultMetric?: string;
@@ -52,6 +53,7 @@ const calculateStats = (values: number[]): Omit<EntityStats, "entity"> => {
 
 export default function GenericStatisticsTabs<T extends SPCDataItem>({
   data,
+  allData,
   selectedEntity,
   metrics,
   defaultMetric,
@@ -83,7 +85,7 @@ export default function GenericStatisticsTabs<T extends SPCDataItem>({
     const results: EntityStats[] = [];
 
     // Get all values for the current metric (always use full data for "All" statistics)
-    const allValues = data
+    const allValues = allData
       .map((d) => (d as any)[activeTab])
       .filter((v) => v != null && typeof v === "number");
 
@@ -163,20 +165,17 @@ export default function GenericStatisticsTabs<T extends SPCDataItem>({
     }
 
     return results;
-  }, [data, activeTab, selectedEntity, activeLimits]);
+  }, [data, allData, activeTab, selectedEntity, activeLimits]);
 
   // Format number with appropriate precision
-  const formatNumber = (value: number, isStdDev = false): string => {
+  const formatNumber = (value: number): string => {
     const precision = activeMetricConfig?.precision ?? 2;
-    if (isStdDev) {
-      return value.toFixed(precision + 1);
-    }
     return value.toFixed(precision);
   };
 
   // Format with unit if available
-  const formatWithUnit = (value: number, isStdDev = false): string => {
-    const formatted = formatNumber(value, isStdDev);
+  const formatWithUnit = (value: number): string => {
+    const formatted = formatNumber(value);
     if (activeMetricConfig?.unit) {
       return `${formatted} ${activeMetricConfig.unit}`;
     }
@@ -226,7 +225,7 @@ export default function GenericStatisticsTabs<T extends SPCDataItem>({
 
       {/* SPC Control Limits */}
       {limitsLoading ? (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="animate-pulse">
             <div className="h-4 bg-gray-300 rounded w-32 mb-2"></div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -238,7 +237,7 @@ export default function GenericStatisticsTabs<T extends SPCDataItem>({
           </div>
         </div>
       ) : activeLimits ? (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <h3 className="text-sm font-medium text-gray-700 mb-2">
             Current Control Limits
           </h3>
@@ -338,7 +337,7 @@ export default function GenericStatisticsTabs<T extends SPCDataItem>({
                   {formatWithUnit(stat.median)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {formatWithUnit(stat.stdDev, true)}
+                  {formatWithUnit(stat.stdDev)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {formatWithUnit(stat.min)}

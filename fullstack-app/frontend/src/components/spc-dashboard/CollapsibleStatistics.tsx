@@ -168,7 +168,7 @@ export default function CollapsibleStatistics({
           isCollapsed ? "max-h-0" : "max-h-[600px]"
         }`}
       >
-        <div className="px-2 pb-2">
+        <div className="px-4 pb-4">
           {/* Statistics Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">

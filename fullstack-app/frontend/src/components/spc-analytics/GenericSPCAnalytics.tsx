@@ -122,12 +122,12 @@ export default function GenericSPCAnalytics({
           <h2 className="text-2xl font-bold mb-6 text-black">SPC Analytics</h2>
 
           {/* Process/Product Selection */}
-          <div className="mb-6">
-            <SPCTabs spcMonitor={spcMonitor} processProduct={processProduct} />
+          <div className="mb-4">
+            <SPCTabs spcMonitor={spcMonitor} processProduct={processProduct} basePath="/spc-analytics" />
           </div>
 
           {/* Current Selection Info */}
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <div className="flex flex-wrap gap-4 text-sm text-blue-800">
               <span>
                 <strong>SPC Monitor:</strong> {spcMonitor}
@@ -142,9 +142,26 @@ export default function GenericSPCAnalytics({
           </div>
 
           {/* Filter Controls */}
-          <div className="mb-6 bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">Filters</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white p-4 rounded-lg shadow-sm border mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Data Filters</h3>
+              <button
+                onClick={() => {
+                  setLocalSelectedEntity("");
+                  handleFiltersChange({
+                    ...contextFilters,
+                    startDate: "",
+                    endDate: "",
+                  });
+                }}
+                className="text-sm text-gray-600 hover:text-gray-800 underline"
+                disabled={contextLoading}
+              >
+                Clear All
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Entity
@@ -152,7 +169,8 @@ export default function GenericSPCAnalytics({
                 <select
                   value={localSelectedEntity}
                   onChange={(e) => handleLocalEntityChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2714%27%20height%3D%278%27%20viewBox%3D%270%200%2014%208%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cpath%20d%3D%27M1%201l6%206%206-6%27%20stroke%3D%27%236b7280%27%20stroke-width%3D%272%27%20fill%3D%27none%27%20fill-rule%3D%27evenodd%27%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_0.7rem_center] bg-no-repeat"
+                  disabled={contextLoading}
                 >
                   <option value="">All Entities</option>
                   {uniqueEntities.map((entity) => (
@@ -170,6 +188,8 @@ export default function GenericSPCAnalytics({
                 <DatePicker
                   value={contextFilters.startDate}
                   onChange={(date) => handleDateChange("startDate", date)}
+                  disabled={contextLoading}
+                  placeholder="Select start date"
                 />
               </div>
 
@@ -180,6 +200,8 @@ export default function GenericSPCAnalytics({
                 <DatePicker
                   value={contextFilters.endDate}
                   onChange={(date) => handleDateChange("endDate", date)}
+                  disabled={contextLoading}
+                  placeholder="Select end date"
                 />
               </div>
 
@@ -199,18 +221,21 @@ export default function GenericSPCAnalytics({
           {/* Statistics Section */}
           <GenericStatisticsTabs
             data={dataForAnalytics}
+            allData={allEntityData}
             selectedEntity={localSelectedEntity}
             metrics={metrics}
             defaultMetric={defaultMetric}
           />
 
           {/* Data Table Section */}
-          <GenericDataTable
-            data={dataForAnalytics}
-            columns={columns}
-            loading={contextLoading}
-            pageSize={50}
-          />
+          <div className="mt-4">
+            <GenericDataTable
+              data={dataForAnalytics}
+              columns={columns}
+              loading={contextLoading}
+              pageSize={50}
+            />
+          </div>
         </div>
       </div>
     </>

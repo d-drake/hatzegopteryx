@@ -48,6 +48,7 @@ export const defaultFormatterOptions: Record<string, FieldFormatterOptions> = {
 
 /**
  * Formats a field name with optional unit mapping and formatting options
+ * Units are protected from abbreviation and always display completely
  */
 export function formatFieldName(
   field: string,
@@ -56,10 +57,9 @@ export function formatFieldName(
 ): string {
   let formattedField = field;
 
-  // Apply unit mapping if provided and field exists in mapping
-  if (unitMapping && Object.keys(unitMapping).includes(field)) {
-    formattedField = `${field} (${unitMapping[field]})`;
-  }
+  // Determine if this field has a unit
+  const hasUnit = unitMapping && Object.keys(unitMapping).includes(field);
+  const unitPortion = hasUnit ? ` (${unitMapping[field]})` : "";
 
   // Apply custom text replacements BEFORE underscore conversion
   if (options.textReplacements) {
@@ -73,7 +73,7 @@ export function formatFieldName(
     formattedField = formattedField.replace(/_/g, " ");
   }
 
-  // Apply abbreviation logic for long field names
+  // Apply abbreviation logic for long field names (BEFORE adding unit)
   if (options.abbreviate && formattedField.length > (options.maxLength || 15)) {
     formattedField = formattedField
       .split(" ")
@@ -87,7 +87,8 @@ export function formatFieldName(
       .join(" ");
   }
 
-  return formattedField;
+  // Add unit portion AFTER abbreviation to protect it from truncation
+  return formattedField + unitPortion;
 }
 
 /**

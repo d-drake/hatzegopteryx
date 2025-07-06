@@ -31,6 +31,12 @@ import {
   UnitMapping,
   FieldFormatterOptions,
 } from "@/lib/formatters/fieldFormatter";
+import {
+  calculateSPCDomain,
+  calculateAllEntitiesStdDev,
+  validateSPCDomain,
+} from "@/lib/charts/spc-domain";
+import { SPCLimits } from "@/types";
 import * as d3 from "d3";
 
 // Removed obsolete DOM-based coordinate system types
@@ -72,6 +78,10 @@ interface TimelineProps<T extends Record<string, any>> {
   onShapeLegendClick?: (label: string) => void;
   onResetLegendSelections?: () => void;
   containerPaddingTop?: number; // Optional padding above the chart container
+  // SPC-specific props for domain calculation
+  spcLimits?: SPCLimits; // SPC control limits for the current chart
+  chartName?: string; // Chart field name (e.g., "cd_att", "cd_x_y")
+  enableSPCDomain?: boolean; // Enable SPC-aware domain calculation (default: false)
 }
 
 // Removed obsolete DOM-based coordinate system functions
@@ -107,6 +117,9 @@ export default function Timeline<T extends Record<string, any>>({
   onShapeLegendClick: externalOnShapeLegendClick,
   onResetLegendSelections: externalOnResetLegendSelections,
   containerPaddingTop = 0,
+  spcLimits,
+  chartName,
+  enableSPCDomain = false,
 }: TimelineProps<T>) {
   // Track if SVG width is narrow (< 800px)
   const isNarrowSVG = width < 800;
@@ -195,8 +208,28 @@ export default function Timeline<T extends Record<string, any>>({
   const originalYExtent = useMemo(() => {
     // Use allData for scale calculation if provided, otherwise use displayed data
     const dataForScale = allData || data;
-    return getNumericExtent(dataForScale, yField);
-  }, [allData, data, yField]);
+    const dataExtent = getNumericExtent(dataForScale, yField);
+
+    // Use SPC-aware domain calculation if enabled and requirements are met
+    if (enableSPCDomain && spcLimits && chartName) {
+      // Calculate standard deviation for all entities if needed for fallback
+      const allEntityStdDev = calculateAllEntitiesStdDev(dataForScale, yField as string);
+      
+      // Calculate SPC domain using the new rules
+      const spcDomain = calculateSPCDomain({
+        dataExtent,
+        spcLimits,
+        allEntityStdDev,
+        chartName,
+      });
+
+      // Validate and return the SPC domain
+      return validateSPCDomain(spcDomain, chartName);
+    }
+
+    // Fallback to original data extent calculation
+    return dataExtent;
+  }, [allData, data, yField, enableSPCDomain, spcLimits, chartName]);
 
   const originalY2Extent = useMemo(
     () =>

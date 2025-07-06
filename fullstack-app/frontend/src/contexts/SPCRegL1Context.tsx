@@ -11,7 +11,7 @@ import {
 // Create specific context for REG L1 data
 const SPCRegL1Context = createSPCDataContext<SPCRegL1>();
 
-// Export the provider
+// Export the provider with backward compatibility
 export function SPCRegL1Provider(props: {
   children: React.ReactNode;
   processType: string;
@@ -22,5 +22,5 @@ export function SPCRegL1Provider(props: {
   return <SPCDataProvider<SPCRegL1> {...props} context={SPCRegL1Context} />;
 }
 
-// Export the hook
+// Export the hook with backward compatibility
 export const useSPCRegL1 = createUseSPCData(SPCRegL1Context);

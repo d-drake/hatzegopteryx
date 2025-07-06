@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { SPCDataItem, ColumnConfig } from "@/types";
+import { uppercaseWithExceptions } from "@/lib/formatters/textFormatter";
 
 interface GenericDataTableProps<T extends SPCDataItem> {
   data: T[];
@@ -156,7 +157,7 @@ export default function GenericDataTable<T extends SPCDataItem>({
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-6 py-3 text-${column.align || "left"} text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  className={`px-6 py-3 text-${column.align || "left"} text-xs font-medium text-gray-500 tracking-wider ${
                     column.sortable ? "cursor-pointer hover:text-gray-700" : ""
                   }`}
                   onClick={() => column.sortable && handleSort(column.key)}
@@ -165,7 +166,7 @@ export default function GenericDataTable<T extends SPCDataItem>({
                   <div
                     className={`flex items-center gap-1 ${column.align === "right" ? "justify-end" : ""}`}
                   >
-                    {column.label}
+                    {uppercaseWithExceptions(column.label)}
                     {column.sortable && sortColumn === column.key && (
                       <svg
                         className="w-3 h-3"

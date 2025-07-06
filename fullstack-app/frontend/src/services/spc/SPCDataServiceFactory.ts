@@ -9,11 +9,11 @@ export class SPCDataServiceFactory {
   // Registry of supported monitors and their service classes
   private static readonly MONITOR_REGISTRY = {
     CD: {
-      monitors: ["SPC_CD_L1", "SPC_CD_L2", "SPC_CD_L3"],
+      monitors: ["SPC_CD_L1"],
       serviceClass: SPCCdL1DataService,
     },
     REG: {
-      monitors: ["SPC_REG_L1", "SPC_REG_L2", "SPC_REG_L3"],
+      monitors: ["SPC_REG_L1"],
       serviceClass: SPCRegL1DataService,
     },
   };

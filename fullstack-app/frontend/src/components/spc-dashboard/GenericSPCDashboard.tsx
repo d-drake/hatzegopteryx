@@ -101,22 +101,22 @@ export default function GenericSPCDashboard({
           <AppTabs />
         </div>
 
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
             SPC Data Dashboard
           </h2>
         </div>
 
         {/* Dashboard Instructions */}
-        <DashboardInstructions className="mb-6" />
+        <DashboardInstructions className="mb-4" />
 
         {/* SPC Monitor and Process-Product Tabs */}
-        <div className="mb-6">
+        <div className="mb-4">
           <SPCTabs spcMonitor={spcMonitor} processProduct={processProduct} />
         </div>
 
         {/* Current Selection Info */}
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex flex-wrap gap-4 text-sm text-blue-800">
             <span>
               <strong>SPC Monitor:</strong> {spcMonitor}
@@ -159,7 +159,7 @@ export default function GenericSPCDashboard({
         )}
 
         {!loading && !error && data.length > 0 && (
-          <div className="mt-8">
+          <div className="mt-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold text-black">
                 {charts && charts.length > 0

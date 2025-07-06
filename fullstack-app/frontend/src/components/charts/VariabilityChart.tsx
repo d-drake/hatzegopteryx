@@ -14,6 +14,12 @@ import {
   formatTimelineFieldName,
   UnitMapping,
 } from "@/lib/formatters/fieldFormatter";
+import {
+  calculateSPCDomain,
+  calculateAllEntitiesStdDev,
+  validateSPCDomain,
+} from "@/lib/charts/spc-domain";
+import { SPCLimits } from "@/types";
 
 interface DataPoint {
   [key: string]: any;
@@ -37,6 +43,10 @@ interface VariabilityChartProps {
     yScale: d3.ScaleLinear<number, number>;
   }) => React.ReactNode;
   unitMapping?: UnitMapping; // Optional unit mapping for field formatting
+  // SPC-specific props for domain calculation
+  spcLimits?: SPCLimits; // SPC control limits for the current chart
+  chartName?: string; // Chart field name (e.g., "cd_att", "cd_x_y")
+  enableSPCDomain?: boolean; // Enable SPC-aware domain calculation (default: false)
 }
 
 export const VariabilityChart: React.FC<VariabilityChartProps> = ({
@@ -54,6 +64,9 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
   isSideBySide = false,
   renderOverlays,
   unitMapping,
+  spcLimits,
+  chartName,
+  enableSPCDomain = false,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -87,8 +100,29 @@ export const VariabilityChart: React.FC<VariabilityChartProps> = ({
     if (allValues.length === 0) {
       return [0, 1] as [number, number];
     }
-    return d3.extent(allValues) as [number, number];
-  }, [boxPlotData]);
+    
+    const dataExtent = d3.extent(allValues) as [number, number];
+
+    // Use SPC-aware domain calculation if enabled and requirements are met
+    if (enableSPCDomain && spcLimits && chartName) {
+      // Calculate standard deviation using original data (not box plot data)
+      const allEntityStdDev = calculateAllEntitiesStdDev(data, valueColumn);
+      
+      // Calculate SPC domain using the new rules
+      const spcDomain = calculateSPCDomain({
+        dataExtent,
+        spcLimits,
+        allEntityStdDev,
+        chartName,
+      });
+
+      // Validate and return the SPC domain
+      return validateSPCDomain(spcDomain, chartName);
+    }
+
+    // Fallback to original data extent calculation
+    return dataExtent;
+  }, [boxPlotData, enableSPCDomain, spcLimits, chartName, data, valueColumn]);
 
   // Use zoom hook for Y-axis zoom functionality
   const { zoomDomain, currentExtent, resetZoom, setupZoomListeners } =

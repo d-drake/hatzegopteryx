@@ -4,7 +4,7 @@ import Timeline from "@/components/charts/Timeline";
 import { SPCLimits } from "@/types";
 import LimitLine from "./LimitLine";
 import { useSPCLimits } from "@/contexts/SPCLimitsContext";
-import { getUnitsForMonitor } from "@/lib/spc-dashboard/unitRegistry";
+import { getUnitsForMonitor } from "@/lib/spc-dashboard/config/unitUtils";
 import { useSPCConfig } from "@/hooks/useSPCConfig";
 import {
   getEffectiveColorField,
@@ -151,6 +151,10 @@ export default function SPCTimeline({
       onShapeLegendClick={onShapeLegendClick}
       onResetLegendSelections={onResetLegendSelections}
       containerPaddingTop={containerPaddingTop}
+      // SPC domain calculation props
+      spcLimits={spcLimits[0]}
+      chartName={chartName}
+      enableSPCDomain={true}
       renderOverlays={(scales) => {
         // Only render SPC limits if metadata is available
         if (!processType || !productType || !spcMonitorName) {

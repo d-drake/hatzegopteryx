@@ -212,7 +212,7 @@ export default function SPCChartWrapper({
             {title}
           </h4>
         </div>
-        <div className="p-4 pt-0">{children}</div>
+        <div className="px-4 pb-4">{children}</div>
         {bottomContent && <div className="px-4 pb-4">{bottomContent}</div>}
       </div>
     );
@@ -239,7 +239,7 @@ export default function SPCChartWrapper({
           </div>
 
           {/* Side-by-side charts with flexible sizing */}
-          <div className="flex gap-[5px] p-4">
+          <div className="flex gap-[5px] px-4 pb-4">
             {/* Timeline Chart - 55% of available space */}
             <div className="flex-[55] min-w-0">
               {injectZoomProps(timelineTab.content, undefined, true)}
@@ -261,12 +261,12 @@ export default function SPCChartWrapper({
   return (
     <div className="bg-white rounded-lg shadow">
       {/* Title Section - above everything */}
-      <div className="px-4 pt-4 pb-1">
+      <div className="px-4 pt-4 pb-2">
         <h4 className="text-lg font-medium text-center text-black">{title}</h4>
       </div>
 
       {/* Tabs Section */}
-      <div className="px-4 pb-0">
+      <div className="px-4 pb-2">
         <div className="flex border-b border-gray-200">
           {tabs.map((tab) => (
             <button
@@ -290,7 +290,7 @@ export default function SPCChartWrapper({
 
       {/* Tab Content Area - contains the chart which has zoom controls */}
       {/* In tabbed view, always reserve space for zoom controls */}
-      <div className="p-1 pt-4">
+      <div className="px-4 pb-4">
         {tabs.map((tab) => {
           if (tab.id !== activeTab) return null;
           return <div key={tab.id}>{injectZoomProps(tab.content)}</div>;

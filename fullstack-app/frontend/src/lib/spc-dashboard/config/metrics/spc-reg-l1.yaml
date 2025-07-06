@@ -108,7 +108,7 @@ charts:
     type: timeline
     yAxis:
       field: centrality_rotation
-      label: cent. rota. (mRa.
+      label: cent. rota. (mRad)
     showStatistics: true
     showLimits: true
 
