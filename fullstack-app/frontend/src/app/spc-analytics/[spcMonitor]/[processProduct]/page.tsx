@@ -13,7 +13,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { DatePicker } from '@/components/ui/date-picker';
 import GenericStatisticsTabs from '@/components/spc-analytics/GenericStatisticsTabs';
 import GenericDataTable from '@/components/spc-analytics/GenericDataTable';
-import { SPCCdL1DataService } from '@/services/spc/SPCCdL1DataService';
 
 function SPCAnalyticsInner() {
   const params = useParams();
@@ -28,7 +27,8 @@ function SPCAnalyticsInner() {
     isLoading: contextLoading,
     error: contextError,
     filters: contextFilters,
-    handleFiltersChange
+    handleFiltersChange,
+    service
   } = useSPCCdL1();
 
   const spcMonitor = params.spcMonitor as string;
@@ -40,8 +40,7 @@ function SPCAnalyticsInner() {
   // Independent entity filter for Analytics (not synced with context)
   const [localSelectedEntity, setLocalSelectedEntity] = useState<string>('');
 
-  // Get service for configurations
-  const service = useMemo(() => new SPCCdL1DataService(), []);
+  // Get service configurations from context service
   const metrics = service.getMetricConfig();
   const columns = service.getColumnConfig();
 
@@ -86,7 +85,12 @@ function SPCAnalyticsInner() {
   }, [allEntityData]);
 
   return (
-    <>
+    <SPCLimitsProvider
+      processType={processType}
+      productType={productType}
+      spcMonitor={spcMonitor}
+      service={service}
+    >
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <AppTabs activeTab="spc" />
@@ -163,7 +167,7 @@ function SPCAnalyticsInner() {
           />
         </div>
       </div>
-    </>
+    </SPCLimitsProvider>
   );
 }
 
@@ -172,9 +176,6 @@ export default function SPCAnalyticsPage() {
   const spcMonitor = params.spcMonitor as string;
   const processProduct = params.processProduct as string;
   const [processType, productType] = processProduct ? processProduct.split('-') : ['', ''];
-  
-  // Create service instance for the provider
-  const service = useMemo(() => new SPCCdL1DataService(), []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -185,14 +186,7 @@ export default function SPCAnalyticsPage() {
           spcMonitorName={spcMonitor}
           processProduct={processProduct}
         >
-          <SPCLimitsProvider
-            processType={processType}
-            productType={productType}
-            spcMonitor={spcMonitor}
-            service={service}
-          >
-            <SPCAnalyticsInner />
-          </SPCLimitsProvider>
+          <SPCAnalyticsInner />
         </SPCCdL1Provider>
       </ErrorBoundary>
     </div>
