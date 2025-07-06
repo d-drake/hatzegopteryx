@@ -75,4 +75,3 @@ export interface ProcessProductCombination {
   process_type: string;
   product_type: string;
 }
-

@@ -12,7 +12,7 @@ Expected to remove approximately 2/3 of the data (66.7%).
 
 import sys
 import os
-from sqlalchemy import create_engine, func, and_, or_, delete
+from sqlalchemy import create_engine, func, and_
 from sqlalchemy.orm import sessionmaker
 
 # Add parent directory to path to import models
@@ -188,7 +188,7 @@ def cleanup_spc_cd_l1_data(dry_run=True, force=False):
 
             # Verify final count
             final_count = session.query(func.count(SPCCdL1.lot)).scalar()
-            print(f"\n✅ Deletion complete!")
+            print("\n✅ Deletion complete!")
             print(
                 f"Final record count: {final_count:,} (expected: {remaining_count:,})"
             )

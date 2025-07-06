@@ -11,14 +11,14 @@ metrics:
     unit: nm
     precision: 2
     description: Critical Dimension ATT measurement
-    
+
   cd_x_y:
     key: cd_x_y
     label: CD X-Y
     unit: nm
     precision: 2
     description: Critical Dimension X-Y measurement
-    
+
   cd_6sig:
     key: cd_6sig
     label: CD 6σ
@@ -42,7 +42,7 @@ charts:
     shapeField: fake_property1
     showStatistics: true
     showLimits: true
-    
+
   - id: cd_x_y_chart
     title: CD X-Y vs Date
     metric: cd_x_y
@@ -53,7 +53,7 @@ charts:
     colorField: bias_x_y
     showStatistics: true
     showLimits: true
-    
+
   - id: cd_6sig_chart
     title: CD 6-Sigma vs Date
     metric: cd_6sig
@@ -71,7 +71,7 @@ analytics:
     - cd_att
     - cd_x_y
     - cd_6sig
-  
+
   # Table columns configuration
   tableColumns:
     - key: entity

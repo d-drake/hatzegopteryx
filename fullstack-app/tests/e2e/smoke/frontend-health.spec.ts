@@ -4,19 +4,42 @@ test.describe('Frontend Health Checks', () => {
   test('should load the homepage', async ({ page }) => {
     await page.goto('/');
 
-    // Since homepage redirects to SPC Dashboard, wait for navigation
-    await page.waitForURL('**/spc-dashboard/**');
-
     // Check that the page loads without errors
     await expect(page).toHaveTitle('Cloud Critical Dimension Hub');
 
-    // Check for main navigation tabs
+    // Check for homepage content
+    await expect(page.locator('h1')).toContainText('Cloud Critical Dimension Hub');
+    await expect(page.locator('text=Charting the past, present, and well-controlled future')).toBeVisible();
+
+    // Check for Explore Dashboard button
+    await expect(page.getByRole('button', { name: 'Explore Dashboard' })).toBeVisible();
+  });
+
+  test('should navigate to SPC Dashboard via Explore button', async ({ page }) => {
+    await page.goto('/');
+
+    // Click the Explore Dashboard button
+    await page.getByRole('button', { name: 'Explore Dashboard' }).click();
+
+    // Wait for navigation to SPC dashboard
+    await page.waitForURL('**/spc-dashboard/SPC_CD_L1/1000-BNT44');
+
+    // Check that we're on the SPC dashboard
+    await page.waitForLoadState('networkidle');
+
+    // Check for SPC dashboard elements
+    await expect(page.locator('h2')).toContainText('SPC Data Dashboard');
+
+    // Check for SPC monitor tabs
+    await expect(page.getByRole('button', { name: 'SPC_CD_L1' })).toBeVisible();
+
+    // Check for main navigation tabs (now visible on SPC dashboard)
     await expect(page.getByRole('button', { name: 'SPC Dashboard' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'SPC Analytics' })).toBeVisible();
     // Note: "To Do Items" tab is only visible to superusers
   });
 
-  test('should navigate to SPC Dashboard', async ({ page }) => {
+  test('should navigate directly to SPC Dashboard', async ({ page }) => {
     await page.goto('/spc-dashboard/SPC_CD_L1/1000-BNT44');
 
     // Wait for the page to load
@@ -39,7 +62,8 @@ test.describe('Frontend Health Checks', () => {
       }
     });
 
-    await page.goto('/');
+    // Navigate directly to SPC dashboard where API calls are made
+    await page.goto('/spc-dashboard/SPC_CD_L1/1000-BNT44');
     await page.waitForLoadState('networkidle');
 
     // Click on SPC Analytics tab

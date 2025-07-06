@@ -235,4 +235,3 @@ export default function FilterControls({
     </div>
   );
 }
-

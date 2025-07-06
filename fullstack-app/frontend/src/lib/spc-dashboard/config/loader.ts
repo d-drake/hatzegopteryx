@@ -104,4 +104,3 @@ export function getShapeFields(monitorId: string): string[] {
 export function hasMonitorConfig(monitorId: string): boolean {
   return configCache.has(monitorId);
 }
-

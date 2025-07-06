@@ -14,43 +14,43 @@ export default {
       },
       keyframes: {
         fadeIn: {
-          'from': {
-            opacity: '0',
-            transform: 'translateY(10px)'
+          from: {
+            opacity: "0",
+            transform: "translateY(10px)",
           },
-          'to': {
-            opacity: '1',
-            transform: 'translateY(0)'
-          }
+          to: {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
         },
         slowPulse: {
-          '0%': {
-            transform: 'scale(1)',
-            opacity: '1'
+          "0%": {
+            transform: "scale(1)",
+            opacity: "1",
           },
-          '50%': {
-            transform: 'scale(1.5)',
-            opacity: '0'
+          "50%": {
+            transform: "scale(1.5)",
+            opacity: "0",
           },
-          '100%': {
-            transform: 'scale(1.5)',
-            opacity: '0'
-          }
-        }
+          "100%": {
+            transform: "scale(1.5)",
+            opacity: "0",
+          },
+        },
       },
       animation: {
-        'fadeIn': 'fadeIn 0.3s ease-out',
-        'slowPulse': 'slowPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+        fadeIn: "fadeIn 0.3s ease-out",
+        slowPulse: "slowPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
       transitionDuration: {
-        '800': '800ms',
-        '1000': '1000ms',
-        '1200': '1200ms',
+        "800": "800ms",
+        "1000": "1000ms",
+        "1200": "1200ms",
       },
       transitionTimingFunction: {
-        'smooth': 'cubic-bezier(0.4, 0.0, 0.2, 1)',
-        'smooth-out': 'cubic-bezier(0.0, 0.0, 0.2, 1)',
-      }
+        smooth: "cubic-bezier(0.4, 0.0, 0.2, 1)",
+        "smooth-out": "cubic-bezier(0.0, 0.0, 0.2, 1)",
+      },
     },
   },
   plugins: [],

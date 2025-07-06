@@ -68,4 +68,3 @@ export class SPCDataServiceFactory {
     this.serviceCache.clear();
   }
 }
-

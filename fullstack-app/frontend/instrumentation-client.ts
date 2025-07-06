@@ -1,16 +1,16 @@
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from "@sentry/nextjs";
 
 // Only initialize Sentry once
-if (typeof window !== 'undefined' && !window.__sentryInit__) {
+if (typeof window !== "undefined" && !window.__sentryInit__) {
   window.__sentryInit__ = true;
   window.__sentryReplayInit__ = true;
-  
+
   Sentry.init({
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    
+
     // Set tracesSampleRate to 1.0 to capture 100% of transactions
     // We recommend adjusting this value in production
-    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
 
     // Capture replay sessions
     replaysSessionSampleRate: 0.1,
@@ -20,12 +20,14 @@ if (typeof window !== 'undefined' && !window.__sentryInit__) {
 
     integrations: [
       // Automatically instrument your app
-      ...(typeof window !== 'undefined' && !window.__sentryReplayInit__ ? [
-        Sentry.replayIntegration({
-          maskAllText: false,
-          blockAllMedia: false,
-        }),
-      ] : []),
+      ...(typeof window !== "undefined" && !window.__sentryReplayInit__
+        ? [
+            Sentry.replayIntegration({
+              maskAllText: false,
+              blockAllMedia: false,
+            }),
+          ]
+        : []),
     ],
 
     // Filter out certain errors
@@ -34,15 +36,17 @@ if (typeof window !== 'undefined' && !window.__sentryInit__) {
       if (event.exception) {
         const error = hint.originalException as any;
         // Filter out canceled requests
-        if (error && error.message && error.message.includes('ERR_CANCELED')) {
+        if (error && error.message && error.message.includes("ERR_CANCELED")) {
           return null;
         }
         // Filter out font loading errors
-        if (error && error.message && (
-          error.message.includes('Failed to fetch') ||
-          error.message.includes('Geist.ttf') ||
-          error.message.includes('Failed to load resource')
-        )) {
+        if (
+          error &&
+          error.message &&
+          (error.message.includes("Failed to fetch") ||
+            error.message.includes("Geist.ttf") ||
+            error.message.includes("Failed to load resource"))
+        ) {
           return null;
         }
       }

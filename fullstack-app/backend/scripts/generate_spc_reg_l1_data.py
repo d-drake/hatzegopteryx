@@ -84,8 +84,9 @@ def generate_spc_reg_l1_data():
     spc_monitor_name = "SPC_REG_L1"
 
     # Fake property values for registration measurements
-    fake_property1_values = ["FP1_A", "FP1_B", "FP1_C", "FP1_D", "FP1_E"]
-    fake_property2_values = ["FP2_A", "FP2_B", "FP2_C", "FP2_D", "FP2_E"]
+    # Note: These values are defined here for documentation purposes
+    # fake_property1_values = ["FP1_A", "FP1_B", "FP1_C", "FP1_D", "FP1_E"]
+    # fake_property2_values = ["FP2_A", "FP2_B", "FP2_C", "FP2_D", "FP2_E"]
 
     # Recipe correlation base values by process/product combination
     # Create ordinal value set for recipe fields: [-0.30, -0.29, -0.28, ..., 0.28, 0.29, 0.30]

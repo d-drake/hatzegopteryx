@@ -110,4 +110,3 @@ export class SPCMonitorDiscovery {
     return this.getConfiguredMonitors();
   }
 }
-

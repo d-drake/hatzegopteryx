@@ -72,14 +72,16 @@ def test_databases():
         log_message("Testing development database...")
         dev_engine = create_engine(DEV_DATABASE_URL)
         with dev_engine.connect() as conn:
-            result = conn.execute(text("SELECT version()")).scalar()
+            # Verify connection by running a simple query
+            conn.execute(text("SELECT version()")).scalar()
             log_message("✓ Development database connected")
 
         # Test production database (via tunnel)
         log_message("Testing production database via SSH tunnel...")
         prod_engine = create_engine(PROD_DATABASE_URL)
         with prod_engine.connect() as conn:
-            result = conn.execute(text("SELECT version()")).scalar()
+            # Verify connection by running a simple query
+            conn.execute(text("SELECT version()")).scalar()
             log_message("✓ Production database connected via tunnel")
 
         return dev_engine, prod_engine
@@ -131,12 +133,12 @@ def migrate_table(dev_engine, prod_engine, table_name: str):
             return True
 
         # Read data from development database
-        log_message(f"Reading data from development...")
+        log_message("Reading data from development...")
         df = pd.read_sql_table(table_name, dev_engine)
         log_message(f"✓ Read {len(df)} records")
 
         # Write data to production database (replace existing)
-        log_message(f"Writing data to production...")
+        log_message("Writing data to production...")
         df.to_sql(
             table_name, prod_engine, if_exists="replace", index=False, method="multi"
         )

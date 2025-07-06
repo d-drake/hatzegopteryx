@@ -240,4 +240,3 @@ export class SPCRegL1DataService implements ISPCDataService<SPCRegL1> {
     });
   }
 }
-

@@ -973,4 +973,3 @@ export default function SPCAnalyticsPage() {
     </ErrorBoundary>
   );
 }
-

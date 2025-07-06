@@ -51,8 +51,6 @@ def generate_spc_cd_l1_data():
 
     # New ordinal category values - Updated after data cleanup
     # Valid combinations: Process 1000 with BNT44/VLQR1/XLY2, Process 1100 with BNT44 only
-    process_types = ["1000", "1100"]
-    product_types = ["BNT44", "VLQR1", "XLY2"]
     # Define valid combinations explicitly
     valid_process_product_combos = [
         ("1000", "BNT44"),

@@ -11,35 +11,35 @@ metrics:
     unit: ppt
     precision: 2
     description: Registration scale X measurement
-    
+
   scale_y:
     key: scale_y
     label: Scale Y
     unit: ppt
     precision: 2
     description: Registration scale Y measurement
-    
+
   ortho:
     key: ortho
     label: Ortho
     unit: mRad
     precision: 2
     description: Orthogonality measurement
-    
+
   centrality_x:
     key: centrality_x
     label: Centrality X
     unit: mm
     precision: 2
     description: Centrality X measurement
-    
+
   centrality_y:
     key: centrality_y
     label: Centrality Y
     unit: mm
     precision: 2
     description: Centrality Y measurement
-    
+
   centrality_rotation:
     key: centrality_rotation
     label: Centrality Rotation
@@ -59,7 +59,7 @@ charts:
     colorField: recipe_scale_x
     showStatistics: true
     showLimits: true
-    
+
   - id: scale_y_chart
     title: Scale Y vs Date
     metric: scale_y
@@ -70,7 +70,7 @@ charts:
     colorField: recipe_scale_y
     showStatistics: true
     showLimits: true
-    
+
   - id: ortho_chart
     title: Ortho vs Date
     metric: ortho
@@ -81,7 +81,7 @@ charts:
     colorField: recipe_ortho
     showStatistics: true
     showLimits: true
-    
+
   - id: centrality_x_chart
     title: Centrality X vs Date
     metric: centrality_x
@@ -91,7 +91,7 @@ charts:
       label: cent. x (mm)
     showStatistics: true
     showLimits: true
-    
+
   - id: centrality_y_chart
     title: Centrality Y vs Date
     metric: centrality_y
@@ -101,7 +101,7 @@ charts:
       label: cent. y (mm)
     showStatistics: true
     showLimits: true
-    
+
   - id: centrality_rotation_chart
     title: Centrality Rotation vs Date
     metric: centrality_rotation
@@ -119,7 +119,7 @@ analytics:
     - scale_x
     - scale_y
     - ortho
-  
+
   # Table columns configuration
   tableColumns:
     - key: entity
@@ -176,7 +176,7 @@ analytics:
       label: P2
       sortable: false
 
-# Field definitions for color/shape mapping  
+# Field definitions for color/shape mapping
 fields:
   colorFields:
     - recipe_scale_x

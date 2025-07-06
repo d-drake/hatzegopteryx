@@ -54,4 +54,3 @@ export interface ISPCDataService<T extends SPCDataItem> {
   // Fetch available process-product combinations
   fetchProcessProductCombinations(): Promise<ProcessProductCombination[]>;
 }
-

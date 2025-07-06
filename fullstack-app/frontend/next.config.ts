@@ -1,9 +1,9 @@
-import type { NextConfig } from 'next'
-import { withSentryConfig } from '@sentry/nextjs'
+import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   // Remove static export - we'll use standalone for container deployment
-  output: 'standalone',
+  output: "standalone",
   experimental: {
     // Reduce memory usage during builds (available from v15.0.0)
     webpackMemoryOptimizations: true,
@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   },
   // Optimize CSS loading
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === "production",
   },
   // Disable runtime JS for better performance
   reactStrictMode: true,
@@ -21,30 +21,33 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: '/:path*',
+        source: "/:path*",
         headers: [
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
         ],
       },
-    ]
+    ];
   },
-}
+};
 
 export default withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options
 
-  org: 'pdev-zx',
-  project: 'CCDH',
+  org: "pdev-zx",
+  project: "CCDH",
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
 
   // Disable source map upload in development
-  authToken: process.env.NODE_ENV === 'development' ? undefined : process.env.SENTRY_AUTH_TOKEN,
+  authToken:
+    process.env.NODE_ENV === "development"
+      ? undefined
+      : process.env.SENTRY_AUTH_TOKEN,
 
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
@@ -59,7 +62,7 @@ export default withSentryConfig(nextConfig, {
   // Source maps configuration
   sourcemaps: {
     disable: false,
-    deleteSourcemapsAfterUpload: process.env.NODE_ENV === 'production'
+    deleteSourcemapsAfterUpload: process.env.NODE_ENV === "production",
   },
 
   // Automatically tree-shake Sentry logger statements to reduce bundle size
@@ -67,4 +70,4 @@ export default withSentryConfig(nextConfig, {
 
   // Enable automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
   automaticVercelMonitors: true,
-})
+});
