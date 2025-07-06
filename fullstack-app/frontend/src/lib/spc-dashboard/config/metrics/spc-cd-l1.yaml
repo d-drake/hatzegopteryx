@@ -129,3 +129,19 @@ fields:
   shapeFields:
     - fake_property1
     - fake_property2
+
+# Field mapping rules for dynamic field selection
+fieldMappings:
+  # When yField contains 'bias', use yField as color field
+  colorFieldRules:
+    - condition: "contains"
+      field: "yField"
+      value: "bias"
+      useField: "yField"
+  
+  # When yField is 'cd_att', use 'fake_property1' as shape field
+  shapeFieldRules:
+    - condition: "equals"
+      field: "yField"
+      value: "cd_att"
+      useField: "fake_property1"

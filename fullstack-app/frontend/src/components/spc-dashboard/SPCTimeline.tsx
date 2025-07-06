@@ -5,6 +5,11 @@ import { SPCLimits } from "@/types";
 import LimitLine from "./LimitLine";
 import { useSPCLimits } from "@/contexts/SPCLimitsContext";
 import { getUnitsForMonitor } from "@/lib/spc-dashboard/unitRegistry";
+import { useSPCConfig } from "@/hooks/useSPCConfig";
+import {
+  getEffectiveColorField,
+  getEffectiveShapeField,
+} from "@/lib/spc-dashboard/config/field-mapping-utils";
 import * as d3 from "d3";
 
 interface SPCTimelineProps {
@@ -71,15 +76,29 @@ export default function SPCTimeline({
 }: SPCTimelineProps) {
   // Use SPC limits from context instead of fetching independently
   const { getLimitsForChart, isLoading: limitsLoading } = useSPCLimits();
-  // Apply SPC-specific defaults
-  // For bias fields, use bias coloring
-  const effectiveColorField = yField.toString().includes("bias")
-    ? yField
-    : colorField;
-
-  // For CD ATT charts, use fake_property1 for shapes
-  const effectiveShapeField =
-    yField === "cd_att" ? "fake_property1" : shapeField;
+  
+  // Get configuration for this monitor
+  const { config } = useSPCConfig(spcMonitorName || "");
+  
+  // Create context for field mapping rules
+  const fieldContext = {
+    yField: yField.toString(),
+    colorField,
+    shapeField,
+  };
+  
+  // Apply configuration-driven field mappings
+  const effectiveColorField = getEffectiveColorField(
+    config?.fieldMappings,
+    fieldContext,
+    colorField
+  );
+  
+  const effectiveShapeField = getEffectiveShapeField(
+    config?.fieldMappings,
+    fieldContext,
+    shapeField
+  );
 
   // Map yField to chart name for SPC limits (generic approach)
   const getChartName = (field: string): string => {

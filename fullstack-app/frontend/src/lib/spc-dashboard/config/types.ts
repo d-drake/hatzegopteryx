@@ -36,6 +36,18 @@ export interface ColumnConfig {
   format?: "number" | "datetime" | "string";
 }
 
+export interface FieldMappingRule {
+  condition: "equals" | "contains" | "startsWith" | "endsWith";
+  field: string;
+  value: string;
+  useField: string;
+}
+
+export interface FieldMappings {
+  colorFieldRules?: FieldMappingRule[];
+  shapeFieldRules?: FieldMappingRule[];
+}
+
 export interface SPCMonitorConfig {
   monitor: {
     id: string;
@@ -52,6 +64,7 @@ export interface SPCMonitorConfig {
     colorFields: string[];
     shapeFields: string[];
   };
+  fieldMappings?: FieldMappings;
 }
 
 // Helper type to extract metric keys from config
