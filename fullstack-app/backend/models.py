@@ -50,6 +50,30 @@ class SPCCdL1(Base):
     spc_monitor_name = Column(String, nullable=False, index=True)  # SPC_CD_L1
 
 
+class SPCRegL1(Base):
+    __tablename__ = "spc_reg_l1"
+
+    lot = Column(String, primary_key=True, index=True)  # Lot100000, Lot100001, etc.
+    date_process = Column(DateTime, nullable=False, index=True)
+    process_type = Column(String, nullable=False, index=True)  # 900, 1000, 1100
+    product_type = Column(
+        String, nullable=False, index=True
+    )  # XLY1, XLY2, BNT44, VLQR1
+    spc_monitor_name = Column(String, nullable=False, index=True)  # SPC_REG_L1
+    entity = Column(String, nullable=False, index=True)  # FAKE_TOOL1-6
+    fake_property1 = Column(String, nullable=False)  # FP1_A through FP1_E
+    fake_property2 = Column(String, nullable=False)  # FP2_A through FP2_E
+    recipe_scale_x = Column(Float, nullable=False)  # Recipe correlation for scale X
+    recipe_scale_y = Column(Float, nullable=False)  # Recipe correlation for scale Y
+    recipe_ortho = Column(Float, nullable=False)  # Recipe correlation for ortho
+    scale_x = Column(Float, nullable=False)  # Registration scale X measurement
+    scale_y = Column(Float, nullable=False)  # Registration scale Y measurement
+    ortho = Column(Float, nullable=False)  # Orthogonality measurement
+    centrality_x = Column(Float, nullable=False)  # Centrality X measurement
+    centrality_y = Column(Float, nullable=False)  # Centrality Y measurement
+    centrality_rotation = Column(Float, nullable=False)  # Centrality rotation measurement
+
+
 class SPCLimits(Base):
     __tablename__ = "spc_limits"
 
@@ -58,13 +82,13 @@ class SPCLimits(Base):
     product_type = Column(
         String, nullable=False, index=True
     )  # XLY1, XLY2, BNT44, VLQR1
-    spc_monitor_name = Column(String, nullable=False, index=True)  # SPC_CD_L1
+    spc_monitor_name = Column(String, nullable=False, index=True)  # SPC_CD_L1, SPC_REG_L1
     spc_chart_name = Column(
         String, nullable=False, index=True
-    )  # cd_att, cd_x_y, cd_6sig
-    cl = Column(Integer, nullable=True)  # Center Line
-    lcl = Column(Integer, nullable=True)  # Lower Control Limit
-    ucl = Column(Integer, nullable=True)  # Upper Control Limit
+    )  # cd_att, cd_x_y, cd_6sig, scale_x, scale_y, ortho, centrality_x, centrality_y, centrality_rotation
+    cl = Column(Float, nullable=True)  # Center Line
+    lcl = Column(Float, nullable=True)  # Lower Control Limit
+    ucl = Column(Float, nullable=True)  # Upper Control Limit
     effective_date = Column(
         DateTime, nullable=False, default=func.now()
     )  # When this limit becomes effective

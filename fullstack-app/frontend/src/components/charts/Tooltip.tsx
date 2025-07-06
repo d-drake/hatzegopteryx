@@ -76,7 +76,7 @@ export function formatTooltipContent(
       }
 
       if (typeof value === 'number') {
-        return `<strong>${formattedField}:</strong> ${value.toFixed(2)}`;
+        return `<strong>${formattedField}:</strong> ${value.toFixed(3)}`;
       } else if (field === 'date_process' && typeof value === 'string') {
         return `<strong>${formattedField}:</strong> ${new Date(value).toLocaleString()}`;
       } else {

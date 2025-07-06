@@ -26,7 +26,7 @@ export default function SPCDashboardRedirect() {
       return `${year}-${month}-${day}`;
     };
 
-    const defaultSPCMonitor = 'SPC_CD_L1';
+    const defaultSPCMonitor = 'SPC_REG_L1'; // Can also be 'SPC_CD_L1'
     const defaultProcessProduct = '1000-BNT44';
     const defaultEntity = 'FAKE_TOOL1';
     const defaultStartDate = formatDate(startDate);

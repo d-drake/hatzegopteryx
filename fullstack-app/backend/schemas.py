@@ -149,15 +149,40 @@ class SPCCdL1(SPCCdL1Base):
     model_config = ConfigDict(from_attributes=True)
 
 
+# SPC REG L1 Data schemas
+class SPCRegL1Base(BaseModel):
+    lot: str
+    date_process: datetime
+    process_type: str
+    product_type: str
+    spc_monitor_name: str
+    entity: str
+    fake_property1: str
+    fake_property2: str
+    recipe_scale_x: float
+    recipe_scale_y: float
+    recipe_ortho: float
+    scale_x: float
+    scale_y: float
+    ortho: float
+    centrality_x: float
+    centrality_y: float
+    centrality_rotation: float
+
+
+class SPCRegL1(SPCRegL1Base):
+    model_config = ConfigDict(from_attributes=True)
+
+
 # SPC Limits schemas
 class SPCLimitsBase(BaseModel):
     process_type: str
     product_type: str
     spc_monitor_name: str
     spc_chart_name: str
-    cl: Optional[int] = None
-    lcl: Optional[int] = None
-    ucl: Optional[int] = None
+    cl: Optional[float] = None
+    lcl: Optional[float] = None
+    ucl: Optional[float] = None
     effective_date: datetime
 
 
@@ -166,9 +191,9 @@ class SPCLimitsCreate(SPCLimitsBase):
 
 
 class SPCLimitsUpdate(BaseModel):
-    cl: Optional[int] = None
-    lcl: Optional[int] = None
-    ucl: Optional[int] = None
+    cl: Optional[float] = None
+    lcl: Optional[float] = None
+    ucl: Optional[float] = None
 
 
 class SPCLimits(SPCLimitsBase):

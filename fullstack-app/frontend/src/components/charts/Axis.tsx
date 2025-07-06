@@ -118,7 +118,7 @@ export default function Axis({
           if (Math.abs(num) < 1) {
             return d3.format('.3~f')(num); // Up to 3 decimal places
           } else if (Math.abs(num) < 10) {
-            return d3.format('.2~f')(num); // Up to 2 decimal places
+            return d3.format('.3~f')(num); // Up to 3 decimal places for consistency
           }
           return d3.format('.1~f')(num); // Up to 1 decimal place
         });

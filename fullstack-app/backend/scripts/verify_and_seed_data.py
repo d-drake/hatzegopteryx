@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 Data verification and seeding script for the backend database.
-Checks if spc_cd_l1 and spc_limits tables have data, and generates it if missing.
+Checks if spc_cd_l1, spc_reg_l1, and spc_limits tables have data, and generates it if missing.
 """
 
 import os
 import sys
 import subprocess
 from database import SessionLocal, engine
-from models import Base, SPCCdL1, SPCLimits
+from models import Base, SPCCdL1, SPCRegL1, SPCLimits
 
 
 def check_table_data(db, model_class):
@@ -90,6 +90,19 @@ def verify_and_seed_data():
                 print("✗ Failed to generate spc_cd_l1 data")
                 return False
 
+        # Check spc_reg_l1 table
+        print("\nChecking spc_reg_l1 table...")
+        has_reg_data = check_table_data(db, SPCRegL1)
+
+        if has_reg_data:
+            reg_count = db.query(SPCRegL1).count()
+            print(f"✓ spc_reg_l1 table has {reg_count} records")
+        else:
+            print("⚠ spc_reg_l1 table is empty, generating data...")
+            if not run_generation_script("generate_spc_reg_l1_data.py"):
+                print("✗ Failed to generate spc_reg_l1 data")
+                return False
+
         # Check spc_limits table
         print("\nChecking spc_limits table...")
         has_spc_limits = check_table_data(db, SPCLimits)
@@ -107,12 +120,14 @@ def verify_and_seed_data():
         print("\n" + "=" * 60)
         print("Final Data Verification:")
         cd_final_count = db.query(SPCCdL1).count()
+        reg_final_count = db.query(SPCRegL1).count()
         spc_final_count = db.query(SPCLimits).count()
 
         print(f"• spc_cd_l1 records: {cd_final_count}")
+        print(f"• spc_reg_l1 records: {reg_final_count}")
         print(f"• spc_limits records: {spc_final_count}")
 
-        if cd_final_count > 0 and spc_final_count > 0:
+        if cd_final_count > 0 and reg_final_count > 0 and spc_final_count > 0:
             print("✓ All required data is present in the database")
             return True
         else:

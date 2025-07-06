@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { fetchEntities } from '@/services/spcCdL1Service';
+import { createSPCService } from '@/services/spcGenericService';
 import { useAuth } from '@/contexts/AuthContext';
 import { DatePicker } from '@/components/ui/date-picker';
 
@@ -15,15 +15,18 @@ interface FilterControlsProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   loading?: boolean;
+  spcMonitor: string;
 }
 
 export default function FilterControls({ 
   filters, 
   onFiltersChange, 
-  loading = false 
+  loading = false,
+  spcMonitor
 }: FilterControlsProps) {
   const [entities, setEntities] = useState<string[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
+  const [entitySupported, setEntitySupported] = useState(true);
   const { user } = useAuth();
   
   // Local state for date inputs to prevent immediate updates
@@ -42,7 +45,7 @@ export default function FilterControls({
 
   useEffect(() => {
     loadFilterOptions();
-  }, []);
+  }, [spcMonitor]); // Re-load when spcMonitor changes
 
   // Sync local state with parent filters
   useEffect(() => {
@@ -53,10 +56,22 @@ export default function FilterControls({
   const loadFilterOptions = async () => {
     try {
       setLoadingOptions(true);
-      const entitiesData = await fetchEntities();
-      setEntities(entitiesData);
+      const spcService = createSPCService(spcMonitor);
+      
+      // Check if entity filtering is supported for this SPC monitor
+      const supportsEntities = spcService.supportsEntityFiltering();
+      setEntitySupported(supportsEntities);
+      
+      if (supportsEntities) {
+        const entitiesData = await spcService.fetchEntities();
+        setEntities(entitiesData);
+      } else {
+        setEntities([]);
+      }
     } catch (error) {
       console.error('Error loading filter options:', error);
+      setEntitySupported(false);
+      setEntities([]);
     } finally {
       setLoadingOptions(false);
     }
@@ -124,7 +139,7 @@ export default function FilterControls({
     setLocalStartDate('');
     setLocalEndDate('');
     onFiltersChange({
-      entity: entities.length > 0 ? entities[0] : filters.entity, // Keep current entity or use first available
+      entity: entitySupported && entities.length > 0 ? entities[0] : '', // Use first entity if supported, otherwise empty
       startDate: '',
       endDate: ''
     });
@@ -158,26 +173,28 @@ export default function FilterControls({
         </button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Entity Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Entity
-          </label>
-          <select
-            value={filters.entity}
-            onChange={(e) => handleFilterChange('entity', e.target.value)}
-            className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2714%27%20height%3D%278%27%20viewBox%3D%270%200%2014%208%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cpath%20d%3D%27M1%201l6%206%206-6%27%20stroke%3D%27%236b7280%27%20stroke-width%3D%272%27%20fill%3D%27none%27%20fill-rule%3D%27evenodd%27%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_0.7rem_center] bg-no-repeat"
-            disabled={loading}
-            required
-          >
-            {entities.map((entity) => (
-              <option key={entity} value={entity}>
-                {entity}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className={`grid grid-cols-1 gap-4 ${entitySupported ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2'}`}>
+        {/* Entity Filter - only show if supported */}
+        {entitySupported && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Entity
+            </label>
+            <select
+              value={filters.entity}
+              onChange={(e) => handleFilterChange('entity', e.target.value)}
+              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2714%27%20height%3D%278%27%20viewBox%3D%270%200%2014%208%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cpath%20d%3D%27M1%201l6%206%206-6%27%20stroke%3D%27%236b7280%27%20stroke-width%3D%272%27%20fill%3D%27none%27%20fill-rule%3D%27evenodd%27%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_0.7rem_center] bg-no-repeat"
+              disabled={loading}
+              required
+            >
+              {entities.map((entity) => (
+                <option key={entity} value={entity}>
+                  {entity}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Start Date Filter */}
         <div>

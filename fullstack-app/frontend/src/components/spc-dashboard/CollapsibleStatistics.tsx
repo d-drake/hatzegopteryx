@@ -2,12 +2,16 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { SPCCdL1 } from '@/types';
+export interface StatisticsConfig {
+  supportedMetrics: string[];
+  groupByEntity: boolean;
+}
 
 interface CollapsibleStatisticsProps {
-  data: SPCCdL1[];
-  metric: 'cd_att' | 'cd_x_y' | 'cd_6sig';
+  data: any[]; // Generic data array
+  metric: string;
   chartTitle: string;
+  config: StatisticsConfig; // Configuration object
   // External state management for synchronized collapse/expand
   isCollapsed?: boolean;
   onToggleCollapsed?: () => void;
@@ -54,6 +58,7 @@ export default function CollapsibleStatistics({
   data, 
   metric, 
   chartTitle,
+  config,
   isCollapsed: externalIsCollapsed,
   onToggleCollapsed
 }: CollapsibleStatisticsProps) {
@@ -81,10 +86,10 @@ export default function CollapsibleStatistics({
   const statistics = useMemo(() => {
     const results: EntityStats[] = [];
     
-    // Get all values for the current metric (always use full data for "All" statistics)
+    // Get all values for the current metric
     const allValues = data.map(d => d[metric]).filter(v => v != null);
     
-    // Calculate "All" statistics
+    // Always calculate "All" statistics
     if (allValues.length > 0) {
       const stats = calculateStats(allValues);
       results.push({
@@ -93,25 +98,31 @@ export default function CollapsibleStatistics({
       });
     }
     
-    // Always show all entities
-    // Get unique entities from the data dynamically
-    const entities = Array.from(new Set(data.map(d => d.entity))).sort();
-    
-    entities.forEach(entity => {
-      const entityData = data.filter(d => d.entity === entity);
-      const entityValues = entityData.map(d => d[metric]).filter(v => v != null);
+    // Conditionally group by entity based on configuration
+    if (config.groupByEntity && data.length > 0) {
+      // Check if data has entity field (defensive programming)
+      const hasEntityField = data.some(d => 'entity' in d);
       
-      if (entityValues.length > 0) {
-        const stats = calculateStats(entityValues);
-        results.push({
-          entity,
-          ...stats,
+      if (hasEntityField) {
+        const entities = Array.from(new Set(data.map(d => d.entity))).sort();
+        
+        entities.forEach(entity => {
+          const entityData = data.filter(d => d.entity === entity);
+          const entityValues = entityData.map(d => d[metric]).filter(v => v != null);
+          
+          if (entityValues.length > 0) {
+            const stats = calculateStats(entityValues);
+            results.push({
+              entity,
+              ...stats,
+            });
+          }
         });
       }
-    });
+    }
     
     return results;
-  }, [data, metric]);
+  }, [data, metric, config]);
 
   // Format number with appropriate precision
   const formatNumber = (value: number, isStdDev = false): string => {

@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { SPCCdL1Item } from '@/services/spcCdL1Service';
-import { useSPCCdL1 } from '@/contexts/SPCCdL1Context';
+import { getSPCDataSourceConfig } from '@/lib/spc-dashboard/spcDataSourceRegistry';
 import SPCTimeline from './SPCTimeline';
 import { SPCVariabilityChart } from './SPCVariabilityChart';
 import ResponsiveChartWrapper from '@/components/charts/ResponsiveChartWrapper';
@@ -11,11 +10,11 @@ import CollapsibleStatistics from './CollapsibleStatistics';
 
 interface SPCChartWithSharedDataProps {
   title: string;
-  data: SPCCdL1Item[];
-  yField: keyof SPCCdL1Item;
-  y2Field?: keyof SPCCdL1Item;
-  colorField?: keyof SPCCdL1Item;
-  shapeField?: keyof SPCCdL1Item;
+  data: any[]; // Generic data array
+  yField: string;
+  y2Field?: string;
+  colorField?: string;
+  shapeField?: string;
   processType: string;
   productType: string;
   spcMonitor: string;
@@ -42,7 +41,15 @@ export default function SPCChartWithSharedData({
   statisticsCollapsed,
   onToggleStatisticsCollapsed,
 }: SPCChartWithSharedDataProps) {
-  const { allEntityData, filters } = useSPCCdL1();
+  // Get configuration for this SPC monitor
+  const config = getSPCDataSourceConfig(spcMonitor);
+  
+  // Use the appropriate context hook
+  const contextData = config.contextHook();
+  
+  // Generic data access using configuration
+  const allEntityData = contextData.allEntityData || [];
+  const filters = contextData.filters || {};
 
   // Use all entity data for scale calculation (variability chart needs all entities)
   const dataForScaleCalculation = allEntityData.length > 0 ? allEntityData : data;
@@ -50,19 +57,8 @@ export default function SPCChartWithSharedData({
   // Define margins - consistent for both charts
   const chartMargin = { top: 30, right: 240, bottom: 60, left: 70 };
 
-  // Map yField to metric type for statistics
-  const getMetricType = (): 'cd_att' | 'cd_x_y' | 'cd_6sig' => {
-    switch (yField) {
-      case 'cd_att':
-        return 'cd_att';
-      case 'cd_x_y':
-        return 'cd_x_y';
-      case 'cd_6sig':
-        return 'cd_6sig';
-      default:
-        return 'cd_att'; // fallback
-    }
-  };
+  // Conditional rendering based on data source capabilities
+  const effectiveShapeField = config.dataFields.hasShapeField ? shapeField : undefined;
 
   // Get chart title without "vs Date" suffix for statistics
   const getChartTitleForStats = () => {
@@ -78,8 +74,9 @@ export default function SPCChartWithSharedData({
       bottomContent={
         <CollapsibleStatistics
           data={dataForScaleCalculation}
-          metric={getMetricType()}
+          metric={yField}
           chartTitle={getChartTitleForStats()}
+          config={config.statisticsConfig}
           isCollapsed={statisticsCollapsed}
           onToggleCollapsed={onToggleStatisticsCollapsed}
         />
@@ -98,7 +95,7 @@ export default function SPCChartWithSharedData({
                   yField={yField}
                   y2Field={y2Field}
                   colorField={colorField}
-                  shapeField={shapeField}
+                  shapeField={effectiveShapeField}
                   width={width}
                   height={400}
                   margin={chartMargin}

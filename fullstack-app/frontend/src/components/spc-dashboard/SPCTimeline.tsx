@@ -1,19 +1,19 @@
 'use client';
 
 import Timeline from '@/components/charts/Timeline';
-import { SPCCdL1Item, SPCLimit } from '@/services/spcCdL1Service';
+import { SPCLimit } from '@/services/spcCdL1Service';
 import LimitLine from './LimitLine';
 import { useSPCLimits } from '@/contexts/SPCLimitsContext';
 import { getUnitsForMonitor } from '@/lib/spc-dashboard/unitRegistry';
 import * as d3 from 'd3';
 
 interface SPCTimelineProps {
-  data: SPCCdL1Item[];
-  xField: keyof SPCCdL1Item;
-  yField: keyof SPCCdL1Item;
-  y2Field?: keyof SPCCdL1Item; // Secondary Y-axis field
-  colorField?: keyof SPCCdL1Item;
-  shapeField?: keyof SPCCdL1Item;
+  data: any[]; // Generic data array
+  xField: string;
+  yField: string;
+  y2Field?: string; // Secondary Y-axis field
+  colorField?: string;
+  shapeField?: string;
   width?: number;
   height?: number;
   margin?: { top: number; right: number; bottom: number; left: number };
@@ -22,7 +22,7 @@ interface SPCTimelineProps {
   spcMonitorName?: string;
   yScale?: d3.ScaleLinear<number, number>; // External Y scale for synchronization (deprecated)
   onYScaleChange?: (scale: d3.ScaleLinear<number, number>) => void; // Callback when Y scale changes (deprecated)
-  allData?: SPCCdL1Item[]; // All data for scale calculation
+  allData?: any[]; // All data for scale calculation
   xZoomDomain?: [number, number] | [Date, Date] | null; // X-axis zoom domain
   yZoomDomain?: [number, number] | null; // Y-axis zoom domain
   y2ZoomDomain?: [number, number] | null; // Y2-axis zoom domain
@@ -78,16 +78,10 @@ export default function SPCTimeline({
   // For CD ATT charts, use fake_property1 for shapes
   const effectiveShapeField = yField === 'cd_att' ? 'fake_property1' : shapeField;
 
-  // Map yField to chart name for SPC limits
-  const getChartName = (field: keyof SPCCdL1Item): string => {
-    switch (field) {
-      case 'cd_att': return 'cd_att';
-      case 'cd_x_y': return 'cd_x_y';
-      case 'cd_6sig': return 'cd_6sig';
-      case 'bias': return 'bias';
-      case 'bias_x_y': return 'bias_x_y';
-      default: return field.toString();
-    }
+  // Map yField to chart name for SPC limits (generic approach)
+  const getChartName = (field: string): string => {
+    // Simply return the field as-is for chart name mapping
+    return field;
   };
 
   const chartName = getChartName(yField);
@@ -103,7 +97,7 @@ export default function SPCTimeline({
   } : undefined;
 
   return (
-    <Timeline<SPCCdL1Item>
+    <Timeline
       data={data}
       xField={xField}
       yField={yField}
