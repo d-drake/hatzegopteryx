@@ -163,7 +163,7 @@ export default function GenericSPCDashboard({
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold text-black">
                 {charts && charts.length > 0
-                  ? `${charts[0].metric.toUpperCase()} Measurement Analysis`
+                  ? `${spcMonitor.toUpperCase()} Measurement Analysis`
                   : "Measurement Analysis"}
               </h3>
               {areTabsVisible && (
@@ -176,14 +176,12 @@ export default function GenericSPCDashboard({
                       className="sr-only"
                     />
                     <div
-                      className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${
-                        syncViews ? "bg-blue-600" : "bg-gray-200"
-                      }`}
+                      className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${syncViews ? "bg-blue-600" : "bg-gray-200"
+                        }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                          syncViews ? "translate-x-6" : "translate-x-1"
-                        }`}
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${syncViews ? "translate-x-6" : "translate-x-1"
+                          }`}
                       />
                     </div>
                     <span className="ml-2 text-sm text-gray-700">
