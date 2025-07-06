@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import * as d3 from 'd3';
-import { SPCLimit } from '@/services/spcCdL1Service';
+import { SPCLimits } from '@/types';
 import { useSPCLimits } from '@/contexts/SPCLimitsContext';
 
 interface LimitLineProps {

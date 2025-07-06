@@ -150,91 +150,47 @@ export class SPCCdL1DataService implements ISPCDataService<SPCCdL1> {
   }
 
   getMetricConfig(): MetricConfig[] {
-    return [
-      {
-        key: 'cd_att',
-        label: 'CD ATT',
-        precision: 2,
-        unit: 'nm'
-      },
-      {
-        key: 'cd_x_y',
-        label: 'CD X-Y',
-        precision: 2,
-        unit: 'nm'
-      },
-      {
-        key: 'cd_6sig',
-        label: 'CD 6σ',
-        precision: 2,
-        unit: 'nm'
-      }
-    ];
+    // Import from configuration
+    const config = require('@/lib/spc-dashboard/config/metrics/spc-cd-l1.json');
+    const statisticMetrics = config.analytics.statisticMetrics;
+    
+    return statisticMetrics.map((metricKey: string) => {
+      const metric = config.metrics[metricKey];
+      return {
+        key: metric.key,
+        label: metric.label,
+        precision: metric.precision,
+        unit: metric.unit
+      };
+    });
   }
 
   getColumnConfig(): ColumnConfig[] {
-    return [
-      {
-        key: 'entity',
-        label: 'Entity',
-        sortable: true,
-        align: 'left'
-      },
-      {
-        key: 'lot',
-        label: 'Lot',
-        sortable: true,
-        align: 'left'
-      },
-      {
-        key: 'date_process',
-        label: 'Process Date',
-        sortable: true,
-        align: 'left',
-        format: (value: string) => new Date(value).toLocaleString()
-      },
-      {
-        key: 'bias',
-        label: 'Bias',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => value.toFixed(2)
-      },
-      {
-        key: 'bias_x_y',
-        label: 'Bias X-Y',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => value.toFixed(2)
-      },
-      {
-        key: 'cd_att',
-        label: 'CD ATT',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => value.toFixed(2) + ' nm'
-      },
-      {
-        key: 'cd_x_y',
-        label: 'CD X-Y',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => value.toFixed(2) + ' nm'
-      },
-      {
-        key: 'cd_6sig',
-        label: 'CD 6σ',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => value.toFixed(2) + ' nm'
-      },
-      {
-        key: 'duration_subseq_process_step',
-        label: 'Duration',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => `${value}s`
+    // Import from configuration
+    const config = require('@/lib/spc-dashboard/config/metrics/spc-cd-l1.json');
+    const tableColumns = config.analytics.tableColumns;
+    
+    return tableColumns.map((col: any) => {
+      const columnConfig: ColumnConfig = {
+        key: col.key,
+        label: col.label,
+        sortable: col.sortable ?? true,
+        align: col.align || 'left'
+      };
+      
+      // Add format function based on column properties
+      if (col.format === 'datetime') {
+        columnConfig.format = (value: string) => new Date(value).toLocaleString();
+      } else if (col.precision !== undefined) {
+        columnConfig.format = (value: number) => {
+          const formatted = value.toFixed(col.precision);
+          return col.unit ? `${formatted} ${col.unit}` : formatted;
+        };
+      } else if (col.unit) {
+        columnConfig.format = (value: number) => `${value}${col.unit}`;
       }
-    ];
+      
+      return columnConfig;
+    });
   }
 }

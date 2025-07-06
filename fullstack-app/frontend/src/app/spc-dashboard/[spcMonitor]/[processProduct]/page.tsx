@@ -27,7 +27,8 @@ function SPCCdL1DashboardInner() {
     error,
     filters,
     handleFiltersChange,
-    refetch
+    refetch,
+    service
   } = useSPCCdL1();
 
   const isGuest = !user;
@@ -68,7 +69,13 @@ function SPCCdL1DashboardInner() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <SPCLimitsProvider
+      processType={processType}
+      productType={productType}
+      spcMonitor={spcMonitor}
+      service={service}
+    >
+      <div className="min-h-screen bg-gray-50">
       <Header />
       <header className="bg-slate-800 text-white">
         <div className="container mx-auto px-4 py-6">
@@ -227,7 +234,8 @@ function SPCCdL1DashboardInner() {
           </div>
         )}
       </main>
-    </div>
+      </div>
+    </SPCLimitsProvider>
   );
 }
 
@@ -240,7 +248,8 @@ function SPCRegL1DashboardInner() {
     error,
     filters,
     handleFiltersChange,
-    refetch
+    refetch,
+    service
   } = useSPCRegL1();
 
   const isGuest = !user;
@@ -281,7 +290,13 @@ function SPCRegL1DashboardInner() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <SPCLimitsProvider
+      processType={processType}
+      productType={productType}
+      spcMonitor={spcMonitor}
+      service={service}
+    >
+      <div className="min-h-screen bg-gray-50">
       <Header />
       <header className="bg-slate-800 text-white">
         <div className="container mx-auto px-4 py-6">
@@ -484,7 +499,8 @@ function SPCRegL1DashboardInner() {
           </div>
         )}
       </main>
-    </div>
+      </div>
+    </SPCLimitsProvider>
   );
 }
 
@@ -505,13 +521,7 @@ function SPCDashboardContent() {
         spcMonitorName={spcMonitor}
         processProduct={processProduct}
       >
-        <SPCLimitsProvider
-          processType={processType}
-          productType={productType}
-          spcMonitorName={spcMonitor}
-        >
-          <SPCRegL1DashboardInner />
-        </SPCLimitsProvider>
+        <SPCRegL1DashboardInner />
       </SPCRegL1Provider>
     );
   } else {
@@ -523,13 +533,7 @@ function SPCDashboardContent() {
         spcMonitorName={spcMonitor}
         processProduct={processProduct}
       >
-        <SPCLimitsProvider
-          processType={processType}
-          productType={productType}
-          spcMonitorName={spcMonitor}
-        >
-          <SPCCdL1DashboardInner />
-        </SPCLimitsProvider>
+        <SPCCdL1DashboardInner />
       </SPCCdL1Provider>
     );
   }

@@ -1,37 +1,40 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
-import { fetchSPCLimits, SPCLimit } from '@/services/spcCdL1Service';
+import { SPCLimits, SPCDataItem } from '@/types';
+import { ISPCDataService } from '@/services/spc/ISPCDataService';
 
 interface SPCLimitsContextValue {
-  limits: SPCLimit[];
+  limits: SPCLimits[];
   isLoading: boolean;
   error: string | null;
-  getLimitsForChart: (chartName: string) => SPCLimit[];
+  getLimitsForChart: (chartName: string) => SPCLimits[];
   refetch: () => Promise<void>;
 }
 
 const SPCLimitsContext = createContext<SPCLimitsContextValue | null>(null);
 
-interface SPCLimitsProviderProps {
+interface SPCLimitsProviderProps<T extends SPCDataItem> {
   children: React.ReactNode;
   processType: string;
   productType: string;
-  spcMonitorName: string;
+  spcMonitor: string;
+  service?: ISPCDataService<T>;
 }
 
-export function SPCLimitsProvider({ 
+export function SPCLimitsProvider<T extends SPCDataItem>({ 
   children, 
   processType, 
   productType, 
-  spcMonitorName 
-}: SPCLimitsProviderProps) {
-  const [limits, setLimits] = useState<SPCLimit[]>([]);
+  spcMonitor,
+  service
+}: SPCLimitsProviderProps<T>) {
+  const [limits, setLimits] = useState<SPCLimits[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAllLimits = useCallback(async () => {
-    if (!processType || !productType || !spcMonitorName) {
+    if (!processType || !productType || !spcMonitor || !service) {
       setLimits([]);
       return;
     }
@@ -40,12 +43,11 @@ export function SPCLimitsProvider({
       setIsLoading(true);
       setError(null);
       
-      // Fetch all SPC limits for this combination at once
-      const allLimits = await fetchSPCLimits({
-        process_type: processType,
-        product_type: productType,
-        spc_monitor_name: spcMonitorName
-        // Note: NOT specifying spc_chart_name to get all charts
+      // Fetch all SPC limits for this combination using the service
+      const allLimits = await service.getSPCLimits({
+        spcMonitor,
+        processType,
+        productType
       });
       
       setLimits(allLimits);
@@ -57,13 +59,13 @@ export function SPCLimitsProvider({
     } finally {
       setIsLoading(false);
     }
-  }, [processType, productType, spcMonitorName]);
+  }, [processType, productType, spcMonitor, service]);
 
   useEffect(() => {
     fetchAllLimits();
   }, [fetchAllLimits]);
 
-  const getLimitsForChart = useCallback((chartName: string): SPCLimit[] => {
+  const getLimitsForChart = useCallback((chartName: string): SPCLimits[] => {
     return limits.filter(limit => limit.spc_chart_name === chartName);
   }, [limits]);
 

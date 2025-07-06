@@ -157,97 +157,47 @@ export class SPCRegL1DataService implements ISPCDataService<SPCRegL1> {
   }
 
   getMetricConfig(): MetricConfig[] {
-    return [
-      {
-        key: 'registration',
-        label: 'Registration',
-        precision: 3,
-        unit: 'nm'
-      },
-      {
-        key: 'reg_x',
-        label: 'Scale X',
-        precision: 3,
-        unit: 'ppm'
-      },
-      {
-        key: 'reg_y',
-        label: 'Scale Y',
-        precision: 3,
-        unit: 'ppm'
-      },
-      {
-        key: 'ortho',
-        label: 'Orthogonality',
-        precision: 4,
-        unit: 'μrad'
-      }
-    ];
+    // Import from configuration
+    const config = require('@/lib/spc-dashboard/config/metrics/spc-reg-l1.json');
+    const statisticMetrics = config.analytics.statisticMetrics;
+    
+    return statisticMetrics.map((metricKey: string) => {
+      const metric = config.metrics[metricKey];
+      return {
+        key: metric.key,
+        label: metric.label,
+        precision: metric.precision,
+        unit: metric.unit
+      };
+    });
   }
 
   getColumnConfig(): ColumnConfig[] {
-    return [
-      {
-        key: 'entity',
-        label: 'Entity',
-        sortable: true,
-        align: 'left'
-      },
-      {
-        key: 'lot',
-        label: 'Lot',
-        sortable: true,
-        align: 'left'
-      },
-      {
-        key: 'date_process',
-        label: 'Process Date',
-        sortable: true,
-        align: 'left',
-        format: (value: string) => new Date(value).toLocaleString()
-      },
-      {
-        key: 'registration',
-        label: 'Registration',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => value.toFixed(3) + ' nm'
-      },
-      {
-        key: 'reg_x',
-        label: 'Reg X',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => value.toFixed(3) + ' ppm'
-      },
-      {
-        key: 'reg_y',
-        label: 'Reg Y',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => value.toFixed(3) + ' ppm'
-      },
-      {
-        key: 'field_x',
-        label: 'Field X',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => value.toFixed(3)
-      },
-      {
-        key: 'field_y',
-        label: 'Field Y',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => value.toFixed(3)
-      },
-      {
-        key: 'duration_subseq_process_step',
-        label: 'Duration',
-        sortable: true,
-        align: 'right',
-        format: (value: number) => `${value}s`
+    // Import from configuration
+    const config = require('@/lib/spc-dashboard/config/metrics/spc-reg-l1.json');
+    const tableColumns = config.analytics.tableColumns;
+    
+    return tableColumns.map((col: any) => {
+      const columnConfig: ColumnConfig = {
+        key: col.key,
+        label: col.label,
+        sortable: col.sortable ?? true,
+        align: col.align || 'left'
+      };
+      
+      // Add format function based on column properties
+      if (col.format === 'datetime') {
+        columnConfig.format = (value: string) => new Date(value).toLocaleString();
+      } else if (col.precision !== undefined) {
+        columnConfig.format = (value: number) => {
+          const formatted = value.toFixed(col.precision);
+          return col.unit ? `${formatted} ${col.unit}` : formatted;
+        };
+      } else if (col.unit) {
+        columnConfig.format = (value: number) => `${value}${col.unit}`;
       }
-    ];
+      
+      return columnConfig;
+    });
   }
 }

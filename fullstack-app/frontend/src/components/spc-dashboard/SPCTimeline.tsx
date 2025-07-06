@@ -1,7 +1,7 @@
 'use client';
 
 import Timeline from '@/components/charts/Timeline';
-import { SPCLimit } from '@/services/spcCdL1Service';
+import { SPCLimits } from '@/types';
 import LimitLine from './LimitLine';
 import { useSPCLimits } from '@/contexts/SPCLimitsContext';
 import { getUnitsForMonitor } from '@/lib/spc-dashboard/unitRegistry';
