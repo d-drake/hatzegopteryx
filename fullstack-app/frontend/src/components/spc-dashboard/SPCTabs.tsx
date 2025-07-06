@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { SPCMonitorDiscovery } from '@/services/spc/SPCMonitorDiscovery';
-import { ProcessProductCombination } from '@/types';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { SPCMonitorDiscovery } from "@/services/spc/SPCMonitorDiscovery";
+import { ProcessProductCombination } from "@/types";
 
 interface SPCTabsProps {
   spcMonitor: string;
@@ -11,10 +11,16 @@ interface SPCTabsProps {
   basePath?: string; // Optional base path for navigation
 }
 
-export default function SPCTabs({ spcMonitor, processProduct, basePath = '/spc-dashboard' }: SPCTabsProps) {
+export default function SPCTabs({
+  spcMonitor,
+  processProduct,
+  basePath = "/spc-dashboard",
+}: SPCTabsProps) {
   const router = useRouter();
   const [spcMonitors, setSpcMonitors] = useState<string[]>([]);
-  const [processProductCombinations, setProcessProductCombinations] = useState<ProcessProductCombination[]>([]);
+  const [processProductCombinations, setProcessProductCombinations] = useState<
+    ProcessProductCombination[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,11 +32,11 @@ export default function SPCTabs({ spcMonitor, processProduct, basePath = '/spc-d
       setLoading(true);
       // Fetch all monitor data using the discovery service
       const monitorData = await SPCMonitorDiscovery.fetchAllMonitorData();
-      
+
       setSpcMonitors(monitorData.monitors);
       setProcessProductCombinations(monitorData.processProductCombinations);
     } catch (error) {
-      console.error('Error loading tab options:', error);
+      console.error("Error loading tab options:", error);
     } finally {
       setLoading(false);
     }
@@ -39,18 +45,22 @@ export default function SPCTabs({ spcMonitor, processProduct, basePath = '/spc-d
   const handleSPCMonitorChange = (newSpcMonitor: string) => {
     // Keep the same process-product combination if possible, otherwise use first available
     const availableCombos = processProductCombinations;
-    const currentCombo = processProduct ? processProduct.split('-') : ['1000', 'BNT44'];
+    const currentCombo = processProduct
+      ? processProduct.split("-")
+      : ["1000", "BNT44"];
     const currentProcessType = currentCombo[0];
     const currentProductType = currentCombo[1];
-    
+
     // Check if current combination still exists
     const existingCombo = availableCombos.find(
-      combo => combo.process_type === currentProcessType && combo.product_type === currentProductType
+      (combo) =>
+        combo.process_type === currentProcessType &&
+        combo.product_type === currentProductType,
     );
-    
+
     const targetCombo = existingCombo || availableCombos[0];
     const newProcessProduct = `${targetCombo.process_type}-${targetCombo.product_type}`;
-    
+
     router.push(`${basePath}/${newSpcMonitor}/${newProcessProduct}`);
   };
 
@@ -72,7 +82,9 @@ export default function SPCTabs({ spcMonitor, processProduct, basePath = '/spc-d
   }
 
   // Get available process-product combinations for current SPC monitor
-  const currentProcessProduct = processProduct ? processProduct.split('-') : ['1000', 'BNT44'];
+  const currentProcessProduct = processProduct
+    ? processProduct.split("-")
+    : ["1000", "BNT44"];
   const currentProcessType = currentProcessProduct[0];
   const currentProductType = currentProcessProduct[1];
 
@@ -87,12 +99,13 @@ export default function SPCTabs({ spcMonitor, processProduct, basePath = '/spc-d
               onClick={() => handleSPCMonitorChange(monitor)}
               className={`
                 py-2 px-1 border-b-2 font-medium text-sm
-                ${monitor === spcMonitor
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ${
+                  monitor === spcMonitor
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }
               `}
-              aria-current={monitor === spcMonitor ? 'page' : undefined}
+              aria-current={monitor === spcMonitor ? "page" : undefined}
             >
               {monitor}
             </button>
@@ -102,20 +115,26 @@ export default function SPCTabs({ spcMonitor, processProduct, basePath = '/spc-d
 
       {/* Process-Product Combination Tabs (Secondary) */}
       <div className="bg-gray-50">
-        <nav className="flex flex-wrap gap-1 p-2" aria-label="Process-Product Combinations">
+        <nav
+          className="flex flex-wrap gap-1 p-2"
+          aria-label="Process-Product Combinations"
+        >
           {processProductCombinations.map((combo) => {
             const comboKey = `${combo.process_type}-${combo.product_type}`;
-            const isActive = combo.process_type === currentProcessType && combo.product_type === currentProductType;
-            
+            const isActive =
+              combo.process_type === currentProcessType &&
+              combo.product_type === currentProductType;
+
             return (
               <button
                 key={comboKey}
                 onClick={() => handleProcessProductChange(comboKey)}
                 className={`
                   px-3 py-1 rounded-md text-sm font-medium transition-colors
-                  ${isActive
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-800'
+                  ${
+                    isActive
+                      ? "bg-blue-100 text-blue-700 border border-blue-200"
+                      : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-800"
                   }
                 `}
               >
@@ -128,3 +147,4 @@ export default function SPCTabs({ spcMonitor, processProduct, basePath = '/spc-d
     </div>
   );
 }
+

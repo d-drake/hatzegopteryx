@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { ReactNode } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import Header from '@/components/auth/Header';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { ReactNode } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import Header from "@/components/auth/Header";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -21,7 +21,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     <ProtectedRoute requireSuperuser>
       <div className="min-h-screen bg-gray-50">
         <Header />
-        
+
         <div className="flex">
           {/* Sidebar */}
           <aside className="w-64 bg-white shadow-md h-[calc(100vh-64px)]">
@@ -32,9 +32,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <Link
                     href="/admin"
                     className={`block px-4 py-2 rounded-md transition-colors ${
-                      isActive('/admin')
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                      isActive("/admin")
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     Dashboard
@@ -44,9 +44,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <Link
                     href="/admin/users"
                     className={`block px-4 py-2 rounded-md transition-colors ${
-                      isActive('/admin/users')
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                      isActive("/admin/users")
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     Users
@@ -56,9 +56,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <Link
                     href="/admin/registrations"
                     className={`block px-4 py-2 rounded-md transition-colors ${
-                      isActive('/admin/registrations')
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                      isActive("/admin/registrations")
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     Registration Requests
@@ -68,9 +68,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <Link
                     href="/admin/audit-logs"
                     className={`block px-4 py-2 rounded-md transition-colors ${
-                      isActive('/admin/audit-logs')
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                      isActive("/admin/audit-logs")
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     Audit Logs
@@ -80,9 +80,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <Link
                     href="/admin/security"
                     className={`block px-4 py-2 rounded-md transition-colors ${
-                      isActive('/admin/security')
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                      isActive("/admin/security")
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     Security
@@ -93,9 +93,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1 p-8">
-            {children}
-          </main>
+          <main className="flex-1 p-8">{children}</main>
         </div>
       </div>
     </ProtectedRoute>

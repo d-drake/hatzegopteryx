@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import ItemsSection from '@/components/ItemsSection';
-import AppTabs from '@/components/AppTabs';
-import Header from '@/components/auth/Header';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ItemsSection from "@/components/ItemsSection";
+import AppTabs from "@/components/AppTabs";
+import Header from "@/components/auth/Header";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 export default function TodoItemsPage() {
   return (
@@ -14,9 +14,7 @@ export default function TodoItemsPage() {
         <header className="bg-slate-800 text-white">
           <div className="container mx-auto px-4 py-6">
             <h1 className="text-3xl font-bold">Cloud Critical Dimension Hub</h1>
-            <p className="text-slate-300 mt-2">
-              To Do Items - Superuser Only
-            </p>
+            <p className="text-slate-300 mt-2">To Do Items - Superuser Only</p>
           </div>
         </header>
 

@@ -1,26 +1,33 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useAuth } from "@/contexts/AuthContext";
 
-const registerSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  username: z.string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(100, 'Username must be less than 100 characters')
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password must be less than 100 characters'),
-  confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    email: z.string().email("Invalid email address"),
+    username: z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(100, "Username must be less than 100 characters")
+      .regex(
+        /^[a-zA-Z0-9_-]+$/,
+        "Username can only contain letters, numbers, underscores, and hyphens",
+      ),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(100, "Password must be less than 100 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -34,7 +41,7 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm<RegisterFormData>();
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -43,15 +50,19 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const result = await registerUser(data.email, data.username, data.password);
+      const result = await registerUser(
+        data.email,
+        data.username,
+        data.password,
+      );
       setSuccess(result.message);
-      
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
-        router.push('/login');
+        router.push("/login");
       }, 3000);
     } catch (err: any) {
-      setError(err.message || 'An error occurred during registration');
+      setError(err.message || "An error occurred during registration");
     } finally {
       setIsLoading(false);
     }
@@ -65,20 +76,23 @@ export default function RegisterPage() {
             Create your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            Or{" "}
+            <Link
+              href="/login"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
               sign in to existing account
             </Link>
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-800">{error}</div>
             </div>
           )}
-          
+
           {success && (
             <div className="rounded-md bg-green-50 p-4">
               <div className="text-sm text-green-800">{success}</div>
@@ -90,11 +104,14 @@ export default function RegisterPage() {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <input
-                {...register('email')}
+                {...register("email")}
                 id="email"
                 type="email"
                 autoComplete="email"
@@ -102,16 +119,21 @@ export default function RegisterPage() {
                 placeholder="Email address"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Username
               </label>
               <input
-                {...register('username')}
+                {...register("username")}
                 id="username"
                 type="text"
                 autoComplete="username"
@@ -119,16 +141,21 @@ export default function RegisterPage() {
                 placeholder="Username"
               />
               {errors.username && (
-                <p className="mt-1 text-sm text-red-600">{errors.username.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.username.message}
+                </p>
               )}
             </div>
-            
+
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
-                {...register('password')}
+                {...register("password")}
                 id="password"
                 type="password"
                 autoComplete="new-password"
@@ -136,16 +163,21 @@ export default function RegisterPage() {
                 placeholder="Password"
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Confirm Password
               </label>
               <input
-                {...register('confirmPassword')}
+                {...register("confirmPassword")}
                 id="confirmPassword"
                 type="password"
                 autoComplete="new-password"
@@ -153,7 +185,9 @@ export default function RegisterPage() {
                 placeholder="Confirm Password"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
           </div>
@@ -164,13 +198,13 @@ export default function RegisterPage() {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
+              {isLoading ? "Creating account..." : "Create account"}
             </button>
           </div>
 
           <div className="text-sm text-gray-600 text-center">
-            By registering, you agree to our Terms of Service and Privacy Policy.
-            Your registration will be reviewed by an administrator.
+            By registering, you agree to our Terms of Service and Privacy
+            Policy. Your registration will be reviewed by an administrator.
           </div>
         </form>
       </div>

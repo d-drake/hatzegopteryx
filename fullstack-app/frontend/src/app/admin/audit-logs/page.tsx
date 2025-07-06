@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import axios from '@/lib/axios';
-import { formatDistanceToNow } from 'date-fns';
+import { useCallback, useEffect, useState } from "react";
+import axios from "@/lib/axios";
+import { formatDistanceToNow } from "date-fns";
 
 interface AuditLog {
   id: number;
@@ -24,22 +24,22 @@ export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({
-    action: '',
-    status: '',
-    userId: ''
+    action: "",
+    status: "",
+    userId: "",
   });
 
   const fetchAuditLogs = useCallback(async () => {
     try {
       const params: any = {};
       if (filter.action) params.action = filter.action;
-      if (filter.status) params.status = filter.status === 'success';
+      if (filter.status) params.status = filter.status === "success";
       if (filter.userId) params.user_id = filter.userId;
-      
-      const response = await axios.get('/api/audit', { params });
+
+      const response = await axios.get("/api/audit", { params });
       setLogs(response.data);
     } catch (error) {
-      console.error('Error fetching audit logs:', error);
+      console.error("Error fetching audit logs:", error);
       setLogs([]);
     } finally {
       setLoading(false);
@@ -52,16 +52,16 @@ export default function AuditLogsPage() {
 
   const getActionBadgeColor = (action: string) => {
     const actionColors: { [key: string]: string } = {
-      'login': 'bg-blue-100 text-blue-800',
-      'logout': 'bg-gray-100 text-gray-800',
-      'register': 'bg-green-100 text-green-800',
-      'create_user': 'bg-purple-100 text-purple-800',
-      'update_user': 'bg-yellow-100 text-yellow-800',
-      'delete_user': 'bg-red-100 text-red-800',
-      'approve_registration': 'bg-green-100 text-green-800',
-      'reject_registration': 'bg-red-100 text-red-800'
+      login: "bg-blue-100 text-blue-800",
+      logout: "bg-gray-100 text-gray-800",
+      register: "bg-green-100 text-green-800",
+      create_user: "bg-purple-100 text-purple-800",
+      update_user: "bg-yellow-100 text-yellow-800",
+      delete_user: "bg-red-100 text-red-800",
+      approve_registration: "bg-green-100 text-green-800",
+      reject_registration: "bg-red-100 text-red-800",
     };
-    return actionColors[action] || 'bg-gray-100 text-gray-800';
+    return actionColors[action] || "bg-gray-100 text-gray-800";
   };
 
   if (loading) {
@@ -83,7 +83,9 @@ export default function AuditLogsPage() {
       <div className="bg-white shadow rounded-lg p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Action</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Action
+            </label>
             <select
               value={filter.action}
               onChange={(e) => setFilter({ ...filter, action: e.target.value })}
@@ -100,9 +102,11 @@ export default function AuditLogsPage() {
               <option value="reject_registration">Reject Registration</option>
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
             <select
               value={filter.status}
               onChange={(e) => setFilter({ ...filter, status: e.target.value })}
@@ -113,9 +117,11 @@ export default function AuditLogsPage() {
               <option value="failure">Failure</option>
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              User ID
+            </label>
             <input
               type="text"
               value={filter.userId}
@@ -131,7 +137,9 @@ export default function AuditLogsPage() {
       {logs.length === 0 ? (
         <div className="bg-white shadow rounded-lg p-8 text-center">
           <p className="text-gray-500">No audit logs found</p>
-          <p className="text-sm text-gray-400 mt-2">Audit logs will appear here once the endpoint is implemented</p>
+          <p className="text-sm text-gray-400 mt-2">
+            Audit logs will appear here once the endpoint is implemented
+          </p>
         </div>
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -170,23 +178,31 @@ export default function AuditLogsPage() {
                         {log.user?.username || `User ${log.user_id}`}
                       </div>
                       {log.user?.email && (
-                        <div className="text-sm text-gray-500">{log.user.email}</div>
+                        <div className="text-sm text-gray-500">
+                          {log.user.email}
+                        </div>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getActionBadgeColor(log.action)}`}>
-                      {log.action.replace(/_/g, ' ')}
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getActionBadgeColor(log.action)}`}
+                    >
+                      {log.action.replace(/_/g, " ")}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {log.resource}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      log.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {log.status ? 'Success' : 'Failed'}
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        log.status
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {log.status ? "Success" : "Failed"}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">

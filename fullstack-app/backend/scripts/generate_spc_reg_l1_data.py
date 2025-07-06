@@ -15,7 +15,7 @@ def apply_soft_boundary(value, target_min, target_max, containment_ratio=0.95):
     This prevents artificial flatlining at boundaries while keeping most data within target range.
     """
     target_range = target_max - target_min
-    
+
     # Allow small excursions beyond boundaries for realistic variation
     if value < target_min:
         excess = target_min - value
@@ -32,9 +32,9 @@ def apply_soft_boundary(value, target_min, target_max, containment_ratio=0.95):
         if excess <= max_excursion:
             return value  # Allow small excursions
         else:
-            # Soft limit for larger excursions  
+            # Soft limit for larger excursions
             return target_max + max_excursion * np.tanh(excess / max_excursion)
-    
+
     return value  # Most values pass through unchanged
 
 
@@ -90,14 +90,18 @@ def generate_spc_reg_l1_data():
     # Recipe correlation base values by process/product combination
     # Create ordinal value set for recipe fields: [-0.30, -0.29, -0.28, ..., 0.28, 0.29, 0.30]
     ordinal_recipe_values = [round(x, 2) for x in np.arange(-0.30, 0.31, 0.01)]
-    
+
     recipe_base_values = defaultdict(dict)
     for pt, prod in valid_process_product_combos:
         key = f"{pt}_{prod}"
         recipe_base_values[key] = {
-            "scale_x": random.choice(ordinal_recipe_values),  # Ordinal from -0.30 to 0.30
-            "scale_y": random.choice(ordinal_recipe_values),  # Ordinal from -0.30 to 0.30
-            "ortho": random.choice(ordinal_recipe_values),    # Ordinal from -0.30 to 0.30
+            "scale_x": random.choice(
+                ordinal_recipe_values
+            ),  # Ordinal from -0.30 to 0.30
+            "scale_y": random.choice(
+                ordinal_recipe_values
+            ),  # Ordinal from -0.30 to 0.30
+            "ortho": random.choice(ordinal_recipe_values),  # Ordinal from -0.30 to 0.30
         }
 
     # Initialize drift settings for each combination of entity/process/product
@@ -107,7 +111,7 @@ def generate_spc_reg_l1_data():
     for entity in entities:
         for process_type, product_type in valid_process_product_combos:
             combo_key = (entity, spc_monitor_name, product_type, process_type)
-            
+
             # Get recipe base values for this process/product combination
             recipe_key = f"{process_type}_{product_type}"
             recipe_values = recipe_base_values[recipe_key]
@@ -147,12 +151,12 @@ def generate_spc_reg_l1_data():
             settings["drift_scale_x"] += np.random.normal(0, 0.01)
             settings["drift_scale_y"] += np.random.normal(0, 0.02)
             settings["drift_ortho"] += np.random.normal(0, 0.015)
-            
+
             # Schedule next change (average 17 days, range 14-21 days)
             days_until_next = np.random.normal(17, 2)
             days_until_next = np.clip(days_until_next, 14, 21)
             settings["next_drift_change"] = timestamp + timedelta(days=days_until_next)
-            
+
             # Reset noise factor after drift change
             settings["noise_factor"] = 0.7
 
@@ -164,29 +168,45 @@ def generate_spc_reg_l1_data():
         # Apply drift but keep values ordinal within -0.30 to 0.30 range
         recipe_scale_x_drift = settings["recipe_scale_x"] + settings["drift_scale_x"]
         recipe_scale_x = max(-0.30, min(0.30, round(recipe_scale_x_drift, 2)))
-        
+
         recipe_scale_y_drift = settings["recipe_scale_y"] + settings["drift_scale_y"]
         recipe_scale_y = max(-0.30, min(0.30, round(recipe_scale_y_drift, 2)))
-        
+
         recipe_ortho_drift = settings["recipe_ortho"] + settings["drift_ortho"]
         recipe_ortho = max(-0.30, min(0.30, round(recipe_ortho_drift, 2)))
 
         # Generate primary registration measurements with recipe correlation
         # Scale X measurement (reduced correlation to prevent boundary flatlining)
-        scale_x_base = recipe_scale_x * 0.4  # 40% correlation with recipe (reduced from 80%)
-        scale_x_noise = np.random.normal(0, 0.04 * settings["noise_factor"])  # Increased noise
+        scale_x_base = (
+            recipe_scale_x * 0.4
+        )  # 40% correlation with recipe (reduced from 80%)
+        scale_x_noise = np.random.normal(
+            0, 0.04 * settings["noise_factor"]
+        )  # Increased noise
         scale_x_raw = scale_x_base + scale_x_noise
-        scale_x = apply_soft_boundary(scale_x_raw, -0.150, 0.150, containment_ratio=0.95)
+        scale_x = apply_soft_boundary(
+            scale_x_raw, -0.150, 0.150, containment_ratio=0.95
+        )
 
         # Scale Y measurement (reduced correlation to prevent boundary flatlining)
-        scale_y_base = recipe_scale_y * 0.4  # 40% correlation with recipe (reduced from 75%)
-        scale_y_noise = np.random.normal(0, 0.045 * settings["noise_factor"])  # Increased noise
+        scale_y_base = (
+            recipe_scale_y * 0.4
+        )  # 40% correlation with recipe (reduced from 75%)
+        scale_y_noise = np.random.normal(
+            0, 0.045 * settings["noise_factor"]
+        )  # Increased noise
         scale_y_raw = scale_y_base + scale_y_noise
-        scale_y = apply_soft_boundary(scale_y_raw, -0.150, 0.150, containment_ratio=0.95)
+        scale_y = apply_soft_boundary(
+            scale_y_raw, -0.150, 0.150, containment_ratio=0.95
+        )
 
         # Ortho measurement (reduced correlation to prevent boundary flatlining)
-        ortho_base = recipe_ortho * 0.4  # 40% correlation with recipe (reduced from 85%)
-        ortho_noise = np.random.normal(0, 0.042 * settings["noise_factor"])  # Increased noise
+        ortho_base = (
+            recipe_ortho * 0.4
+        )  # 40% correlation with recipe (reduced from 85%)
+        ortho_noise = np.random.normal(
+            0, 0.042 * settings["noise_factor"]
+        )  # Increased noise
         ortho_raw = ortho_base + ortho_noise
         ortho = apply_soft_boundary(ortho_raw, -0.150, 0.150, containment_ratio=0.95)
 

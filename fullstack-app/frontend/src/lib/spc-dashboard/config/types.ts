@@ -17,7 +17,7 @@ export interface ChartConfig {
   id: string;
   title: string;
   metric: string;
-  type: 'timeline' | 'variability';
+  type: "timeline" | "variability";
   yAxis: AxisConfig;
   y2Axis?: AxisConfig;
   colorField?: string;
@@ -30,10 +30,10 @@ export interface ColumnConfig {
   key: string;
   label: string;
   sortable?: boolean;
-  align?: 'left' | 'center' | 'right';
+  align?: "left" | "center" | "right";
   unit?: string;
   precision?: number;
-  format?: 'number' | 'datetime' | 'string';
+  format?: "number" | "datetime" | "string";
 }
 
 export interface SPCMonitorConfig {
@@ -55,7 +55,8 @@ export interface SPCMonitorConfig {
 }
 
 // Helper type to extract metric keys from config
-export type MetricKeys<T extends SPCMonitorConfig> = keyof T['metrics'];
+export type MetricKeys<T extends SPCMonitorConfig> = keyof T["metrics"];
 
 // Helper type to validate chart metric references
-export type ChartMetricValidator<T extends SPCMonitorConfig> = T['charts'][number]['metric'] extends MetricKeys<T> ? true : false;
+export type ChartMetricValidator<T extends SPCMonitorConfig> =
+  T["charts"][number]["metric"] extends MetricKeys<T> ? true : false;

@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { VariabilityChart } from '../charts/VariabilityChart';
-import LimitLine from './LimitLine';
-import { useSPCLimits } from '@/contexts/SPCLimitsContext';
-import { getUnitsForMonitor } from '@/lib/spc-dashboard/unitRegistry';
-import type { ScaleLinear, ScaleBand } from 'd3-scale';
+import React from "react";
+import { VariabilityChart } from "../charts/VariabilityChart";
+import LimitLine from "./LimitLine";
+import { useSPCLimits } from "@/contexts/SPCLimitsContext";
+import { getUnitsForMonitor } from "@/lib/spc-dashboard/unitRegistry";
+import type { ScaleLinear, ScaleBand } from "d3-scale";
 
 interface SPCVariabilityChartProps {
   data: any[];
@@ -42,22 +42,26 @@ export const SPCVariabilityChart: React.FC<SPCVariabilityChartProps> = ({
 }) => {
   // Use SPC limits from context
   const { getLimitsForChart } = useSPCLimits();
-  
+
   // Adjust margin for side-by-side mode
   // In side-by-side mode, remove the right margin (240px) allocated for legend
-  const adjustedMargin = isSideBySide 
-    ? { ...margin, right: 0 }
-    : margin;
+  const adjustedMargin = isSideBySide ? { ...margin, right: 0 } : margin;
 
   // Map chartMeasurement to chart name for SPC limits (same as SPCTimeline)
   const getChartName = (field: string): string => {
     switch (field) {
-      case 'cd_att': return 'cd_att';
-      case 'cd_x_y': return 'cd_x_y';
-      case 'cd_6sig': return 'cd_6sig';
-      case 'bias': return 'bias';
-      case 'bias_x_y': return 'bias_x_y';
-      default: return field;
+      case "cd_att":
+        return "cd_att";
+      case "cd_x_y":
+        return "cd_x_y";
+      case "cd_6sig":
+        return "cd_6sig";
+      case "bias":
+        return "bias";
+      case "bias_x_y":
+        return "bias_x_y";
+      default:
+        return field;
     }
   };
 
@@ -78,7 +82,7 @@ export const SPCVariabilityChart: React.FC<SPCVariabilityChartProps> = ({
       onYZoomChange={onYZoomChange}
       onResetZoom={onResetZoom}
       isSideBySide={isSideBySide}
-      unitMapping={getUnitsForMonitor(spcMonitorName || '')}
+      unitMapping={getUnitsForMonitor(spcMonitorName || "")}
       renderOverlays={(scales) => {
         // Only render SPC limits if all required props are available
         if (!processType || !productType || !spcMonitorName) {

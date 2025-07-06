@@ -71,7 +71,9 @@ class SPCRegL1(Base):
     ortho = Column(Float, nullable=False)  # Orthogonality measurement
     centrality_x = Column(Float, nullable=False)  # Centrality X measurement
     centrality_y = Column(Float, nullable=False)  # Centrality Y measurement
-    centrality_rotation = Column(Float, nullable=False)  # Centrality rotation measurement
+    centrality_rotation = Column(
+        Float, nullable=False
+    )  # Centrality rotation measurement
 
 
 class SPCLimits(Base):
@@ -82,7 +84,9 @@ class SPCLimits(Base):
     product_type = Column(
         String, nullable=False, index=True
     )  # XLY1, XLY2, BNT44, VLQR1
-    spc_monitor_name = Column(String, nullable=False, index=True)  # SPC_CD_L1, SPC_REG_L1
+    spc_monitor_name = Column(
+        String, nullable=False, index=True
+    )  # SPC_CD_L1, SPC_REG_L1
     spc_chart_name = Column(
         String, nullable=False, index=True
     )  # cd_att, cd_x_y, cd_6sig, scale_x, scale_y, ortho, centrality_x, centrality_y, centrality_rotation

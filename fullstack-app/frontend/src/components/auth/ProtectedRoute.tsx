@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireSuperuser?: boolean;
 }
 
-export default function ProtectedRoute({ 
-  children, 
-  requireSuperuser = false 
+export default function ProtectedRoute({
+  children,
+  requireSuperuser = false,
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -19,9 +19,9 @@ export default function ProtectedRoute({
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        router.push('/login');
+        router.push("/login");
       } else if (requireSuperuser && !user.is_superuser) {
-        router.push('/unauthorized');
+        router.push("/unauthorized");
       }
     }
   }, [user, loading, router, requireSuperuser]);

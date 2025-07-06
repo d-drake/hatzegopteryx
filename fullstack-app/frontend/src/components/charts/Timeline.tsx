@@ -1,15 +1,22 @@
-'use client';
+"use client";
 
-import { useMemo, useRef, useEffect, useState, useId, useCallback } from 'react';
-import ChartContainer, { useEnhancedChartDimensions } from './ChartContainer';
-import Axis from './Axis';
-import Circles from './Circles';
-import Symbols from './Symbols';
-import Line from './Line';
-import MultiColumnLegend from './MultiColumnLegend';
-import HorizontalLegend from './HorizontalLegend';
-import { useTooltip, formatTooltipContent } from './Tooltip';
-import ZoomControls from './ZoomControls';
+import {
+  useMemo,
+  useRef,
+  useEffect,
+  useState,
+  useId,
+  useCallback,
+} from "react";
+import ChartContainer, { useEnhancedChartDimensions } from "./ChartContainer";
+import Axis from "./Axis";
+import Circles from "./Circles";
+import Symbols from "./Symbols";
+import Line from "./Line";
+import MultiColumnLegend from "./MultiColumnLegend";
+import HorizontalLegend from "./HorizontalLegend";
+import { useTooltip, formatTooltipContent } from "./Tooltip";
+import ZoomControls from "./ZoomControls";
 import {
   createLinearScale,
   createTimeScale,
@@ -18,9 +25,13 @@ import {
   getUniqueValues,
   getNumericExtent,
   getDateExtent,
-} from '@/lib/charts/scales';
-import { formatTimelineFieldName, UnitMapping, FieldFormatterOptions } from '@/lib/formatters/fieldFormatter';
-import * as d3 from 'd3';
+} from "@/lib/charts/scales";
+import {
+  formatTimelineFieldName,
+  UnitMapping,
+  FieldFormatterOptions,
+} from "@/lib/formatters/fieldFormatter";
+import * as d3 from "d3";
 
 // Removed obsolete DOM-based coordinate system types
 
@@ -63,7 +74,6 @@ interface TimelineProps<T extends Record<string, any>> {
   containerPaddingTop?: number; // Optional padding above the chart container
 }
 
-
 // Removed obsolete DOM-based coordinate system functions
 
 export default function Timeline<T extends Record<string, any>>({
@@ -71,7 +81,7 @@ export default function Timeline<T extends Record<string, any>>({
   xField,
   yField,
   y2Field,
-  colorField = 'entity',
+  colorField = "entity",
   shapeField,
   lineGroupField,
   width = 800,
@@ -113,21 +123,29 @@ export default function Timeline<T extends Record<string, any>>({
         top: 40,
         right: baseRightMargin,
         bottom: 80,
-        left: 50
+        left: 50,
       };
     } else {
       // In wide mode, use provided margin with dynamic adjustment for Y2
       return {
         ...margin,
-        right: y2Field ? Math.max(margin.right, dynamicRightMargin) : margin.right
+        right: y2Field
+          ? Math.max(margin.right, dynamicRightMargin)
+          : margin.right,
       };
     }
   }, [isNarrowSVG, y2Field, dynamicRightMargin, margin]);
 
-  const chartDimensions = useEnhancedChartDimensions(width, height, responsiveMargin, {
-    hasY2Axis: !!y2Field,
-  });
-  const { innerWidth, innerHeight, axisRegions, screenToChart, getAxisRegion } = chartDimensions;
+  const chartDimensions = useEnhancedChartDimensions(
+    width,
+    height,
+    responsiveMargin,
+    {
+      hasY2Axis: !!y2Field,
+    },
+  );
+  const { innerWidth, innerHeight, axisRegions, screenToChart, getAxisRegion } =
+    chartDimensions;
   const { showTooltip, hideTooltip } = useTooltip();
   const svgRef = useRef<SVGSVGElement>(null);
   const chartRef = useRef<SVGGElement>(null);
@@ -135,16 +153,24 @@ export default function Timeline<T extends Record<string, any>>({
 
   // Zoom state - initialize Y domain from prop if provided
   const [xDomain, setXDomain] = useState<[any, any] | null>(null);
-  const [yDomain, setYDomain] = useState<[any, any] | null>(externalYZoomDomain || null);
+  const [yDomain, setYDomain] = useState<[any, any] | null>(
+    externalYZoomDomain || null,
+  );
   const [y2Domain, setY2Domain] = useState<[any, any] | null>(null);
 
   // Legend selection state - use external state if provided, otherwise local state
-  const [localSelectedColorItems, setLocalSelectedColorItems] = useState<Set<string>>(new Set());
-  const [localSelectedShapeItems, setLocalSelectedShapeItems] = useState<Set<string>>(new Set());
+  const [localSelectedColorItems, setLocalSelectedColorItems] = useState<
+    Set<string>
+  >(new Set());
+  const [localSelectedShapeItems, setLocalSelectedShapeItems] = useState<
+    Set<string>
+  >(new Set());
 
   // Use external props if available, otherwise use local state
-  const selectedColorItems = externalSelectedColorItems ?? localSelectedColorItems;
-  const selectedShapeItems = externalSelectedShapeItems ?? localSelectedShapeItems;
+  const selectedColorItems =
+    externalSelectedColorItems ?? localSelectedColorItems;
+  const selectedShapeItems =
+    externalSelectedShapeItems ?? localSelectedShapeItems;
 
   // Field formatter function using generic formatter with Timeline options
   const formatFieldName = (field: string): string => {
@@ -155,7 +181,11 @@ export default function Timeline<T extends Record<string, any>>({
   const originalXExtent = useMemo(() => {
     if (data.length > 0) {
       const firstValue = data[0][xField];
-      if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
+      if (
+        (firstValue as any) instanceof Date ||
+        (typeof firstValue === "string" &&
+          !isNaN(Date.parse(firstValue as string)))
+      ) {
         return getDateExtent(data, xField);
       }
     }
@@ -168,14 +198,19 @@ export default function Timeline<T extends Record<string, any>>({
     return getNumericExtent(dataForScale, yField);
   }, [allData, data, yField]);
 
-  const originalY2Extent = useMemo(() =>
-    y2Field ? getNumericExtent(data, y2Field) : [0, 1] as [number, number],
-    [data, y2Field]
+  const originalY2Extent = useMemo(
+    () =>
+      y2Field ? getNumericExtent(data, y2Field) : ([0, 1] as [number, number]),
+    [data, y2Field],
   );
 
   // Use zoomed domains if available, otherwise use original extents
   const currentXExtent = xDomain || originalXExtent;
-  const currentYExtent = yDomain || (externalYScale ? externalYScale.domain() as [number, number] : originalYExtent);
+  const currentYExtent =
+    yDomain ||
+    (externalYScale
+      ? (externalYScale.domain() as [number, number])
+      : originalYExtent);
   const currentY2Extent = y2Domain || originalY2Extent;
 
   // Create scales - axes connect at origin, data maintains 30px margins
@@ -183,7 +218,11 @@ export default function Timeline<T extends Record<string, any>>({
     // Check if the first data point's xField value is a date
     if (data.length > 0) {
       const firstValue = data[0][xField];
-      if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
+      if (
+        (firstValue as any) instanceof Date ||
+        (typeof firstValue === "string" &&
+          !isNaN(Date.parse(firstValue as string)))
+      ) {
         return createTimeScale(currentXExtent, [0, innerWidth]);
       }
     }
@@ -199,15 +238,20 @@ export default function Timeline<T extends Record<string, any>>({
 
   // Secondary Y-axis scale (positioned on the right)
   const y2Scale = useMemo(
-    () => y2Field ? createLinearScale(currentY2Extent, [innerHeight, 0]) : null,
-    [y2Field, currentY2Extent, innerHeight]
+    () =>
+      y2Field ? createLinearScale(currentY2Extent, [innerHeight, 0]) : null,
+    [y2Field, currentY2Extent, innerHeight],
   );
 
   // Create data scales with margins for positioning data points
   const xDataScale = useMemo(() => {
     if (data.length > 0) {
       const firstValue = data[0][xField];
-      if ((firstValue as any) instanceof Date || (typeof firstValue === 'string' && !isNaN(Date.parse(firstValue as string)))) {
+      if (
+        (firstValue as any) instanceof Date ||
+        (typeof firstValue === "string" &&
+          !isNaN(Date.parse(firstValue as string)))
+      ) {
         return createTimeScale(currentXExtent, [30, innerWidth - 30]);
       }
     }
@@ -222,73 +266,92 @@ export default function Timeline<T extends Record<string, any>>({
   }, [externalYScale, currentYExtent, innerHeight]);
 
   const y2DataScale = useMemo(
-    () => y2Field ? createLinearScale(currentY2Extent, [innerHeight, 0]) : null,
-    [y2Field, currentY2Extent, innerHeight]
+    () =>
+      y2Field ? createLinearScale(currentY2Extent, [innerHeight, 0]) : null,
+    [y2Field, currentY2Extent, innerHeight],
   );
 
   const colorCategories = useMemo(
     () => getUniqueValues(data, colorField),
-    [data, colorField]
+    [data, colorField],
   );
 
   const colorScale = useMemo(
     () => createColorScale(colorCategories),
-    [colorCategories]
+    [colorCategories],
   );
 
   const shapeCategories = useMemo(
     () => (shapeField ? getUniqueValues(data, shapeField) : []),
-    [data, shapeField]
+    [data, shapeField],
   );
 
   const shapeScale = useMemo(
     () => (shapeField ? createShapeScale(shapeCategories) : undefined),
-    [shapeField, shapeCategories]
+    [shapeField, shapeCategories],
   );
 
   // Prepare legend items
   const colorLegendItems = useMemo(
-    () => colorCategories.map(cat => ({ label: cat, color: colorScale(cat) })),
-    [colorCategories, colorScale]
+    () =>
+      colorCategories.map((cat) => ({ label: cat, color: colorScale(cat) })),
+    [colorCategories, colorScale],
   );
 
   const shapeLegendItems = useMemo(
     () =>
       shapeField && shapeScale
-        ? shapeCategories.map(cat => ({
-          label: cat,
-          shape: shapeScale(cat),
-          color: 'gray',
-        }))
+        ? shapeCategories.map((cat) => ({
+            label: cat,
+            shape: shapeScale(cat),
+            color: "gray",
+          }))
         : [],
-    [shapeField, shapeScale, shapeCategories]
+    [shapeField, shapeScale, shapeCategories],
   );
 
   // Accessor functions - use data scales for positioning data points
-  const xAccessor = useCallback((d: T) => {
-    const value = d[xField];
-    if ((value as any) instanceof Date || (typeof value === 'string' && !isNaN(Date.parse(value as string)))) {
-      return (xDataScale as any)(new Date(String(value)));
-    } else {
-      return (xDataScale as any)(Number(value));
-    }
-  }, [xField, xDataScale]);
+  const xAccessor = useCallback(
+    (d: T) => {
+      const value = d[xField];
+      if (
+        (value as any) instanceof Date ||
+        (typeof value === "string" && !isNaN(Date.parse(value as string)))
+      ) {
+        return (xDataScale as any)(new Date(String(value)));
+      } else {
+        return (xDataScale as any)(Number(value));
+      }
+    },
+    [xField, xDataScale],
+  );
 
-  const yAccessor = useCallback((d: T) => yDataScale(Number(d[yField])), [yField, yDataScale]);
+  const yAccessor = useCallback(
+    (d: T) => yDataScale(Number(d[yField])),
+    [yField, yDataScale],
+  );
 
   const y2Accessor = useMemo(() => {
-    return y2Field && y2DataScale ? (d: T) => y2DataScale(Number(d[y2Field])) : undefined;
+    return y2Field && y2DataScale
+      ? (d: T) => y2DataScale(Number(d[y2Field]))
+      : undefined;
   }, [y2Field, y2DataScale]);
 
-  const colorAccessor = useCallback((d: T) => String(d[colorField]), [colorField]);
+  const colorAccessor = useCallback(
+    (d: T) => String(d[colorField]),
+    [colorField],
+  );
   const shapeAccessor = useMemo(() => {
     return shapeField ? (d: T) => String(d[shapeField]) : undefined;
   }, [shapeField]);
-  const lineGroupAccessor = useCallback((d: T) => String(d[lineGroupField || colorField]), [lineGroupField, colorField]);
+  const lineGroupAccessor = useCallback(
+    (d: T) => String(d[lineGroupField || colorField]),
+    [lineGroupField, colorField],
+  );
 
   // Filter data to only show points within the visible chart area (respecting 30px margins)
   const visibleData = useMemo(() => {
-    return data.filter(d => {
+    return data.filter((d) => {
       const x = xAccessor(d);
       const y = yAccessor(d);
       const y2 = y2Accessor ? y2Accessor(d) : null;
@@ -311,7 +374,11 @@ export default function Timeline<T extends Record<string, any>>({
       if (colorField) tooltipFields.push(colorField);
       if (shapeField) tooltipFields.push(shapeField);
 
-      const content = formatTooltipContent(datum as any, tooltipFields as string[], tooltipMetadata);
+      const content = formatTooltipContent(
+        datum as any,
+        tooltipFields as string[],
+        tooltipMetadata,
+      );
       showTooltip(content, event.pageX, event.pageY);
     } else {
       hideTooltip();
@@ -330,7 +397,9 @@ export default function Timeline<T extends Record<string, any>>({
     if (!y2Field || !svgRef.current) return;
 
     // Find all right axis tick labels
-    const rightAxisLabels = svgRef.current.querySelectorAll('.axis:last-of-type .tick text');
+    const rightAxisLabels = svgRef.current.querySelectorAll(
+      ".axis:last-of-type .tick text",
+    );
     let maxWidth = 0;
 
     rightAxisLabels.forEach((label) => {
@@ -367,7 +436,11 @@ export default function Timeline<T extends Record<string, any>>({
 
     const handleMouseMove = (event: MouseEvent) => {
       const rect = svg.getBoundingClientRect();
-      const { x: chartX, y: chartY } = screenToChart(event.clientX, event.clientY, rect);
+      const { x: chartX, y: chartY } = screenToChart(
+        event.clientX,
+        event.clientY,
+        rect,
+      );
 
       // Use centralized axis region detection
       const axisRegion = getAxisRegion(chartX, chartY);
@@ -376,13 +449,17 @@ export default function Timeline<T extends Record<string, any>>({
       if (axisRegion && axisRegions[axisRegion]) {
         svg.style.cursor = axisRegions[axisRegion].cursor;
       } else {
-        svg.style.cursor = 'default';
+        svg.style.cursor = "default";
       }
     };
 
     const handleWheel = (event: WheelEvent) => {
       const rect = svg.getBoundingClientRect();
-      const { x: chartX, y: chartY } = screenToChart(event.clientX, event.clientY, rect);
+      const { x: chartX, y: chartY } = screenToChart(
+        event.clientX,
+        event.clientY,
+        rect,
+      );
 
       // Use centralized axis region detection
       const axisRegion = getAxisRegion(chartX, chartY);
@@ -396,7 +473,7 @@ export default function Timeline<T extends Record<string, any>>({
         const zoomIn = event.deltaY < 0;
         const scale = zoomIn ? zoomFactor : 1 / zoomFactor;
 
-        if (axisRegion === 'bottom') {
+        if (axisRegion === "bottom") {
           // Zoom X-axis by updating the domain state
           const [min, max] = currentXExtent;
 
@@ -408,7 +485,10 @@ export default function Timeline<T extends Record<string, any>>({
             const center = minTime + range * 0.5;
             const newRange = range / scale;
 
-            const newXDomain: [Date, Date] = [new Date(center - newRange * 0.5), new Date(center + newRange * 0.5)];
+            const newXDomain: [Date, Date] = [
+              new Date(center - newRange * 0.5),
+              new Date(center + newRange * 0.5),
+            ];
             setXDomain(newXDomain);
 
             // Notify parent component
@@ -421,7 +501,10 @@ export default function Timeline<T extends Record<string, any>>({
             const center = min + range * 0.5;
             const newRange = range / scale;
 
-            const newXDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
+            const newXDomain: [number, number] = [
+              center - newRange * 0.5,
+              center + newRange * 0.5,
+            ];
             setXDomain(newXDomain);
 
             // Notify parent component
@@ -431,14 +514,17 @@ export default function Timeline<T extends Record<string, any>>({
           }
         }
 
-        if (axisRegion === 'left') {
+        if (axisRegion === "left") {
           // Zoom Y-axis by updating the domain state
           const [min, max] = currentYExtent;
           const range = max - min;
           const center = min + range * 0.5;
           const newRange = range / scale;
 
-          const newDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
+          const newDomain: [number, number] = [
+            center - newRange * 0.5,
+            center + newRange * 0.5,
+          ];
           setYDomain(newDomain);
 
           // Notify parent component of domain change
@@ -449,14 +535,17 @@ export default function Timeline<T extends Record<string, any>>({
           // Removed deprecated onYScaleChange handling
         }
 
-        if (axisRegion === 'right') {
+        if (axisRegion === "right") {
           // Zoom secondary Y-axis by updating the domain state
           const [min, max] = currentY2Extent;
           const range = max - min;
           const center = min + range * 0.5;
           const newRange = range / scale;
 
-          const newY2Domain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
+          const newY2Domain: [number, number] = [
+            center - newRange * 0.5,
+            center + newRange * 0.5,
+          ];
           setY2Domain(newY2Domain);
 
           // Notify parent component
@@ -468,14 +557,24 @@ export default function Timeline<T extends Record<string, any>>({
     };
 
     // Add event listeners directly to the SVG element
-    svg.addEventListener('mousemove', handleMouseMove);
-    svg.addEventListener('wheel', handleWheel, { passive: false });
+    svg.addEventListener("mousemove", handleMouseMove);
+    svg.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
-      svg.removeEventListener('mousemove', handleMouseMove);
-      svg.removeEventListener('wheel', handleWheel);
+      svg.removeEventListener("mousemove", handleMouseMove);
+      svg.removeEventListener("wheel", handleWheel);
     };
-  }, [currentXExtent, currentYExtent, currentY2Extent, screenToChart, getAxisRegion, axisRegions, onXZoomChange, onYZoomChange, onY2ZoomChange]);
+  }, [
+    currentXExtent,
+    currentYExtent,
+    currentY2Extent,
+    screenToChart,
+    getAxisRegion,
+    axisRegions,
+    onXZoomChange,
+    onYZoomChange,
+    onY2ZoomChange,
+  ]);
 
   // Reset zoom function
   const resetZoom = () => {
@@ -519,7 +618,7 @@ export default function Timeline<T extends Record<string, any>>({
     if (externalOnColorLegendClick) {
       externalOnColorLegendClick(label);
     } else {
-      setLocalSelectedColorItems(prev => {
+      setLocalSelectedColorItems((prev) => {
         const newSet = new Set(prev);
         if (newSet.has(label)) {
           newSet.delete(label);
@@ -535,7 +634,7 @@ export default function Timeline<T extends Record<string, any>>({
     if (externalOnShapeLegendClick) {
       externalOnShapeLegendClick(label);
     } else {
-      setLocalSelectedShapeItems(prev => {
+      setLocalSelectedShapeItems((prev) => {
         const newSet = new Set(prev);
         if (newSet.has(label)) {
           newSet.delete(label);
@@ -558,13 +657,11 @@ export default function Timeline<T extends Record<string, any>>({
   };
 
   // Check if any legend items are selected
-  const hasSelections = selectedColorItems.size > 0 || selectedShapeItems.size > 0;
+  const hasSelections =
+    selectedColorItems.size > 0 || selectedShapeItems.size > 0;
 
   return (
-    <div
-      style={{ position: 'relative' }}
-      data-chart-id={clipPathId}
-    >
+    <div style={{ position: "relative" }} data-chart-id={clipPathId}>
       {/* Zoom controls */}
       <ZoomControls
         xZoomLevel={xZoomLevel}
@@ -573,8 +670,12 @@ export default function Timeline<T extends Record<string, any>>({
         onResetZoom={resetZoom}
       />
 
-
-      <ChartContainer width={width} height={height + 30} margin={responsiveMargin} ref={svgRef}>
+      <ChartContainer
+        width={width}
+        height={height + 30}
+        margin={responsiveMargin}
+        ref={svgRef}
+      >
         <defs>
           <clipPath id={clipPathId}>
             <rect x={30} y={0} width={innerWidth - 60} height={innerHeight} />
@@ -668,13 +769,13 @@ export default function Timeline<T extends Record<string, any>>({
           </g>
 
           {/* Render overlay components (like SPC limit lines) outside clipped area */}
-          {renderOverlays && renderOverlays({
-            xScale,
-            yScale,
-            y2Scale,
-            clipPathId
-          })}
-
+          {renderOverlays &&
+            renderOverlays({
+              xScale,
+              yScale,
+              y2Scale,
+              clipPathId,
+            })}
 
           {/* Legends - render inside SVG for wide SVGs, outside for narrow */}
           {!isNarrowSVG && (
@@ -701,14 +802,17 @@ export default function Timeline<T extends Record<string, any>>({
                   selectedItems={selectedShapeItems}
                   onItemClick={handleShapeLegendClick}
                   hasOtherSelections={selectedColorItems.size > 0}
-                  maxHeight={innerHeight - 20 - Math.min(colorLegendItems.length * 20, innerHeight)}
+                  maxHeight={
+                    innerHeight -
+                    20 -
+                    Math.min(colorLegendItems.length * 20, innerHeight)
+                  }
                   columnGap={30}
                   maxColumns={3}
                 />
               )}
             </>
           )}
-
 
           {/* Zoom areas for user guidance - using centralized axis regions */}
 
@@ -747,12 +851,13 @@ export default function Timeline<T extends Record<string, any>>({
               style={{ cursor: axisRegions.right.cursor }}
             />
           )}
-
         </g>
 
         {/* Reset Selections button - positioned below the legend titles */}
         {!isNarrowSVG && hasSelections && (
-          <g transform={`translate(${margin.left + innerWidth + (y2Field ? 10 : -55)}, -10)`}>
+          <g
+            transform={`translate(${margin.left + innerWidth + (y2Field ? 10 : -55)}, -10)`}
+          >
             <rect
               x={0}
               y={0}
@@ -762,13 +867,13 @@ export default function Timeline<T extends Record<string, any>>({
               fill="#f9fafb"
               stroke="#6b7280"
               strokeWidth={1}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: "pointer" }}
               onClick={resetLegendSelections}
               onMouseEnter={(e) => {
-                e.currentTarget.setAttribute('fill', '#f3f4f6');
+                e.currentTarget.setAttribute("fill", "#f3f4f6");
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.setAttribute('fill', '#f9fafb');
+                e.currentTarget.setAttribute("fill", "#f9fafb");
               }}
             />
             <text
@@ -778,7 +883,7 @@ export default function Timeline<T extends Record<string, any>>({
               fontSize={11}
               fontWeight={500}
               fill="#374151"
-              style={{ cursor: 'pointer', pointerEvents: 'none' }}
+              style={{ cursor: "pointer", pointerEvents: "none" }}
             >
               Reset Selections
             </text>
@@ -821,4 +926,3 @@ export default function Timeline<T extends Record<string, any>>({
     </div>
   );
 }
-

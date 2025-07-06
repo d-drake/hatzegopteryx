@@ -1,8 +1,12 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { SPCCdL1 } from '@/types';
-import { createSPCDataContext, SPCDataProvider, createUseSPCData } from './SPCDataContext';
+import React from "react";
+import { SPCCdL1 } from "@/types";
+import {
+  createSPCDataContext,
+  SPCDataProvider,
+  createUseSPCData,
+} from "./SPCDataContext";
 
 // Create specific context for CD L1 data
 const SPCCdL1Context = createSPCDataContext<SPCCdL1>();
@@ -15,12 +19,7 @@ export function SPCCdL1Provider(props: {
   spcMonitorName: string;
   processProduct: string;
 }) {
-  return (
-    <SPCDataProvider<SPCCdL1>
-      {...props}
-      context={SPCCdL1Context}
-    />
-  );
+  return <SPCDataProvider<SPCCdL1> {...props} context={SPCCdL1Context} />;
 }
 
 // Export the hook with backward compatibility

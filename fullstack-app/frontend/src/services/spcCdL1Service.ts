@@ -1,5 +1,5 @@
-import apiClient from '@/lib/axios';
-import { AxiosError } from 'axios';
+import apiClient from "@/lib/axios";
+import { AxiosError } from "axios";
 
 // Add request interceptor
 apiClient.interceptors.request.use(
@@ -13,34 +13,34 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Add response interceptor to handle errors better
 apiClient.interceptors.response.use(
   (response) => {
     // Validate JSON response content
-    if (response.headers['content-type']?.includes('application/json')) {
+    if (response.headers["content-type"]?.includes("application/json")) {
       try {
         // Check if response data is valid JSON by trying to stringify it
         JSON.stringify(response.data);
       } catch (e) {
-        throw new Error('Invalid JSON response from server');
+        throw new Error("Invalid JSON response from server");
       }
     }
-    
+
     return response;
   },
   (error) => {
     // Enhanced error logging
-    const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
-    const url = error.config?.url || 'unknown';
-    
-    if (error.code === 'ECONNABORTED') {
+    const method = error.config?.method?.toUpperCase() || "UNKNOWN";
+    const url = error.config?.url || "unknown";
+
+    if (error.code === "ECONNABORTED") {
       // Request timeout
     } else if (error.response?.status === 429) {
       // Rate limit exceeded
-      const retryAfter = error.response.headers['retry-after'];
+      const retryAfter = error.response.headers["retry-after"];
       if (retryAfter) {
         // Retry after header available
       }
@@ -53,25 +53,30 @@ apiClient.interceptors.response.use(
     } else {
       // API Error with status code
     }
-    
+
     // Handle JSON parsing issues
-    if (error.message?.includes('JSON')) {
+    if (error.message?.includes("JSON")) {
       // Check if we got HTML instead of JSON (common in server errors)
-      if (typeof error.response?.data === 'string' && error.response.data.includes('<html>')) {
+      if (
+        typeof error.response?.data === "string" &&
+        error.response.data.includes("<html>")
+      ) {
         // Received HTML response instead of JSON - likely a server error page
-        throw new Error('Server returned HTML instead of JSON - possible server error');
+        throw new Error(
+          "Server returned HTML instead of JSON - possible server error",
+        );
       }
     }
-    
+
     return Promise.reject(error);
-  }
+  },
 );
 
 // Retry helper function
 async function retryRequest<T>(
   requestFn: () => Promise<T>,
   maxRetries: number = 2,
-  delay: number = 1000
+  delay: number = 1000,
 ): Promise<T> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -80,50 +85,51 @@ async function retryRequest<T>(
       if (attempt === maxRetries) {
         throw error;
       }
-      
+
       // Handle 429 rate limit errors with special logic
       if (error instanceof AxiosError && error.response?.status === 429) {
         // Get retry-after header if available
-        const retryAfter = error.response.headers['retry-after'];
+        const retryAfter = error.response.headers["retry-after"];
         let waitTime = delay;
-        
+
         if (retryAfter) {
           // If retry-after is a number, it's seconds
           // If it contains a date, parse it
-          waitTime = isNaN(Number(retryAfter)) 
+          waitTime = isNaN(Number(retryAfter))
             ? new Date(retryAfter).getTime() - Date.now()
             : Number(retryAfter) * 1000;
-          
+
           // Ensure minimum wait time
           waitTime = Math.max(waitTime, delay);
         } else {
           // Use exponential backoff for rate limiting
           waitTime = delay * Math.pow(2, attempt);
         }
-        
+
         // Rate limit hit (429). Waiting before retry
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
         continue;
       }
-      
+
       // Only retry on network errors, timeouts, 5xx server errors, or JSON parsing errors
-      const shouldRetry = error instanceof AxiosError && 
-          (error.code === 'ECONNABORTED' || 
-           !error.response || 
-           error.response.status >= 500 ||
-           error.message?.includes('JSON') ||
-           error.message?.includes('Invalid JSON response'));
-           
+      const shouldRetry =
+        error instanceof AxiosError &&
+        (error.code === "ECONNABORTED" ||
+          !error.response ||
+          error.response.status >= 500 ||
+          error.message?.includes("JSON") ||
+          error.message?.includes("Invalid JSON response"));
+
       if (shouldRetry) {
         // Request failed, retrying
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         delay *= 2; // Exponential backoff
       } else {
         throw error; // Don't retry client errors
       }
     }
   }
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 
 export interface SPCCdL1Item {
@@ -134,7 +140,7 @@ export interface SPCCdL1Item {
   cd_att: number;
   cd_x_y: number;
   cd_6sig: number;
-  duration_subseq_process_step: number;  // Duration in seconds (1500-2200s)
+  duration_subseq_process_step: number; // Duration in seconds (1500-2200s)
   entity: string;
   fake_property1: string;
   fake_property2: string;
@@ -164,46 +170,56 @@ export interface SPCCdL1Stats {
   max_bias: number;
 }
 
-export async function fetchSPCCdL1Data(filters?: SPCCdL1Filters): Promise<SPCCdL1Item[]> {
+export async function fetchSPCCdL1Data(
+  filters?: SPCCdL1Filters,
+): Promise<SPCCdL1Item[]> {
   return retryRequest(async () => {
     const params = new URLSearchParams();
-    
+
     if (filters) {
-      if (filters.entity) params.append('entity', filters.entity);
-      if (filters.startDate) params.append('start_date', filters.startDate);
-      if (filters.endDate) params.append('end_date', filters.endDate);
-      if (filters.limit) params.append('limit', filters.limit.toString());
-      if (filters.offset) params.append('offset', filters.offset.toString());
-      if (filters.process_type) params.append('process_type', filters.process_type);
-      if (filters.product_type) params.append('product_type', filters.product_type);
-      if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
+      if (filters.entity) params.append("entity", filters.entity);
+      if (filters.startDate) params.append("start_date", filters.startDate);
+      if (filters.endDate) params.append("end_date", filters.endDate);
+      if (filters.limit) params.append("limit", filters.limit.toString());
+      if (filters.offset) params.append("offset", filters.offset.toString());
+      if (filters.process_type)
+        params.append("process_type", filters.process_type);
+      if (filters.product_type)
+        params.append("product_type", filters.product_type);
+      if (filters.spc_monitor_name)
+        params.append("spc_monitor_name", filters.spc_monitor_name);
     }
 
-    const response = await apiClient.get<SPCCdL1Item[]>('/api/spc-cd-l1/', {
+    const response = await apiClient.get<SPCCdL1Item[]>("/api/spc-cd-l1/", {
       params: params.toString() ? params : undefined,
     });
-    
+
     return response.data;
   });
 }
 
-export async function fetchSPCCdL1Stats(filters?: SPCCdL1Filters): Promise<SPCCdL1Stats> {
+export async function fetchSPCCdL1Stats(
+  filters?: SPCCdL1Filters,
+): Promise<SPCCdL1Stats> {
   try {
     const params = new URLSearchParams();
-    
+
     if (filters) {
-      if (filters.entity) params.append('entity', filters.entity);
-      if (filters.startDate) params.append('start_date', filters.startDate);
-      if (filters.endDate) params.append('end_date', filters.endDate);
-      if (filters.process_type) params.append('process_type', filters.process_type);
-      if (filters.product_type) params.append('product_type', filters.product_type);
-      if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
+      if (filters.entity) params.append("entity", filters.entity);
+      if (filters.startDate) params.append("start_date", filters.startDate);
+      if (filters.endDate) params.append("end_date", filters.endDate);
+      if (filters.process_type)
+        params.append("process_type", filters.process_type);
+      if (filters.product_type)
+        params.append("product_type", filters.product_type);
+      if (filters.spc_monitor_name)
+        params.append("spc_monitor_name", filters.spc_monitor_name);
     }
 
-    const response = await apiClient.get<SPCCdL1Stats>('/api/spc-cd-l1/stats', {
+    const response = await apiClient.get<SPCCdL1Stats>("/api/spc-cd-l1/stats", {
       params: params.toString() ? params : undefined,
     });
-    
+
     return response.data;
   } catch (error) {
     // Error fetching SPC CD L1 data stats
@@ -213,7 +229,7 @@ export async function fetchSPCCdL1Stats(filters?: SPCCdL1Filters): Promise<SPCCd
 
 export async function fetchEntities(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/spc-cd-l1/entities');
+    const response = await apiClient.get<string[]>("/api/spc-cd-l1/entities");
     return response.data;
   } catch (error) {
     // Error fetching entities
@@ -223,7 +239,9 @@ export async function fetchEntities(): Promise<string[]> {
 
 export async function fetchProcessTypes(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/spc-cd-l1/process-types');
+    const response = await apiClient.get<string[]>(
+      "/api/spc-cd-l1/process-types",
+    );
     return response.data;
   } catch (error) {
     // Error fetching process types
@@ -233,7 +251,9 @@ export async function fetchProcessTypes(): Promise<string[]> {
 
 export async function fetchProductTypes(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/spc-cd-l1/product-types');
+    const response = await apiClient.get<string[]>(
+      "/api/spc-cd-l1/product-types",
+    );
     return response.data;
   } catch (error) {
     // Error fetching product types
@@ -243,7 +263,9 @@ export async function fetchProductTypes(): Promise<string[]> {
 
 export async function fetchSPCMonitorNames(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/spc-cd-l1/spc-monitor-names');
+    const response = await apiClient.get<string[]>(
+      "/api/spc-cd-l1/spc-monitor-names",
+    );
     return response.data;
   } catch (error) {
     // Error fetching SPC monitor names
@@ -275,28 +297,41 @@ export interface SPCLimitsFilters {
   spc_chart_name?: string;
 }
 
-export async function fetchProcessProductCombinations(): Promise<ProcessProductCombination[]> {
+export async function fetchProcessProductCombinations(): Promise<
+  ProcessProductCombination[]
+> {
   return retryRequest(async () => {
-    const response = await apiClient.get<ProcessProductCombination[]>('/api/spc-cd-l1/process-product-combinations');
+    const response = await apiClient.get<ProcessProductCombination[]>(
+      "/api/spc-cd-l1/process-product-combinations",
+    );
     return response.data;
   });
 }
 
-export async function fetchSPCLimits(filters?: SPCLimitsFilters): Promise<SPCLimit[]> {
+export async function fetchSPCLimits(
+  filters?: SPCLimitsFilters,
+): Promise<SPCLimit[]> {
   return retryRequest(async () => {
     const params = new URLSearchParams();
-    
+
     if (filters) {
-      if (filters.process_type) params.append('process_type', filters.process_type);
-      if (filters.product_type) params.append('product_type', filters.product_type);
-      if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
-      if (filters.spc_chart_name) params.append('spc_chart_name', filters.spc_chart_name);
+      if (filters.process_type)
+        params.append("process_type", filters.process_type);
+      if (filters.product_type)
+        params.append("product_type", filters.product_type);
+      if (filters.spc_monitor_name)
+        params.append("spc_monitor_name", filters.spc_monitor_name);
+      if (filters.spc_chart_name)
+        params.append("spc_chart_name", filters.spc_chart_name);
     }
 
-    const response = await apiClient.get<SPCLimit[]>('/api/spc-cd-l1/spc-limits', {
-      params: params.toString() ? params : undefined,
-    });
-    
+    const response = await apiClient.get<SPCLimit[]>(
+      "/api/spc-cd-l1/spc-limits",
+      {
+        params: params.toString() ? params : undefined,
+      },
+    );
+
     return response.data;
   });
 }

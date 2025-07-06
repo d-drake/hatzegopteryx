@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import axios from '@/lib/axios';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from "react";
+import axios from "@/lib/axios";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface User {
   id: number;
@@ -28,14 +28,14 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('/api/users/');
+      const response = await axios.get("/api/users/");
       setUsers(response.data);
     } catch (error: any) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
       if (error.response) {
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-        console.error('Error headers:', error.response.headers);
+        console.error("Error response:", error.response.data);
+        console.error("Error status:", error.response.status);
+        console.error("Error headers:", error.response.headers);
       }
     } finally {
       setLoading(false);
@@ -47,26 +47,29 @@ export default function UsersPage() {
       await axios.put(`/api/users/${userId}`, { is_active: !isActive });
       fetchUsers();
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error("Error updating user:", error);
     }
   };
 
-  const toggleSuperuserStatus = async (userId: number, isSuperuser: boolean) => {
+  const toggleSuperuserStatus = async (
+    userId: number,
+    isSuperuser: boolean,
+  ) => {
     try {
       await axios.put(`/api/users/${userId}`, { is_superuser: !isSuperuser });
       fetchUsers();
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error("Error updating user:", error);
     }
   };
 
   const deleteUser = async (userId: number) => {
-    if (confirm('Are you sure you want to delete this user?')) {
+    if (confirm("Are you sure you want to delete this user?")) {
       try {
         await axios.delete(`/api/users/${userId}`);
         fetchUsers();
       } catch (error) {
-        console.error('Error deleting user:', error);
+        console.error("Error deleting user:", error);
       }
     }
   };
@@ -83,7 +86,9 @@ export default function UsersPage() {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold text-red-600">Access Denied</h2>
-        <p className="mt-2 text-gray-600">You must be a superuser to access this page.</p>
+        <p className="mt-2 text-gray-600">
+          You must be a superuser to access this page.
+        </p>
       </div>
     );
   }
@@ -121,7 +126,9 @@ export default function UsersPage() {
               <tr key={user.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{user.username}</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {user.username}
+                    </div>
                     <div className="text-sm text-gray-500">{user.email}</div>
                   </div>
                 </td>
@@ -130,23 +137,25 @@ export default function UsersPage() {
                     onClick={() => toggleUserStatus(user.id, user.is_active)}
                     className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       user.is_active
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {user.is_active ? 'Active' : 'Inactive'}
+                    {user.is_active ? "Active" : "Inactive"}
                   </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <button
-                    onClick={() => toggleSuperuserStatus(user.id, user.is_superuser)}
+                    onClick={() =>
+                      toggleSuperuserStatus(user.id, user.is_superuser)
+                    }
                     className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       user.is_superuser
-                        ? 'bg-purple-100 text-purple-800'
-                        : 'bg-gray-100 text-gray-800'
+                        ? "bg-purple-100 text-purple-800"
+                        : "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    {user.is_superuser ? 'Superuser' : 'User'}
+                    {user.is_superuser ? "Superuser" : "User"}
                   </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

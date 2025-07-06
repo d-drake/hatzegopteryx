@@ -1,6 +1,6 @@
-import { SPCDataItem } from './spc-common';
+import { SPCDataItem } from "./spc-common";
 
-export * from './spc-common';
+export * from "./spc-common";
 
 export interface Item {
   id: number;
@@ -61,4 +61,3 @@ export interface SPCLimits {
   ucl?: number;
   effective_date: string;
 }
-

@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import * as d3 from 'd3';
+import { useState, useEffect, useRef } from "react";
+import * as d3 from "d3";
 
 interface UseBoxPlotZoomParams {
   /** Initial zoom domain from parent component */
@@ -9,7 +9,12 @@ interface UseBoxPlotZoomParams {
   /** Chart height for scale calculations */
   chartHeight: number;
   /** Responsive margin for mouse interaction detection */
-  responsiveMargin: { top: number; right: number; bottom: number; left: number };
+  responsiveMargin: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
   /** Callback when zoom domain changes */
   onZoomChange?: (domain: [number, number] | null) => void;
   /** Deprecated callback for scale changes */
@@ -40,7 +45,7 @@ export function useBoxPlotZoom({
   onScaleChange,
 }: UseBoxPlotZoomParams): UseBoxPlotZoomReturn {
   const [zoomDomain, setZoomDomain] = useState<[number, number] | null>(
-    initialZoomDomain || null
+    initialZoomDomain || null,
   );
 
   // Update zoom domain when prop changes
@@ -69,8 +74,11 @@ export function useBoxPlotZoom({
       const mouseY = event.clientY - rect.top;
 
       // Check if mouse is over y-axis area (to the left of the chart, in the margin area)
-      const isOverYAxis = mouseX >= 0 && mouseX <= responsiveMargin.left &&
-        mouseY >= responsiveMargin.top && mouseY <= responsiveMargin.top + chartHeight;
+      const isOverYAxis =
+        mouseX >= 0 &&
+        mouseX <= responsiveMargin.left &&
+        mouseY >= responsiveMargin.top &&
+        mouseY <= responsiveMargin.top + chartHeight;
 
       if (isOverYAxis) {
         event.preventDefault();
@@ -86,7 +94,10 @@ export function useBoxPlotZoom({
         const center = min + range * 0.5;
         const newRange = range / scale;
 
-        const newDomain: [number, number] = [center - newRange * 0.5, center + newRange * 0.5];
+        const newDomain: [number, number] = [
+          center - newRange * 0.5,
+          center + newRange * 0.5,
+        ];
         setZoomDomain(newDomain);
 
         // Notify parent component of domain change
@@ -96,7 +107,8 @@ export function useBoxPlotZoom({
 
         // Notify parent component of scale change (deprecated - for backward compatibility)
         if (onScaleChange) {
-          const newScale = d3.scaleLinear()
+          const newScale = d3
+            .scaleLinear()
             .domain(newDomain)
             .range([chartHeight, 0])
             .nice();
@@ -106,10 +118,10 @@ export function useBoxPlotZoom({
     };
 
     // Add non-passive event listener directly to the SVG element
-    svgElement.addEventListener('wheel', handleWheel, { passive: false });
+    svgElement.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
-      svgElement.removeEventListener('wheel', handleWheel);
+      svgElement.removeEventListener("wheel", handleWheel);
     };
   };
 

@@ -1,5 +1,5 @@
-import apiClient from '@/lib/axios';
-import { AxiosError } from 'axios';
+import apiClient from "@/lib/axios";
+import { AxiosError } from "axios";
 
 // Add request interceptor
 apiClient.interceptors.request.use(
@@ -8,40 +8,45 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Add response interceptor to handle errors better
 apiClient.interceptors.response.use(
   (response) => {
     // Validate JSON response content
-    if (response.headers['content-type']?.includes('application/json')) {
+    if (response.headers["content-type"]?.includes("application/json")) {
       try {
         JSON.stringify(response.data);
       } catch (e) {
-        throw new Error('Invalid JSON response from server');
+        throw new Error("Invalid JSON response from server");
       }
     }
-    
+
     return response;
   },
   (error) => {
     // Handle JSON parsing issues
-    if (error.message?.includes('JSON')) {
-      if (typeof error.response?.data === 'string' && error.response.data.includes('<html>')) {
-        throw new Error('Server returned HTML instead of JSON - possible server error');
+    if (error.message?.includes("JSON")) {
+      if (
+        typeof error.response?.data === "string" &&
+        error.response.data.includes("<html>")
+      ) {
+        throw new Error(
+          "Server returned HTML instead of JSON - possible server error",
+        );
       }
     }
-    
+
     return Promise.reject(error);
-  }
+  },
 );
 
 // Retry helper function
 async function retryRequest<T>(
   requestFn: () => Promise<T>,
   maxRetries: number = 2,
-  delay: number = 1000
+  delay: number = 1000,
 ): Promise<T> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -50,42 +55,43 @@ async function retryRequest<T>(
       if (attempt === maxRetries) {
         throw error;
       }
-      
+
       // Handle 429 rate limit errors with special logic
       if (error instanceof AxiosError && error.response?.status === 429) {
-        const retryAfter = error.response.headers['retry-after'];
+        const retryAfter = error.response.headers["retry-after"];
         let waitTime = delay;
-        
+
         if (retryAfter) {
-          waitTime = isNaN(Number(retryAfter)) 
+          waitTime = isNaN(Number(retryAfter))
             ? new Date(retryAfter).getTime() - Date.now()
             : Number(retryAfter) * 1000;
           waitTime = Math.max(waitTime, delay);
         } else {
           waitTime = delay * Math.pow(2, attempt);
         }
-        
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
         continue;
       }
-      
+
       // Only retry on network errors, timeouts, 5xx server errors, or JSON parsing errors
-      const shouldRetry = error instanceof AxiosError && 
-          (error.code === 'ECONNABORTED' || 
-           !error.response || 
-           error.response.status >= 500 ||
-           error.message?.includes('JSON') ||
-           error.message?.includes('Invalid JSON response'));
-           
+      const shouldRetry =
+        error instanceof AxiosError &&
+        (error.code === "ECONNABORTED" ||
+          !error.response ||
+          error.response.status >= 500 ||
+          error.message?.includes("JSON") ||
+          error.message?.includes("Invalid JSON response"));
+
       if (shouldRetry) {
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         delay *= 2; // Exponential backoff
       } else {
         throw error; // Don't retry client errors
       }
     }
   }
-  throw new Error('Max retries exceeded');
+  throw new Error("Max retries exceeded");
 }
 
 export interface SPCRegL1Item {
@@ -131,55 +137,69 @@ export interface SPCRegL1Stats {
   avg_centrality_rotation: number;
 }
 
-export async function fetchSPCRegL1Data(filters?: SPCRegL1Filters): Promise<SPCRegL1Item[]> {
+export async function fetchSPCRegL1Data(
+  filters?: SPCRegL1Filters,
+): Promise<SPCRegL1Item[]> {
   return retryRequest(async () => {
     const params = new URLSearchParams();
-    
+
     if (filters) {
-      if (filters.entity) params.append('entity', filters.entity);
-      if (filters.startDate) params.append('start_date', filters.startDate);
-      if (filters.endDate) params.append('end_date', filters.endDate);
-      if (filters.limit) params.append('limit', filters.limit.toString());
-      if (filters.offset) params.append('offset', filters.offset.toString());
-      if (filters.process_type) params.append('process_type', filters.process_type);
-      if (filters.product_type) params.append('product_type', filters.product_type);
-      if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
+      if (filters.entity) params.append("entity", filters.entity);
+      if (filters.startDate) params.append("start_date", filters.startDate);
+      if (filters.endDate) params.append("end_date", filters.endDate);
+      if (filters.limit) params.append("limit", filters.limit.toString());
+      if (filters.offset) params.append("offset", filters.offset.toString());
+      if (filters.process_type)
+        params.append("process_type", filters.process_type);
+      if (filters.product_type)
+        params.append("product_type", filters.product_type);
+      if (filters.spc_monitor_name)
+        params.append("spc_monitor_name", filters.spc_monitor_name);
     }
 
-    const response = await apiClient.get<SPCRegL1Item[]>('/api/spc-reg-l1/', {
+    const response = await apiClient.get<SPCRegL1Item[]>("/api/spc-reg-l1/", {
       params: params.toString() ? params : undefined,
     });
-    
+
     return response.data;
   });
 }
 
-export async function fetchSPCRegL1Stats(filters?: SPCRegL1Filters): Promise<SPCRegL1Stats> {
+export async function fetchSPCRegL1Stats(
+  filters?: SPCRegL1Filters,
+): Promise<SPCRegL1Stats> {
   try {
     const params = new URLSearchParams();
-    
+
     if (filters) {
-      if (filters.startDate) params.append('start_date', filters.startDate);
-      if (filters.endDate) params.append('end_date', filters.endDate);
-      if (filters.process_type) params.append('process_type', filters.process_type);
-      if (filters.product_type) params.append('product_type', filters.product_type);
-      if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
+      if (filters.startDate) params.append("start_date", filters.startDate);
+      if (filters.endDate) params.append("end_date", filters.endDate);
+      if (filters.process_type)
+        params.append("process_type", filters.process_type);
+      if (filters.product_type)
+        params.append("product_type", filters.product_type);
+      if (filters.spc_monitor_name)
+        params.append("spc_monitor_name", filters.spc_monitor_name);
     }
 
-    const response = await apiClient.get<SPCRegL1Stats>('/api/spc-reg-l1/stats', {
-      params: params.toString() ? params : undefined,
-    });
-    
+    const response = await apiClient.get<SPCRegL1Stats>(
+      "/api/spc-reg-l1/stats",
+      {
+        params: params.toString() ? params : undefined,
+      },
+    );
+
     return response.data;
   } catch (error) {
     throw error;
   }
 }
 
-
 export async function fetchProcessTypes(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/spc-reg-l1/process-types');
+    const response = await apiClient.get<string[]>(
+      "/api/spc-reg-l1/process-types",
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -188,7 +208,9 @@ export async function fetchProcessTypes(): Promise<string[]> {
 
 export async function fetchProductTypes(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/spc-reg-l1/product-types');
+    const response = await apiClient.get<string[]>(
+      "/api/spc-reg-l1/product-types",
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -197,7 +219,9 @@ export async function fetchProductTypes(): Promise<string[]> {
 
 export async function fetchSPCMonitorNames(): Promise<string[]> {
   try {
-    const response = await apiClient.get<string[]>('/api/spc-reg-l1/spc-monitor-names');
+    const response = await apiClient.get<string[]>(
+      "/api/spc-reg-l1/spc-monitor-names",
+    );
     return response.data;
   } catch (error) {
     throw error;
@@ -228,28 +252,41 @@ export interface SPCLimitsFilters {
   spc_chart_name?: string;
 }
 
-export async function fetchProcessProductCombinations(): Promise<ProcessProductCombination[]> {
+export async function fetchProcessProductCombinations(): Promise<
+  ProcessProductCombination[]
+> {
   return retryRequest(async () => {
-    const response = await apiClient.get<ProcessProductCombination[]>('/api/spc-reg-l1/process-product-combinations');
+    const response = await apiClient.get<ProcessProductCombination[]>(
+      "/api/spc-reg-l1/process-product-combinations",
+    );
     return response.data;
   });
 }
 
-export async function fetchSPCLimits(filters?: SPCLimitsFilters): Promise<SPCLimit[]> {
+export async function fetchSPCLimits(
+  filters?: SPCLimitsFilters,
+): Promise<SPCLimit[]> {
   return retryRequest(async () => {
     const params = new URLSearchParams();
-    
+
     if (filters) {
-      if (filters.process_type) params.append('process_type', filters.process_type);
-      if (filters.product_type) params.append('product_type', filters.product_type);
-      if (filters.spc_monitor_name) params.append('spc_monitor_name', filters.spc_monitor_name);
-      if (filters.spc_chart_name) params.append('spc_chart_name', filters.spc_chart_name);
+      if (filters.process_type)
+        params.append("process_type", filters.process_type);
+      if (filters.product_type)
+        params.append("product_type", filters.product_type);
+      if (filters.spc_monitor_name)
+        params.append("spc_monitor_name", filters.spc_monitor_name);
+      if (filters.spc_chart_name)
+        params.append("spc_chart_name", filters.spc_chart_name);
     }
 
-    const response = await apiClient.get<SPCLimit[]>('/api/spc-reg-l1/spc-limits', {
-      params: params.toString() ? params : undefined,
-    });
-    
+    const response = await apiClient.get<SPCLimit[]>(
+      "/api/spc-reg-l1/spc-limits",
+      {
+        params: params.toString() ? params : undefined,
+      },
+    );
+
     return response.data;
   });
 }

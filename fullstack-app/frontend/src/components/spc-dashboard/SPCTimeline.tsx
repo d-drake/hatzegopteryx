@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Timeline from '@/components/charts/Timeline';
-import { SPCLimits } from '@/types';
-import LimitLine from './LimitLine';
-import { useSPCLimits } from '@/contexts/SPCLimitsContext';
-import { getUnitsForMonitor } from '@/lib/spc-dashboard/unitRegistry';
-import * as d3 from 'd3';
+import Timeline from "@/components/charts/Timeline";
+import { SPCLimits } from "@/types";
+import LimitLine from "./LimitLine";
+import { useSPCLimits } from "@/contexts/SPCLimitsContext";
+import { getUnitsForMonitor } from "@/lib/spc-dashboard/unitRegistry";
+import * as d3 from "d3";
 
 interface SPCTimelineProps {
   data: any[]; // Generic data array
@@ -44,7 +44,7 @@ export default function SPCTimeline({
   xField,
   yField,
   y2Field,
-  colorField = 'entity',
+  colorField = "entity",
   shapeField,
   width = 800,
   height = 500,
@@ -73,10 +73,13 @@ export default function SPCTimeline({
   const { getLimitsForChart, isLoading: limitsLoading } = useSPCLimits();
   // Apply SPC-specific defaults
   // For bias fields, use bias coloring
-  const effectiveColorField = yField.toString().includes('bias') ? yField : colorField;
-  
+  const effectiveColorField = yField.toString().includes("bias")
+    ? yField
+    : colorField;
+
   // For CD ATT charts, use fake_property1 for shapes
-  const effectiveShapeField = yField === 'cd_att' ? 'fake_property1' : shapeField;
+  const effectiveShapeField =
+    yField === "cd_att" ? "fake_property1" : shapeField;
 
   // Map yField to chart name for SPC limits (generic approach)
   const getChartName = (field: string): string => {
@@ -85,16 +88,19 @@ export default function SPCTimeline({
   };
 
   const chartName = getChartName(yField);
-  
+
   // Get limits for this specific chart from the shared context
   const spcLimits = getLimitsForChart(chartName);
 
   // Create tooltip metadata with current SPC limits
-  const tooltipMetadata = spcLimits.length > 0 ? {
-    cl: spcLimits[0]?.cl,
-    lcl: spcLimits[0]?.lcl,
-    ucl: spcLimits[0]?.ucl
-  } : undefined;
+  const tooltipMetadata =
+    spcLimits.length > 0
+      ? {
+          cl: spcLimits[0]?.cl,
+          lcl: spcLimits[0]?.lcl,
+          ucl: spcLimits[0]?.ucl,
+        }
+      : undefined;
 
   return (
     <Timeline
@@ -119,7 +125,7 @@ export default function SPCTimeline({
       onYZoomChange={onYZoomChange}
       onY2ZoomChange={onY2ZoomChange}
       onResetZoom={onResetZoom}
-      unitMapping={getUnitsForMonitor(spcMonitorName || '')}
+      unitMapping={getUnitsForMonitor(spcMonitorName || "")}
       selectedColorItems={selectedColorItems}
       selectedShapeItems={selectedShapeItems}
       onColorLegendClick={onColorLegendClick}

@@ -166,17 +166,35 @@ async def get_spc_reg_l1_stats(
 
     return {
         "total_count": stats.total_count or 0,
-        "avg_scale_x": round(stats.avg_scale_x, 6) if stats.avg_scale_x is not None else 0,
-        "min_scale_x": round(stats.min_scale_x, 6) if stats.min_scale_x is not None else 0,
-        "max_scale_x": round(stats.max_scale_x, 6) if stats.max_scale_x is not None else 0,
-        "avg_scale_y": round(stats.avg_scale_y, 6) if stats.avg_scale_y is not None else 0,
+        "avg_scale_x": (
+            round(stats.avg_scale_x, 6) if stats.avg_scale_x is not None else 0
+        ),
+        "min_scale_x": (
+            round(stats.min_scale_x, 6) if stats.min_scale_x is not None else 0
+        ),
+        "max_scale_x": (
+            round(stats.max_scale_x, 6) if stats.max_scale_x is not None else 0
+        ),
+        "avg_scale_y": (
+            round(stats.avg_scale_y, 6) if stats.avg_scale_y is not None else 0
+        ),
         "avg_ortho": round(stats.avg_ortho, 6) if stats.avg_ortho is not None else 0,
-        "avg_centrality_x": round(stats.avg_centrality_x, 2) if stats.avg_centrality_x is not None else 0,
-        "avg_centrality_y": round(stats.avg_centrality_y, 2) if stats.avg_centrality_y is not None else 0,
-        "avg_centrality_rotation": round(stats.avg_centrality_rotation, 6) if stats.avg_centrality_rotation is not None else 0,
+        "avg_centrality_x": (
+            round(stats.avg_centrality_x, 2)
+            if stats.avg_centrality_x is not None
+            else 0
+        ),
+        "avg_centrality_y": (
+            round(stats.avg_centrality_y, 2)
+            if stats.avg_centrality_y is not None
+            else 0
+        ),
+        "avg_centrality_rotation": (
+            round(stats.avg_centrality_rotation, 6)
+            if stats.avg_centrality_rotation is not None
+            else 0
+        ),
     }
-
-
 
 
 @router.get("/entities")

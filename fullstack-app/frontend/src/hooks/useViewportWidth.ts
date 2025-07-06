@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 /**
  * Hook to track viewport width with debounced updates
@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
  */
 export function useViewportWidth() {
   const [width, setWidth] = useState<number>(
-    typeof window !== 'undefined' ? window.innerWidth : 1920
+    typeof window !== "undefined" ? window.innerWidth : 1920,
   );
 
   useEffect(() => {
@@ -28,14 +28,14 @@ export function useViewportWidth() {
     setWidth(window.innerWidth);
 
     // Add resize listener
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Cleanup
     return () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 

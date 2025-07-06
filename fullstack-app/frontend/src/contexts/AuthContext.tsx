@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from '@/lib/axios';
-import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import axios from "@/lib/axios";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: number;
@@ -20,7 +26,11 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  register: (email: string, username: string, password: string) => Promise<{ message: string }>;
+  register: (
+    email: string,
+    username: string,
+    password: string,
+  ) => Promise<{ message: string }>;
   refreshToken: () => Promise<void>;
 }
 
@@ -43,20 +53,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkAuth = async () => {
     // Set a maximum loading time failsafe
     const loadingTimeout = setTimeout(() => {
-      console.error('Auth check timeout - continuing without auth');
+      console.error("Auth check timeout - continuing without auth");
       setLoading(false);
       setUser(null);
     }, MAX_LOADING_TIME);
 
     try {
       // Check if we're on the client side
-      if (typeof window === 'undefined') {
+      if (typeof window === "undefined") {
         setLoading(false);
         clearTimeout(loadingTimeout);
         return;
       }
-      
-      const token = localStorage.getItem('access_token');
+
+      const token = localStorage.getItem("access_token");
       if (!token) {
         setLoading(false);
         clearTimeout(loadingTimeout);
@@ -64,22 +74,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Add timeout to request
-      const response = await axios.get('/api/auth/me', {
-        timeout: AUTH_CHECK_TIMEOUT
+      const response = await axios.get("/api/auth/me", {
+        timeout: AUTH_CHECK_TIMEOUT,
       });
       setUser(response.data);
     } catch (error: any) {
-      console.error('Auth check failed:', error.message);
-      
+      console.error("Auth check failed:", error.message);
+
       // Log specific error types for debugging
-      if (error.code === 'ECONNABORTED') {
-        console.error('Request timeout - API might be slow');
+      if (error.code === "ECONNABORTED") {
+        console.error("Request timeout - API might be slow");
       } else if (!error.response) {
-        console.error('Network error - check CORS or API availability');
+        console.error("Network error - check CORS or API availability");
       }
-      
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token');
+
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
       }
     } finally {
       setLoading(false);
@@ -89,95 +99,107 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post('/api/auth/login', {
+      const response = await axios.post("/api/auth/login", {
         email,
-        password
+        password,
       });
 
       const { access_token, refresh_token } = response.data;
-      
+
       // Store tokens
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('access_token', access_token);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("access_token", access_token);
       }
-      Cookies.set('refresh_token', refresh_token);
+      Cookies.set("refresh_token", refresh_token);
 
       // Get user info
-      const userResponse = await axios.get('/api/auth/me');
+      const userResponse = await axios.get("/api/auth/me");
       setUser(userResponse.data);
 
       // Redirect to dashboard
-      router.push('/');
+      router.push("/");
     } catch (error: any) {
       // Handle different error structures
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          error.message || 
-                          'Login failed';
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed";
       throw new Error(errorMessage);
     }
   };
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout', {}, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      await axios.post(
+        "/api/auth/logout",
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       // Clear tokens and user data
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token');
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
       }
-      Cookies.remove('refresh_token');
+      Cookies.remove("refresh_token");
       setUser(null);
-      router.push('/login');
+      router.push("/login");
     }
   };
 
-  const register = async (email: string, username: string, password: string) => {
+  const register = async (
+    email: string,
+    username: string,
+    password: string,
+  ) => {
     try {
-      const response = await axios.post('/api/auth/register', {
+      const response = await axios.post("/api/auth/register", {
         email,
         username,
-        password
+        password,
       });
 
       return { message: response.data.message };
     } catch (error: any) {
       // Handle different error structures
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.message || 
-                          error.message || 
-                          'Registration failed';
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        error.message ||
+        "Registration failed";
       throw new Error(errorMessage);
     }
   };
 
   const refreshToken = async () => {
     try {
-      const refreshToken = Cookies.get('refresh_token');
-      if (!refreshToken) throw new Error('No refresh token');
+      const refreshToken = Cookies.get("refresh_token");
+      if (!refreshToken) throw new Error("No refresh token");
 
-      const response = await axios.post('/api/auth/refresh', {
-        refresh_token: refreshToken
+      const response = await axios.post("/api/auth/refresh", {
+        refresh_token: refreshToken,
       });
 
       const { access_token, refresh_token: newRefreshToken } = response.data;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('access_token', access_token);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("access_token", access_token);
       }
-      Cookies.set('refresh_token', newRefreshToken);
+      Cookies.set("refresh_token", newRefreshToken);
     } catch (error) {
       throw error;
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register, refreshToken }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, register, refreshToken }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -186,7 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

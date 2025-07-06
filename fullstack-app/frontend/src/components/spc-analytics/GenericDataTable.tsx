@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { SPCDataItem, ColumnConfig } from '@/types';
+import { useState, useMemo } from "react";
+import { SPCDataItem, ColumnConfig } from "@/types";
 
 interface GenericDataTableProps<T extends SPCDataItem> {
   data: T[];
@@ -16,11 +16,11 @@ export default function GenericDataTable<T extends SPCDataItem>({
   columns,
   pageSize = 50,
   loading = false,
-  emptyMessage = 'No data available'
+  emptyMessage = "No data available",
 }: GenericDataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortColumn, setSortColumn] = useState<string>('date_process');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortColumn, setSortColumn] = useState<string>("date_process");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   // Sort data
   const sortedData = useMemo(() => {
@@ -32,26 +32,26 @@ export default function GenericDataTable<T extends SPCDataItem>({
 
       // Handle null/undefined values
       if (aVal == null && bVal == null) return 0;
-      if (aVal == null) return sortDirection === 'asc' ? -1 : 1;
-      if (bVal == null) return sortDirection === 'asc' ? 1 : -1;
+      if (aVal == null) return sortDirection === "asc" ? -1 : 1;
+      if (bVal == null) return sortDirection === "asc" ? 1 : -1;
 
       // Handle dates
-      if (sortColumn === 'date_process' || sortColumn === 'date_read') {
+      if (sortColumn === "date_process" || sortColumn === "date_read") {
         const aDate = new Date(aVal).getTime();
         const bDate = new Date(bVal).getTime();
-        return sortDirection === 'asc' ? aDate - bDate : bDate - aDate;
+        return sortDirection === "asc" ? aDate - bDate : bDate - aDate;
       }
 
       // Handle numbers
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
       }
 
       // Handle strings
       const aStr = String(aVal).toLowerCase();
       const bStr = String(bVal).toLowerCase();
-      
-      if (sortDirection === 'asc') {
+
+      if (sortDirection === "asc") {
         return aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
       } else {
         return aStr > bStr ? -1 : aStr < bStr ? 1 : 0;
@@ -66,13 +66,13 @@ export default function GenericDataTable<T extends SPCDataItem>({
   const paginatedData = sortedData.slice(startIndex, endIndex);
 
   const handleSort = (column: string) => {
-    if (!columns.find(col => col.key === column)?.sortable) return;
+    if (!columns.find((col) => col.key === column)?.sortable) return;
 
     if (sortColumn === column) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortColumn(column);
-      setSortDirection(column === 'date_process' ? 'desc' : 'asc');
+      setSortDirection(column === "date_process" ? "desc" : "asc");
     }
     setCurrentPage(1); // Reset to first page on sort
   };
@@ -82,17 +82,17 @@ export default function GenericDataTable<T extends SPCDataItem>({
   };
 
   const formatCellValue = (value: any, column: ColumnConfig): string => {
-    if (value == null) return '-';
-    
+    if (value == null) return "-";
+
     if (column.format) {
       return column.format(value);
     }
-    
+
     // Default formatting
-    if (typeof value === 'number') {
+    if (typeof value === "number") {
       return value.toFixed(2);
     }
-    
+
     return String(value);
   };
 
@@ -119,7 +119,8 @@ export default function GenericDataTable<T extends SPCDataItem>({
         </button>
       </div>
       <div className="text-sm text-gray-700">
-        Showing {startIndex + 1}-{Math.min(endIndex, sortedData.length)} of {sortedData.length}
+        Showing {startIndex + 1}-{Math.min(endIndex, sortedData.length)} of{" "}
+        {sortedData.length}
       </div>
     </div>
   );
@@ -147,7 +148,7 @@ export default function GenericDataTable<T extends SPCDataItem>({
           <PaginationControls />
         </div>
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -155,20 +156,34 @@ export default function GenericDataTable<T extends SPCDataItem>({
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-6 py-3 text-${column.align || 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                    column.sortable ? 'cursor-pointer hover:text-gray-700' : ''
+                  className={`px-6 py-3 text-${column.align || "left"} text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                    column.sortable ? "cursor-pointer hover:text-gray-700" : ""
                   }`}
                   onClick={() => column.sortable && handleSort(column.key)}
                   style={{ width: column.width }}
                 >
-                  <div className={`flex items-center gap-1 ${column.align === 'right' ? 'justify-end' : ''}`}>
+                  <div
+                    className={`flex items-center gap-1 ${column.align === "right" ? "justify-end" : ""}`}
+                  >
                     {column.label}
                     {column.sortable && sortColumn === column.key && (
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        {sortDirection === 'asc' ? (
-                          <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-3 h-3"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        {sortDirection === "asc" ? (
+                          <path
+                            fillRule="evenodd"
+                            d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"
+                            clipRule="evenodd"
+                          />
                         ) : (
-                          <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          <path
+                            fillRule="evenodd"
+                            d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
                         )}
                       </svg>
                     )}
@@ -180,7 +195,10 @@ export default function GenericDataTable<T extends SPCDataItem>({
           <tbody className="bg-white divide-y divide-gray-200">
             {paginatedData.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-6 py-12 text-center text-sm text-gray-500">
+                <td
+                  colSpan={columns.length}
+                  className="px-6 py-12 text-center text-sm text-gray-500"
+                >
                   {emptyMessage}
                 </td>
               </tr>
@@ -190,7 +208,7 @@ export default function GenericDataTable<T extends SPCDataItem>({
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-${column.align || 'left'}`}
+                      className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-${column.align || "left"}`}
                     >
                       {formatCellValue((row as any)[column.key], column)}
                     </td>
@@ -201,7 +219,7 @@ export default function GenericDataTable<T extends SPCDataItem>({
           </tbody>
         </table>
       </div>
-      
+
       {paginatedData.length > 0 && (
         <div className="px-6 py-4 border-t border-gray-200">
           <PaginationControls />

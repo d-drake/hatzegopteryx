@@ -1,8 +1,15 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
-import { SPCLimits, SPCDataItem } from '@/types';
-import { ISPCDataService } from '@/services/spc/ISPCDataService';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
+import { SPCLimits, SPCDataItem } from "@/types";
+import { ISPCDataService } from "@/services/spc/ISPCDataService";
 
 interface SPCLimitsContextValue {
   limits: SPCLimits[];
@@ -22,12 +29,12 @@ interface SPCLimitsProviderProps<T extends SPCDataItem> {
   service?: ISPCDataService<T>;
 }
 
-export function SPCLimitsProvider<T extends SPCDataItem>({ 
-  children, 
-  processType, 
-  productType, 
+export function SPCLimitsProvider<T extends SPCDataItem>({
+  children,
+  processType,
+  productType,
   spcMonitor,
-  service
+  service,
 }: SPCLimitsProviderProps<T>) {
   const [limits, setLimits] = useState<SPCLimits[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,19 +49,19 @@ export function SPCLimitsProvider<T extends SPCDataItem>({
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // Fetch all SPC limits for this combination using the service
       const allLimits = await service.getSPCLimits({
         spcMonitor,
         processType,
-        productType
+        productType,
       });
-      
+
       setLimits(allLimits);
       console.log(`Fetched ${allLimits.length} SPC limits for all charts`);
     } catch (err) {
-      console.error('Error fetching SPC limits:', err);
-      setError('Failed to fetch SPC limits');
+      console.error("Error fetching SPC limits:", err);
+      setError("Failed to fetch SPC limits");
       setLimits([]);
     } finally {
       setIsLoading(false);
@@ -65,17 +72,23 @@ export function SPCLimitsProvider<T extends SPCDataItem>({
     fetchAllLimits();
   }, [fetchAllLimits]);
 
-  const getLimitsForChart = useCallback((chartName: string): SPCLimits[] => {
-    return limits.filter(limit => limit.spc_chart_name === chartName);
-  }, [limits]);
+  const getLimitsForChart = useCallback(
+    (chartName: string): SPCLimits[] => {
+      return limits.filter((limit) => limit.spc_chart_name === chartName);
+    },
+    [limits],
+  );
 
-  const value: SPCLimitsContextValue = useMemo(() => ({
-    limits,
-    isLoading,
-    error,
-    getLimitsForChart,
-    refetch: fetchAllLimits
-  }), [limits, isLoading, error, getLimitsForChart, fetchAllLimits]);
+  const value: SPCLimitsContextValue = useMemo(
+    () => ({
+      limits,
+      isLoading,
+      error,
+      getLimitsForChart,
+      refetch: fetchAllLimits,
+    }),
+    [limits, isLoading, error, getLimitsForChart, fetchAllLimits],
+  );
 
   return (
     <SPCLimitsContext.Provider value={value}>
@@ -87,7 +100,8 @@ export function SPCLimitsProvider<T extends SPCDataItem>({
 export function useSPCLimits() {
   const context = useContext(SPCLimitsContext);
   if (!context) {
-    throw new Error('useSPCLimits must be used within SPCLimitsProvider');
+    throw new Error("useSPCLimits must be used within SPCLimitsProvider");
   }
   return context;
 }
+

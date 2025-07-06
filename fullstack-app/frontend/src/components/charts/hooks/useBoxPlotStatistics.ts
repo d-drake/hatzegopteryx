@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import * as d3 from 'd3';
+import { useMemo } from "react";
+import * as d3 from "d3";
 
 export interface BoxPlotData {
   entity: string;
@@ -30,16 +30,16 @@ interface DataPoint {
 export function useBoxPlotStatistics(
   data: DataPoint[],
   categoricalColumn: string,
-  valueColumn: string
+  valueColumn: string,
 ): BoxPlotData[] {
   return useMemo(() => {
-    const grouped = d3.group(data, d => d[categoricalColumn]);
+    const grouped = d3.group(data, (d) => d[categoricalColumn]);
     const boxPlots: BoxPlotData[] = [];
 
     grouped.forEach((values, category) => {
       const numericValues = values
-        .map(d => d[valueColumn])
-        .filter(v => v != null && !isNaN(v))
+        .map((d) => d[valueColumn])
+        .filter((v) => v != null && !isNaN(v))
         .sort((a, b) => a - b);
 
       if (numericValues.length === 0) return;
@@ -53,8 +53,12 @@ export function useBoxPlotStatistics(
       const lowerWhisker = q1 - 1.5 * iqr;
       const upperWhisker = q3 + 1.5 * iqr;
 
-      const outliers = numericValues.filter(v => v < lowerWhisker || v > upperWhisker);
-      const nonOutliers = numericValues.filter(v => v >= lowerWhisker && v <= upperWhisker);
+      const outliers = numericValues.filter(
+        (v) => v < lowerWhisker || v > upperWhisker,
+      );
+      const nonOutliers = numericValues.filter(
+        (v) => v >= lowerWhisker && v <= upperWhisker,
+      );
 
       boxPlots.push({
         entity: String(category),

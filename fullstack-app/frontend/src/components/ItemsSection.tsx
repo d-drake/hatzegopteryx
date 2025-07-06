@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Item, CreateItem } from '@/types';
-import { itemsApi } from '@/lib/api';
+import { useState, useEffect } from "react";
+import { Item, CreateItem } from "@/types";
+import { itemsApi } from "@/lib/api";
 
 export default function ItemsSection() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newItemTitle, setNewItemTitle] = useState('');
-  const [newItemDescription, setNewItemDescription] = useState('');
+  const [newItemTitle, setNewItemTitle] = useState("");
+  const [newItemDescription, setNewItemDescription] = useState("");
 
   useEffect(() => {
     fetchItems();
@@ -22,7 +22,7 @@ export default function ItemsSection() {
       setItems(data);
       setError(null);
     } catch (err) {
-      setError('Failed to fetch items');
+      setError("Failed to fetch items");
       console.error(err);
     } finally {
       setLoading(false);
@@ -40,10 +40,10 @@ export default function ItemsSection() {
       };
       const created = await itemsApi.create(newItem);
       setItems([...items, created]);
-      setNewItemTitle('');
-      setNewItemDescription('');
+      setNewItemTitle("");
+      setNewItemDescription("");
     } catch (err) {
-      setError('Failed to create item');
+      setError("Failed to create item");
       console.error(err);
     }
   };
@@ -51,9 +51,9 @@ export default function ItemsSection() {
   const handleToggleItem = async (id: number, completed: boolean) => {
     try {
       const updated = await itemsApi.update(id, { completed });
-      setItems(items.map(item => item.id === id ? updated : item));
+      setItems(items.map((item) => (item.id === id ? updated : item)));
     } catch (err) {
-      setError('Failed to update item');
+      setError("Failed to update item");
       console.error(err);
     }
   };
@@ -61,9 +61,9 @@ export default function ItemsSection() {
   const handleDeleteItem = async (id: number) => {
     try {
       await itemsApi.delete(id);
-      setItems(items.filter(item => item.id !== id));
+      setItems(items.filter((item) => item.id !== id));
     } catch (err) {
-      setError('Failed to delete item');
+      setError("Failed to delete item");
       console.error(err);
     }
   };
@@ -124,7 +124,9 @@ export default function ItemsSection() {
               className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <div className="flex-1">
-              <h3 className={`text-lg font-medium ${item.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+              <h3
+                className={`text-lg font-medium ${item.completed ? "line-through text-gray-500" : "text-gray-900"}`}
+              >
                 {item.title}
               </h3>
               {item.description && (
@@ -142,7 +144,7 @@ export default function ItemsSection() {
             </button>
           </div>
         ))}
-        
+
         {items.length === 0 && (
           <div className="text-center py-8 text-gray-500">
             No items found. Add your first item above!

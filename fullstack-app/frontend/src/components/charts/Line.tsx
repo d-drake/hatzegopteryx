@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import * as d3 from 'd3';
+import { useMemo } from "react";
+import * as d3 from "d3";
 
 interface LineProps {
   data: any[];
@@ -19,10 +19,10 @@ export default function Line({
   xAccessor,
   yAccessor,
   groupBy,
-  stroke = '#666666',
+  stroke = "#666666",
   strokeWidth = 1,
   strokeOpacity = 0.5,
-  strokeDasharray = 'none',
+  strokeDasharray = "none",
 }: LineProps) {
   const lineGenerator = useMemo(() => {
     return d3
@@ -30,14 +30,14 @@ export default function Line({
       .x(xAccessor)
       .y(yAccessor)
       .curve(d3.curveLinear)
-      .defined(d => !isNaN(xAccessor(d)) && !isNaN(yAccessor(d)));
+      .defined((d) => !isNaN(xAccessor(d)) && !isNaN(yAccessor(d)));
   }, [xAccessor, yAccessor]);
 
   const groupedData = useMemo(() => {
     if (!groupBy) {
       // Single line for all data
       const sortedData = [...data].sort((a, b) => xAccessor(a) - xAccessor(b));
-      return [{ key: 'all', values: sortedData }];
+      return [{ key: "all", values: sortedData }];
     }
 
     // Group data by the groupBy function
@@ -63,7 +63,7 @@ export default function Line({
       {paths.map(({ key, path }) => (
         <path
           key={key}
-          d={path || ''}
+          d={path || ""}
           fill="none"
           stroke={stroke}
           strokeWidth={strokeWidth}

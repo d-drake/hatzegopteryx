@@ -58,3 +58,6 @@ declare global {
     __sentryReplayInit__?: boolean;
   }
 }
+
+// Export required for Sentry navigation instrumentation
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import * as d3 from 'd3';
+import { useEffect, useRef, useState } from "react";
+import * as d3 from "d3";
 
 interface SymbolsProps<T> {
   data: T[];
@@ -39,96 +39,114 @@ export default function Symbols<T>({
     if (!gRef.current) return;
 
     const g = d3.select(gRef.current);
-    
+
     // Clear previous symbols
-    g.selectAll('.symbol').remove();
+    g.selectAll(".symbol").remove();
 
     // Add symbols
     const symbols = g
-      .selectAll('.symbol')
+      .selectAll(".symbol")
       .data(data)
       .enter()
-      .append('path')
-      .attr('class', 'symbol')
-      .attr('transform', d => `translate(${xAccessor(d)}, ${yAccessor(d)})`)
-      .attr('d', d => {
-        const symbolType = shapeScale && shapeAccessor
-          ? shapeScale(shapeAccessor(d))
-          : d3.symbolCircle;
+      .append("path")
+      .attr("class", "symbol")
+      .attr("transform", (d) => `translate(${xAccessor(d)}, ${yAccessor(d)})`)
+      .attr("d", (d) => {
+        const symbolType =
+          shapeScale && shapeAccessor
+            ? shapeScale(shapeAccessor(d))
+            : d3.symbolCircle;
         return d3.symbol().type(symbolType).size(size)();
       })
-      .style('fill', d => {
+      .style("fill", (d) => {
         if (colorScale && colorAccessor) {
           return colorScale(colorAccessor(d));
         }
-        return '#3b82f6'; // default blue
+        return "#3b82f6"; // default blue
       })
-      .style('opacity', d => {
+      .style("opacity", (d) => {
         // Apply selection transparency
-        const hasColorSelections = selectedColorItems && selectedColorItems.size > 0;
-        const hasShapeSelections = selectedShapeItems && selectedShapeItems.size > 0;
-        
+        const hasColorSelections =
+          selectedColorItems && selectedColorItems.size > 0;
+        const hasShapeSelections =
+          selectedShapeItems && selectedShapeItems.size > 0;
+
         if (hasColorSelections || hasShapeSelections) {
           let isVisible = true;
-          
+
           // Check color selection
           if (hasColorSelections && colorAccessor) {
             const colorValue = colorAccessor(d);
             isVisible = isVisible && selectedColorItems.has(colorValue);
           }
-          
+
           // Check shape selection
           if (hasShapeSelections && shapeAccessor) {
             const shapeValue = shapeAccessor(d);
             isVisible = isVisible && selectedShapeItems.has(shapeValue);
           }
-          
+
           return isVisible ? opacity : opacity * 0.3;
         }
-        
+
         return opacity;
       })
-      .style('stroke', 'white')
-      .style('stroke-width', 0.5)
-      .style('cursor', 'pointer');
+      .style("stroke", "white")
+      .style("stroke-width", 0.5)
+      .style("cursor", "pointer");
 
     symbols
-      .on('mouseover', function(event, d) {
+      .on("mouseover", function (event, d) {
         const index = data.indexOf(d);
         setHoveredIndex(index);
-        d3.select(this).style('opacity', 1);
+        d3.select(this).style("opacity", 1);
         if (onHover) onHover(event, d);
       })
-      .on('mouseout', function(event, d) {
+      .on("mouseout", function (event, d) {
         setHoveredIndex(null);
-        d3.select(this).style('opacity', () => {
+        d3.select(this).style("opacity", () => {
           // Restore the selection-based opacity
-          const hasColorSelections = selectedColorItems && selectedColorItems.size > 0;
-          const hasShapeSelections = selectedShapeItems && selectedShapeItems.size > 0;
-          
+          const hasColorSelections =
+            selectedColorItems && selectedColorItems.size > 0;
+          const hasShapeSelections =
+            selectedShapeItems && selectedShapeItems.size > 0;
+
           if (hasColorSelections || hasShapeSelections) {
             let isVisible = true;
-            
+
             // Check color selection
             if (hasColorSelections && colorAccessor) {
               const colorValue = colorAccessor(d);
               isVisible = isVisible && selectedColorItems.has(colorValue);
             }
-            
+
             // Check shape selection
             if (hasShapeSelections && shapeAccessor) {
               const shapeValue = shapeAccessor(d);
               isVisible = isVisible && selectedShapeItems.has(shapeValue);
             }
-            
+
             return isVisible ? opacity : opacity * 0.3;
           }
-          
+
           return opacity;
         });
         if (onHover) onHover(event, null);
       });
-  }, [data, xAccessor, yAccessor, colorAccessor, shapeAccessor, colorScale, shapeScale, size, opacity, onHover, selectedColorItems, selectedShapeItems]);
+  }, [
+    data,
+    xAccessor,
+    yAccessor,
+    colorAccessor,
+    shapeAccessor,
+    colorScale,
+    shapeScale,
+    size,
+    opacity,
+    onHover,
+    selectedColorItems,
+    selectedShapeItems,
+  ]);
 
   return <g ref={gRef} className="symbols" />;
 }

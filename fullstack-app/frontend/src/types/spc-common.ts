@@ -27,7 +27,7 @@ export interface ColumnConfig {
   label: string;
   sortable?: boolean;
   format?: (value: any) => string;
-  align?: 'left' | 'center' | 'right';
+  align?: "left" | "center" | "right";
   width?: string;
 }
 
@@ -61,7 +61,7 @@ export interface FilterParams {
   page?: number;
   pageSize?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface DataResponse<T> {
@@ -75,3 +75,4 @@ export interface ProcessProductCombination {
   process_type: string;
   product_type: string;
 }
+

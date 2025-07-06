@@ -1,5 +1,5 @@
-import apiClient from '@/lib/axios';
-import { getSPCDataSourceConfig } from '@/lib/spc-dashboard/spcDataSourceRegistry';
+import apiClient from "@/lib/axios";
+import { getSPCDataSourceConfig } from "@/lib/spc-dashboard/spcDataSourceRegistry";
 
 /**
  * Generic service for SPC data source operations using the registry pattern
@@ -12,13 +12,15 @@ export class SPCGenericService {
    */
   async fetchEntities(): Promise<string[]> {
     const config = getSPCDataSourceConfig(this.spcMonitor);
-    
+
     if (!config.apiEndpoints.entities) {
       throw new Error(`Entity endpoint not configured for ${this.spcMonitor}`);
     }
 
     try {
-      const response = await apiClient.get<string[]>(config.apiEndpoints.entities);
+      const response = await apiClient.get<string[]>(
+        config.apiEndpoints.entities,
+      );
       return response.data;
     } catch (error) {
       console.error(`Error fetching entities for ${this.spcMonitor}:`, error);
@@ -31,12 +33,17 @@ export class SPCGenericService {
    */
   async fetchProcessTypes(): Promise<string[]> {
     const config = getSPCDataSourceConfig(this.spcMonitor);
-    
+
     try {
-      const response = await apiClient.get<string[]>(config.apiEndpoints.processTypes);
+      const response = await apiClient.get<string[]>(
+        config.apiEndpoints.processTypes,
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching process types for ${this.spcMonitor}:`, error);
+      console.error(
+        `Error fetching process types for ${this.spcMonitor}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -46,12 +53,17 @@ export class SPCGenericService {
    */
   async fetchProductTypes(): Promise<string[]> {
     const config = getSPCDataSourceConfig(this.spcMonitor);
-    
+
     try {
-      const response = await apiClient.get<string[]>(config.apiEndpoints.productTypes);
+      const response = await apiClient.get<string[]>(
+        config.apiEndpoints.productTypes,
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching product types for ${this.spcMonitor}:`, error);
+      console.error(
+        `Error fetching product types for ${this.spcMonitor}:`,
+        error,
+      );
       throw error;
     }
   }

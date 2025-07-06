@@ -1,10 +1,10 @@
-import api from '@/lib/axios';
-import { Item, CreateItem, UpdateItem, SPCCdL1, SPCCdL1Stats } from '@/types';
+import api from "@/lib/axios";
+import { Item, CreateItem, UpdateItem, SPCCdL1, SPCCdL1Stats } from "@/types";
 
 // Items API
 export const itemsApi = {
   getAll: async (): Promise<Item[]> => {
-    const response = await api.get<Item[]>('/api/items/');
+    const response = await api.get<Item[]>("/api/items/");
     return response.data;
   },
 
@@ -14,7 +14,7 @@ export const itemsApi = {
   },
 
   create: async (item: CreateItem): Promise<Item> => {
-    const response = await api.post<Item>('/api/items/', item);
+    const response = await api.post<Item>("/api/items/", item);
     return response.data;
   },
 
@@ -37,7 +37,7 @@ export const spcCdL1Api = {
     end_date?: string;
     entity?: string;
   }): Promise<SPCCdL1[]> => {
-    const response = await api.get<SPCCdL1[]>('/api/spc-cd-l1/', { params });
+    const response = await api.get<SPCCdL1[]>("/api/spc-cd-l1/", { params });
     return response.data;
   },
 
@@ -46,12 +46,14 @@ export const spcCdL1Api = {
     end_date?: string;
     entity?: string;
   }): Promise<SPCCdL1Stats> => {
-    const response = await api.get<SPCCdL1Stats>('/api/spc-cd-l1/stats', { params });
+    const response = await api.get<SPCCdL1Stats>("/api/spc-cd-l1/stats", {
+      params,
+    });
     return response.data;
   },
 
   getEntities: async (): Promise<string[]> => {
-    const response = await api.get<string[]>('/api/spc-cd-l1/entities');
+    const response = await api.get<string[]>("/api/spc-cd-l1/entities");
     return response.data;
   },
 };

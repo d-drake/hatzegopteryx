@@ -24,24 +24,24 @@ export const defaultFormatterOptions: Record<string, FieldFormatterOptions> = {
   timeline: {
     maxLength: 15,
     abbreviate: true,
-    textReplacements: { 'x_y': 'x-y' },
+    textReplacements: { x_y: "x-y" },
     convertUnderscores: true,
   },
   tooltip: {
     maxLength: Infinity,
     abbreviate: false,
-    textReplacements: { 
-      'Cd': 'CD', 
-      'Att': 'ATT', 
-      'X Y': 'X-Y',
-      'x_y': 'x-y' 
+    textReplacements: {
+      Cd: "CD",
+      Att: "ATT",
+      "X Y": "X-Y",
+      x_y: "x-y",
     },
     convertUnderscores: true,
   },
   axis: {
     maxLength: Infinity,
     abbreviate: false,
-    textReplacements: { 'x_y': 'x-y' },
+    textReplacements: { x_y: "x-y" },
     convertUnderscores: true,
   },
 };
@@ -52,7 +52,7 @@ export const defaultFormatterOptions: Record<string, FieldFormatterOptions> = {
 export function formatFieldName(
   field: string,
   unitMapping?: UnitMapping,
-  options: FieldFormatterOptions = defaultFormatterOptions.timeline
+  options: FieldFormatterOptions = defaultFormatterOptions.timeline,
 ): string {
   let formattedField = field;
 
@@ -64,27 +64,27 @@ export function formatFieldName(
   // Apply custom text replacements BEFORE underscore conversion
   if (options.textReplacements) {
     for (const [search, replace] of Object.entries(options.textReplacements)) {
-      formattedField = formattedField.replace(new RegExp(search, 'g'), replace);
+      formattedField = formattedField.replace(new RegExp(search, "g"), replace);
     }
   }
 
   // Convert underscores to spaces
   if (options.convertUnderscores) {
-    formattedField = formattedField.replace(/_/g, ' ');
+    formattedField = formattedField.replace(/_/g, " ");
   }
 
   // Apply abbreviation logic for long field names
   if (options.abbreviate && formattedField.length > (options.maxLength || 15)) {
     formattedField = formattedField
-      .split(' ')
+      .split(" ")
       .map((word: string) => {
         if (word.length <= 4) {
           return word;
         } else {
-          return word.slice(0, 4) + '.';
+          return word.slice(0, 4) + ".";
         }
       })
-      .join(' ');
+      .join(" ");
   }
 
   return formattedField;
@@ -94,7 +94,7 @@ export function formatFieldName(
  * Applies title case formatting to field names
  */
 export function toTitleCase(str: string): string {
-  return str.replace(/\b\w/g, l => l.toUpperCase());
+  return str.replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 /**
@@ -102,7 +102,7 @@ export function toTitleCase(str: string): string {
  */
 export function formatTimelineFieldName(
   field: string,
-  unitMapping?: UnitMapping
+  unitMapping?: UnitMapping,
 ): string {
   return formatFieldName(field, unitMapping, defaultFormatterOptions.timeline);
 }
@@ -112,9 +112,13 @@ export function formatTimelineFieldName(
  */
 export function formatTooltipFieldName(
   field: string,
-  unitMapping?: UnitMapping
+  unitMapping?: UnitMapping,
 ): string {
-  const formatted = formatFieldName(field, unitMapping, defaultFormatterOptions.tooltip);
+  const formatted = formatFieldName(
+    field,
+    unitMapping,
+    defaultFormatterOptions.tooltip,
+  );
   return toTitleCase(formatted);
 }
 
@@ -123,7 +127,7 @@ export function formatTooltipFieldName(
  */
 export function formatAxisFieldName(
   field: string,
-  unitMapping?: UnitMapping
+  unitMapping?: UnitMapping,
 ): string {
   return formatFieldName(field, unitMapping, defaultFormatterOptions.axis);
 }

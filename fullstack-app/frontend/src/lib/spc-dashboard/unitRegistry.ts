@@ -3,7 +3,7 @@
  * Provides unit mappings for different SPC monitor types
  */
 
-import { UnitMapping } from '@/lib/formatters/fieldFormatter';
+import { UnitMapping } from "@/lib/formatters/fieldFormatter";
 
 /**
  * Units for SPC CD L1 monitor type
@@ -11,7 +11,7 @@ import { UnitMapping } from '@/lib/formatters/fieldFormatter';
 export enum SpcCDL1Units {
   cd_att = "nm",
   cd_x_y = "nm",
-  duration_subseq_process_step = "s"
+  duration_subseq_process_step = "s",
 }
 
 /**
@@ -23,7 +23,7 @@ export enum SpcRegL1Units {
   ortho = "mRad",
   centrality_x = "mm",
   centrality_y = "mm",
-  centrality_rotation = "mRad"
+  centrality_rotation = "mRad",
 }
 
 /**
@@ -33,11 +33,11 @@ export enum SpcRegL1Units {
  */
 export function getUnitsForMonitor(spcMonitorName: string): UnitMapping {
   const monitorKey = spcMonitorName.toLowerCase();
-  
+
   switch (monitorKey) {
-    case 'spc_cd_l1':
+    case "spc_cd_l1":
       return SpcCDL1Units;
-    case 'spc_reg_l1':
+    case "spc_reg_l1":
       return SpcRegL1Units;
     default:
       // Return empty object for unknown monitor types
@@ -50,7 +50,7 @@ export function getUnitsForMonitor(spcMonitorName: string): UnitMapping {
  * @returns Array of supported monitor type keys
  */
 export function getSupportedMonitorTypes(): string[] {
-  return ['spc_cd_l1', 'spc_reg_l1'];
+  return ["spc_cd_l1", "spc_reg_l1"];
 }
 
 /**

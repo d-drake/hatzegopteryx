@@ -1,14 +1,17 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import * as d3 from 'd3';
-import { SPCLimits } from '@/types';
-import { useSPCLimits } from '@/contexts/SPCLimitsContext';
+import { useMemo } from "react";
+import * as d3 from "d3";
+import { SPCLimits } from "@/types";
+import { useSPCLimits } from "@/contexts/SPCLimitsContext";
 
 interface LimitLineProps {
-  type: 'CL' | 'LCL' | 'UCL';
+  type: "CL" | "LCL" | "UCL";
   yScale: d3.ScaleLinear<number, number>;
-  xScale: d3.ScaleLinear<number, number> | d3.ScaleTime<number, number> | d3.ScaleBand<string>;
+  xScale:
+    | d3.ScaleLinear<number, number>
+    | d3.ScaleTime<number, number>
+    | d3.ScaleBand<string>;
   chartName: string; // e.g., "cd_att"
   processType: string;
   productType: string;
@@ -22,7 +25,7 @@ export default function LimitLine({
   chartName,
   processType,
   productType,
-  spcMonitorName
+  spcMonitorName,
 }: LimitLineProps) {
   // Use SPC limits from context instead of fetching independently
   const { getLimitsForChart, isLoading: loading } = useSPCLimits();
@@ -34,15 +37,20 @@ export default function LimitLine({
 
     // Filter limits for the specific type and sort by effective date
     const relevantLimits = limits
-      .filter(limit => {
-        const value = type === 'CL' ? limit.cl : type === 'LCL' ? limit.lcl : limit.ucl;
+      .filter((limit) => {
+        const value =
+          type === "CL" ? limit.cl : type === "LCL" ? limit.lcl : limit.ucl;
         if (value === undefined || value === null) return false;
-        
+
         // Check if the limit value is within the current Y domain (zoom boundaries)
         const [yMin, yMax] = yScale.domain();
         return value >= yMin && value <= yMax;
       })
-      .sort((a, b) => new Date(a.effective_date).getTime() - new Date(b.effective_date).getTime());
+      .sort(
+        (a, b) =>
+          new Date(a.effective_date).getTime() -
+          new Date(b.effective_date).getTime(),
+      );
 
     if (!relevantLimits.length) return null;
 
@@ -50,7 +58,7 @@ export default function LimitLine({
     const xRange = xScale.range();
     const innerStartX = Array.isArray(xRange) ? Math.min(...xRange) : 0;
     const innerEndX = Array.isArray(xRange) ? Math.max(...xRange) : 100;
-    
+
     // Bypass the 30px margins - extend lines fully to the axes
     // Start at the Y-axis (0) and extend to the full width
     const startX = 0; // Start at the left Y-axis
@@ -59,17 +67,22 @@ export default function LimitLine({
     // For SPC limits, we typically want simple horizontal lines across the full width
     // Use only the most recent (last) limit value to avoid complexity
     const mostRecentLimit = relevantLimits[relevantLimits.length - 1];
-    const value = type === 'CL' ? mostRecentLimit.cl! : type === 'LCL' ? mostRecentLimit.lcl! : mostRecentLimit.ucl!;
+    const value =
+      type === "CL"
+        ? mostRecentLimit.cl!
+        : type === "LCL"
+          ? mostRecentLimit.lcl!
+          : mostRecentLimit.ucl!;
     const yPos = yScale(value);
-    
+
     // Create a simple horizontal line from start to end
     // This eliminates any path complexity that could cause artifacts
     const pathSegments = [
-      `M ${startX} ${yPos}`,  // Move to start position
-      `L ${endX} ${yPos}`     // Draw horizontal line to end
+      `M ${startX} ${yPos}`, // Move to start position
+      `L ${endX} ${yPos}`, // Draw horizontal line to end
     ];
 
-    return pathSegments.join(' ');
+    return pathSegments.join(" ");
   }, [limits, type, xScale, yScale]);
 
   // Return null if no data or still loading
@@ -80,26 +93,26 @@ export default function LimitLine({
   // Define line styling based on type
   const getLineStyle = () => {
     switch (type) {
-      case 'CL':
+      case "CL":
         return {
-          stroke: '#6b7280', // gray
-          strokeDasharray: '5,5', // dotted
+          stroke: "#6b7280", // gray
+          strokeDasharray: "5,5", // dotted
           strokeOpacity: 1,
-          strokeWidth: 1.5
+          strokeWidth: 1.5,
         };
-      case 'LCL':
-      case 'UCL':
+      case "LCL":
+      case "UCL":
         return {
-          stroke: '#ef4444', // red
-          strokeDasharray: '10,5', // dashed
+          stroke: "#ef4444", // red
+          strokeDasharray: "10,5", // dashed
           strokeOpacity: 0.7, // transparent
-          strokeWidth: 1.5
+          strokeWidth: 1.5,
         };
       default:
         return {
-          stroke: '#6b7280',
+          stroke: "#6b7280",
           strokeOpacity: 1,
-          strokeWidth: 1
+          strokeWidth: 1,
         };
     }
   };

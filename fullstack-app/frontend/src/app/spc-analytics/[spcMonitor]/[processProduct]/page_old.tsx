@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import * as Sentry from '@sentry/nextjs';
-import { SPCCdL1, SPCCdL1Stats } from '@/types';
-import { spcCdL1Api } from '@/lib/api';
-import Header from '@/components/auth/Header';
-import AppTabs from '@/components/AppTabs';
-import SPCTabs from '@/components/spc-dashboard/SPCTabs';
-import { useAuth } from '@/contexts/AuthContext';
-import { SPCCdL1Provider, useSPCCdL1 } from '@/contexts/SPCCdL1Context';
-import { SPCLimitsProvider } from '@/contexts/SPCLimitsContext';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { DatePicker } from '@/components/ui/date-picker';
-import StatisticsTabs from '@/components/spc-analytics/StatisticsTabs';
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
+import * as Sentry from "@sentry/nextjs";
+import { SPCCdL1, SPCCdL1Stats } from "@/types";
+import { spcCdL1Api } from "@/lib/api";
+import Header from "@/components/auth/Header";
+import AppTabs from "@/components/AppTabs";
+import SPCTabs from "@/components/spc-dashboard/SPCTabs";
+import { useAuth } from "@/contexts/AuthContext";
+import { SPCCdL1Provider, useSPCCdL1 } from "@/contexts/SPCCdL1Context";
+import { SPCLimitsProvider } from "@/contexts/SPCLimitsContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { DatePicker } from "@/components/ui/date-picker";
+import StatisticsTabs from "@/components/spc-analytics/StatisticsTabs";
 
 function SPCAnalyticsInner() {
   const params = useParams();
@@ -28,14 +28,16 @@ function SPCAnalyticsInner() {
     isLoading: contextLoading,
     error: contextError,
     filters: contextFilters,
-    handleFiltersChange
+    handleFiltersChange,
   } = useSPCCdL1();
 
   const spcMonitor = params.spcMonitor as string;
   const processProduct = params.processProduct as string;
 
   // Parse process and product from the combined parameter
-  const [processType, productType] = processProduct ? processProduct.split('-') : ['', ''];
+  const [processType, productType] = processProduct
+    ? processProduct.split("-")
+    : ["", ""];
 
   // Local state for pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,17 +48,25 @@ function SPCAnalyticsInner() {
   const [error, setError] = useState<string | null>(null);
 
   // Independent entity filter for Analytics (not synced with context)
-  const [localSelectedEntity, setLocalSelectedEntity] = useState<string>('');
+  const [localSelectedEntity, setLocalSelectedEntity] = useState<string>("");
 
   // Initialize local entity from URL on mount (independent from context)
   useEffect(() => {
-    const urlEntity = searchParams.get('analyticsEntity') || '';
+    const urlEntity = searchParams.get("analyticsEntity") || "";
     setLocalSelectedEntity(urlEntity);
   }, [searchParams]);
 
   // Sorting state
-  const [sortColumn, setSortColumn] = useState<'date_process' | 'entity' | 'bias' | 'bias_x_y' | 'cd_att' | 'cd_x_y' | 'cd_6sig'>('date_process');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortColumn, setSortColumn] = useState<
+    | "date_process"
+    | "entity"
+    | "bias"
+    | "bias_x_y"
+    | "cd_att"
+    | "cd_x_y"
+    | "cd_6sig"
+  >("date_process");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const pageSize = 50;
 
@@ -83,7 +93,7 @@ function SPCAnalyticsInner() {
   // For guests, enforce 30-day limit
   const getEffectiveStartDate = () => {
     if (isGuest) {
-      const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+      const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split("T")[0];
       if (!startDate || new Date(startDate) < thirtyDaysAgo) {
         return thirtyDaysAgoStr;
       }
@@ -93,7 +103,7 @@ function SPCAnalyticsInner() {
 
   const getEffectiveEndDate = () => {
     if (isGuest) {
-      const todayStr = today.toISOString().split('T')[0];
+      const todayStr = today.toISOString().split("T")[0];
       if (!endDate || new Date(endDate) > today) {
         return todayStr;
       }
@@ -102,60 +112,65 @@ function SPCAnalyticsInner() {
   };
 
   // Calculate pagination from all entity data (using allEntityData like SPCVariabilityChart)
-  const dataForAnalytics = allEntityData.length > 0 ? allEntityData : contextData;
+  const dataForAnalytics =
+    allEntityData.length > 0 ? allEntityData : contextData;
   const filteredDataLength = localSelectedEntity
-    ? dataForAnalytics.filter(d => d.entity === localSelectedEntity).length
+    ? dataForAnalytics.filter((d) => d.entity === localSelectedEntity).length
     : dataForAnalytics.length;
   const totalPages = Math.ceil(filteredDataLength / pageSize);
   const hasMoreInContext = currentPage < totalPages;
-  const needsServerFetch = currentPage > totalPages && dataForAnalytics.length === 1000;
+  const needsServerFetch =
+    currentPage > totalPages && dataForAnalytics.length === 1000;
 
   // Sort data function
-  const sortData = useCallback((data: SPCCdL1[]) => {
-    return [...data].sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+  const sortData = useCallback(
+    (data: SPCCdL1[]) => {
+      return [...data].sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
 
-      switch (sortColumn) {
-        case 'date_process':
-          aValue = new Date(a.date_process).getTime();
-          bValue = new Date(b.date_process).getTime();
-          break;
-        case 'entity':
-          aValue = a.entity;
-          bValue = b.entity;
-          break;
-        case 'bias':
-          aValue = a.bias;
-          bValue = b.bias;
-          break;
-        case 'bias_x_y':
-          aValue = a.bias_x_y;
-          bValue = b.bias_x_y;
-          break;
-        case 'cd_att':
-          aValue = a.cd_att;
-          bValue = b.cd_att;
-          break;
-        case 'cd_x_y':
-          aValue = a.cd_x_y;
-          bValue = b.cd_x_y;
-          break;
-        case 'cd_6sig':
-          aValue = a.cd_6sig;
-          bValue = b.cd_6sig;
-          break;
-        default:
-          return 0;
-      }
+        switch (sortColumn) {
+          case "date_process":
+            aValue = new Date(a.date_process).getTime();
+            bValue = new Date(b.date_process).getTime();
+            break;
+          case "entity":
+            aValue = a.entity;
+            bValue = b.entity;
+            break;
+          case "bias":
+            aValue = a.bias;
+            bValue = b.bias;
+            break;
+          case "bias_x_y":
+            aValue = a.bias_x_y;
+            bValue = b.bias_x_y;
+            break;
+          case "cd_att":
+            aValue = a.cd_att;
+            bValue = b.cd_att;
+            break;
+          case "cd_x_y":
+            aValue = a.cd_x_y;
+            bValue = b.cd_x_y;
+            break;
+          case "cd_6sig":
+            aValue = a.cd_6sig;
+            bValue = b.cd_6sig;
+            break;
+          default:
+            return 0;
+        }
 
-      if (sortDirection === 'asc') {
-        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
-      } else {
-        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
-      }
-    });
-  }, [sortColumn, sortDirection]);
+        if (sortDirection === "asc") {
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        } else {
+          return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+        }
+      });
+    },
+    [sortColumn, sortDirection],
+  );
 
   // Get current page data
   const getCurrentPageData = useCallback(() => {
@@ -164,7 +179,7 @@ function SPCAnalyticsInner() {
 
     // Apply client-side entity filter for display purposes
     const filteredData = localSelectedEntity
-      ? baseData.filter(d => d.entity === localSelectedEntity)
+      ? baseData.filter((d) => d.entity === localSelectedEntity)
       : baseData;
 
     // Sort the filtered data
@@ -189,48 +204,59 @@ function SPCAnalyticsInner() {
   }, [getCurrentPageData]);
 
   // Fetch additional data from server if needed
-  const fetchAdditionalData = useCallback(async (page: number) => {
-    if (!needsServerFetch) return;
+  const fetchAdditionalData = useCallback(
+    async (page: number) => {
+      if (!needsServerFetch) return;
 
-    try {
-      setLoading(true);
-      const skipAmount = (page - 1) * pageSize;
-      const params = {
-        limit: pageSize,
-        skip: skipAmount,
-        spc_monitor_name: spcMonitor,
-        process_type: processType,
-        product_type: productType,
-        // Note: NOT filtering by entity as requested
-        ...(startDate && { start_date: startDate }),
-        ...(endDate && { end_date: endDate }),
-      };
-      const data = await spcCdL1Api.getAll(params);
+      try {
+        setLoading(true);
+        const skipAmount = (page - 1) * pageSize;
+        const params = {
+          limit: pageSize,
+          skip: skipAmount,
+          spc_monitor_name: spcMonitor,
+          process_type: processType,
+          product_type: productType,
+          // Note: NOT filtering by entity as requested
+          ...(startDate && { start_date: startDate }),
+          ...(endDate && { end_date: endDate }),
+        };
+        const data = await spcCdL1Api.getAll(params);
 
-      setLocalData(data);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch additional data');
-      console.error(err);
+        setLocalData(data);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch additional data");
+        console.error(err);
 
-      // Track error in Sentry
-      Sentry.captureException(err, {
-        tags: {
-          component: 'SPCAnalytics',
-          action: 'fetchAdditionalData'
-        },
-        extra: {
-          page: page,
-          spcMonitor,
-          processType,
-          productType,
-          skipAmount: (page - 1) * pageSize
-        }
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [needsServerFetch, spcMonitor, processType, productType, startDate, endDate, pageSize]);
+        // Track error in Sentry
+        Sentry.captureException(err, {
+          tags: {
+            component: "SPCAnalytics",
+            action: "fetchAdditionalData",
+          },
+          extra: {
+            page: page,
+            spcMonitor,
+            processType,
+            productType,
+            skipAmount: (page - 1) * pageSize,
+          },
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      needsServerFetch,
+      spcMonitor,
+      processType,
+      productType,
+      startDate,
+      endDate,
+      pageSize,
+    ],
+  );
 
   // Calculate stats from all entity data
   const calculateStats = useCallback(() => {
@@ -239,7 +265,7 @@ function SPCAnalyticsInner() {
 
     // Apply client-side entity filter for stats calculation
     const dataForStats = localSelectedEntity
-      ? baseData.filter(d => d.entity === localSelectedEntity)
+      ? baseData.filter((d) => d.entity === localSelectedEntity)
       : baseData;
 
     if (dataForStats.length === 0) {
@@ -247,22 +273,29 @@ function SPCAnalyticsInner() {
       return;
     }
 
-    const cdAttValues = dataForStats.map(d => d.cd_att).filter(v => v != null);
-    const cd6sigValues = dataForStats.map(d => d.cd_6sig).filter(v => v != null);
+    const cdAttValues = dataForStats
+      .map((d) => d.cd_att)
+      .filter((v) => v != null);
+    const cd6sigValues = dataForStats
+      .map((d) => d.cd_6sig)
+      .filter((v) => v != null);
 
     setStats({
       total_count: dataForStats.length,
       avg_cd_att: cdAttValues.reduce((a, b) => a + b, 0) / cdAttValues.length,
-      avg_cd_6sig: cd6sigValues.reduce((a, b) => a + b, 0) / cd6sigValues.length,
+      avg_cd_6sig:
+        cd6sigValues.reduce((a, b) => a + b, 0) / cd6sigValues.length,
       min_cd_att: Math.min(...cdAttValues),
       max_cd_att: Math.max(...cdAttValues),
-      entity_count: new Set(dataForStats.map(d => d.entity)).size
+      entity_count: new Set(dataForStats.map((d) => d.entity)).size,
     });
   }, [dataForAnalytics, localSelectedEntity]);
 
   // Load entities from all entity data
   useEffect(() => {
-    const uniqueEntities = Array.from(new Set(dataForAnalytics.map(d => d.entity))).sort();
+    const uniqueEntities = Array.from(
+      new Set(dataForAnalytics.map((d) => d.entity)),
+    ).sort();
     setEntities(uniqueEntities);
   }, [dataForAnalytics]);
 
@@ -278,9 +311,7 @@ function SPCAnalyticsInner() {
     }
   }, [needsServerFetch, currentPage, totalPages, fetchAdditionalData]);
 
-
   const handleEntityChange = (value: string) => {
-
     // SPC Analytics has independent entity filter
     setLocalSelectedEntity(value);
     // Reset to first page when filters change
@@ -289,19 +320,18 @@ function SPCAnalyticsInner() {
     // Update URL with analytics-specific entity parameter
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
-      params.set('analyticsEntity', value);
+      params.set("analyticsEntity", value);
     } else {
-      params.delete('analyticsEntity');
+      params.delete("analyticsEntity");
     }
 
     const newUrl = `/spc-analytics/${encodeURIComponent(spcMonitor)}/${encodeURIComponent(processProduct)}?${params.toString()}`;
     router.replace(newUrl, { scroll: false });
   };
 
-  const handleDateChange = (key: 'startDate' | 'endDate', value: string) => {
-
+  const handleDateChange = (key: "startDate" | "endDate", value: string) => {
     // Update local state
-    if (key === 'startDate') {
+    if (key === "startDate") {
       setLocalStartDate(value);
     } else {
       setLocalEndDate(value);
@@ -309,31 +339,31 @@ function SPCAnalyticsInner() {
 
     // For guests, enforce date restrictions
     if (isGuest) {
-      if (key === 'startDate' && value && new Date(value) < thirtyDaysAgo) {
-        value = thirtyDaysAgo.toISOString().split('T')[0];
+      if (key === "startDate" && value && new Date(value) < thirtyDaysAgo) {
+        value = thirtyDaysAgo.toISOString().split("T")[0];
       }
-      if (key === 'endDate' && value && new Date(value) > today) {
-        value = today.toISOString().split('T')[0];
+      if (key === "endDate" && value && new Date(value) > today) {
+        value = today.toISOString().split("T")[0];
       }
     }
 
     // Update context filters
     handleFiltersChange({
       ...contextFilters,
-      [key]: value
+      [key]: value,
     });
     // Reset to first page when filters change
     setCurrentPage(1);
   };
 
   const clearFilters = () => {
-    setLocalStartDate('');
-    setLocalEndDate('');
-    setLocalSelectedEntity(''); // Reset local entity filter
+    setLocalStartDate("");
+    setLocalEndDate("");
+    setLocalSelectedEntity(""); // Reset local entity filter
     handleFiltersChange({
       ...contextFilters,
-      startDate: '',
-      endDate: ''
+      startDate: "",
+      endDate: "",
     });
     setCurrentPage(1);
   };
@@ -348,21 +378,31 @@ function SPCAnalyticsInner() {
     setCurrentPage(currentPage + 1);
   };
 
-  const handleSort = (column: 'date_process' | 'entity' | 'bias' | 'bias_x_y' | 'cd_att' | 'cd_x_y' | 'cd_6sig') => {
+  const handleSort = (
+    column:
+      | "date_process"
+      | "entity"
+      | "bias"
+      | "bias_x_y"
+      | "cd_att"
+      | "cd_x_y"
+      | "cd_6sig",
+  ) => {
     if (column === sortColumn) {
       // Toggle direction if clicking the same column
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       // Set new column with default ascending order (except for date which defaults to descending)
       setSortColumn(column);
-      setSortDirection(column === 'date_process' ? 'desc' : 'asc');
+      setSortDirection(column === "date_process" ? "desc" : "asc");
     }
     // Reset to first page when sorting changes
     setCurrentPage(1);
   };
 
   // Calculate if there are more pages available
-  const hasMore = hasMoreInContext || (contextData.length === 1000 && needsServerFetch);
+  const hasMore =
+    hasMoreInContext || (contextData.length === 1000 && needsServerFetch);
 
   // Show loading only for initial context load
   if (contextLoading && dataForAnalytics.length === 0) {
@@ -381,7 +421,7 @@ function SPCAnalyticsInner() {
 
   // Calculate the total records to display accurately
   const totalDisplayRecords = localSelectedEntity
-    ? dataForAnalytics.filter(d => d.entity === localSelectedEntity).length
+    ? dataForAnalytics.filter((d) => d.entity === localSelectedEntity).length
     : dataForAnalytics.length;
 
   return (
@@ -408,9 +448,16 @@ function SPCAnalyticsInner() {
         {isGuest && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-yellow-800">
-              <strong>Notice:</strong> Access to the SPC Analytics is limited to the past 30 days only for guests.
-              Please <a href="/register" className="text-blue-600 hover:underline">register</a> or
-              <a href="/login" className="text-blue-600 hover:underline ml-1">login</a> to gain full access.
+              <strong>Notice:</strong> Access to the SPC Analytics is limited to
+              the past 30 days only for guests. Please{" "}
+              <a href="/register" className="text-blue-600 hover:underline">
+                register
+              </a>{" "}
+              or
+              <a href="/login" className="text-blue-600 hover:underline ml-1">
+                login
+              </a>{" "}
+              to gain full access.
             </p>
           </div>
         )}
@@ -427,9 +474,15 @@ function SPCAnalyticsInner() {
         {/* Current Selection Info */}
         <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex flex-wrap gap-4 text-sm text-blue-800">
-            <span><strong>SPC Monitor:</strong> {spcMonitor}</span>
-            <span><strong>Process Type:</strong> {processType}</span>
-            <span><strong>Product Type:</strong> {productType}</span>
+            <span>
+              <strong>SPC Monitor:</strong> {spcMonitor}
+            </span>
+            <span>
+              <strong>Process Type:</strong> {processType}
+            </span>
+            <span>
+              <strong>Product Type:</strong> {productType}
+            </span>
           </div>
         </div>
 
@@ -443,7 +496,9 @@ function SPCAnalyticsInner() {
           {/* Filters */}
           <div className="bg-white p-4 rounded-lg shadow-sm border">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">Data Filters</h3>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Data Filters
+              </h3>
               <button
                 onClick={clearFilters}
                 className="text-sm text-gray-600 hover:text-gray-800 underline"
@@ -481,7 +536,7 @@ function SPCAnalyticsInner() {
                 </label>
                 <DatePicker
                   value={localStartDate}
-                  onChange={(date) => handleDateChange('startDate', date)}
+                  onChange={(date) => handleDateChange("startDate", date)}
                   disabled={loading}
                   minDate={isGuest ? thirtyDaysAgo : undefined}
                   maxDate={isGuest ? today : undefined}
@@ -496,7 +551,7 @@ function SPCAnalyticsInner() {
                 </label>
                 <DatePicker
                   value={localEndDate}
-                  onChange={(date) => handleDateChange('endDate', date)}
+                  onChange={(date) => handleDateChange("endDate", date)}
                   disabled={loading}
                   minDate={isGuest ? thirtyDaysAgo : undefined}
                   maxDate={isGuest ? today : undefined}
@@ -515,35 +570,61 @@ function SPCAnalyticsInner() {
           {/* Data Table */}
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-black">Selected Data</h2>
+              <h2 className="text-lg font-semibold text-black">
+                Selected Data
+              </h2>
               <div className="flex items-center gap-4">
                 <button
                   onClick={handlePrevPage}
                   disabled={currentPage === 1 || loading}
-                  className={`flex items-center gap-1 px-3 py-1 rounded ${currentPage === 1 || loading
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
+                  className={`flex items-center gap-1 px-3 py-1 rounded ${
+                    currentPage === 1 || loading
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
                   Previous
                 </button>
                 <span className="text-sm text-gray-600">
-                  Showing {offset + 1}-{Math.min(offset + pageSize, totalDisplayRecords)} of {totalDisplayRecords}
+                  Showing {offset + 1}-
+                  {Math.min(offset + pageSize, totalDisplayRecords)} of{" "}
+                  {totalDisplayRecords}
                 </span>
                 <button
                   onClick={handleNextPage}
                   disabled={!hasMore || loading}
-                  className={`flex items-center gap-1 px-3 py-1 rounded ${!hasMore || loading
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
+                  className={`flex items-center gap-1 px-3 py-1 rounded ${
+                    !hasMore || loading
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
                 >
                   Next
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
               </div>
@@ -554,16 +635,28 @@ function SPCAnalyticsInner() {
                   <tr>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
-                      onClick={() => handleSort('date_process')}
+                      onClick={() => handleSort("date_process")}
                     >
                       <div className="flex items-center gap-1">
                         DateTime
-                        {sortColumn === 'date_process' && (
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            {sortDirection === 'asc' ? (
-                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        {sortColumn === "date_process" && (
+                          <svg
+                            className="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            {sortDirection === "asc" ? (
+                              <path
+                                fillRule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"
+                                clipRule="evenodd"
+                              />
                             ) : (
-                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              <path
+                                fillRule="evenodd"
+                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             )}
                           </svg>
                         )}
@@ -571,16 +664,28 @@ function SPCAnalyticsInner() {
                     </th>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
-                      onClick={() => handleSort('entity')}
+                      onClick={() => handleSort("entity")}
                     >
                       <div className="flex items-center gap-1">
                         Entity
-                        {sortColumn === 'entity' && (
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            {sortDirection === 'asc' ? (
-                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        {sortColumn === "entity" && (
+                          <svg
+                            className="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            {sortDirection === "asc" ? (
+                              <path
+                                fillRule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"
+                                clipRule="evenodd"
+                              />
                             ) : (
-                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              <path
+                                fillRule="evenodd"
+                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             )}
                           </svg>
                         )}
@@ -588,16 +693,28 @@ function SPCAnalyticsInner() {
                     </th>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
-                      onClick={() => handleSort('bias')}
+                      onClick={() => handleSort("bias")}
                     >
                       <div className="flex items-center gap-1">
                         Bias
-                        {sortColumn === 'bias' && (
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            {sortDirection === 'asc' ? (
-                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        {sortColumn === "bias" && (
+                          <svg
+                            className="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            {sortDirection === "asc" ? (
+                              <path
+                                fillRule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"
+                                clipRule="evenodd"
+                              />
                             ) : (
-                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              <path
+                                fillRule="evenodd"
+                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             )}
                           </svg>
                         )}
@@ -605,16 +722,28 @@ function SPCAnalyticsInner() {
                     </th>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
-                      onClick={() => handleSort('bias_x_y')}
+                      onClick={() => handleSort("bias_x_y")}
                     >
                       <div className="flex items-center gap-1">
                         Bias X-Y
-                        {sortColumn === 'bias_x_y' && (
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            {sortDirection === 'asc' ? (
-                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        {sortColumn === "bias_x_y" && (
+                          <svg
+                            className="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            {sortDirection === "asc" ? (
+                              <path
+                                fillRule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"
+                                clipRule="evenodd"
+                              />
                             ) : (
-                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              <path
+                                fillRule="evenodd"
+                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             )}
                           </svg>
                         )}
@@ -622,16 +751,28 @@ function SPCAnalyticsInner() {
                     </th>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
-                      onClick={() => handleSort('cd_att')}
+                      onClick={() => handleSort("cd_att")}
                     >
                       <div className="flex items-center gap-1">
                         CD ATT
-                        {sortColumn === 'cd_att' && (
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            {sortDirection === 'asc' ? (
-                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        {sortColumn === "cd_att" && (
+                          <svg
+                            className="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            {sortDirection === "asc" ? (
+                              <path
+                                fillRule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"
+                                clipRule="evenodd"
+                              />
                             ) : (
-                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              <path
+                                fillRule="evenodd"
+                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             )}
                           </svg>
                         )}
@@ -639,16 +780,28 @@ function SPCAnalyticsInner() {
                     </th>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
-                      onClick={() => handleSort('cd_x_y')}
+                      onClick={() => handleSort("cd_x_y")}
                     >
                       <div className="flex items-center gap-1">
                         CD X-Y
-                        {sortColumn === 'cd_x_y' && (
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            {sortDirection === 'asc' ? (
-                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        {sortColumn === "cd_x_y" && (
+                          <svg
+                            className="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            {sortDirection === "asc" ? (
+                              <path
+                                fillRule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"
+                                clipRule="evenodd"
+                              />
                             ) : (
-                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              <path
+                                fillRule="evenodd"
+                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             )}
                           </svg>
                         )}
@@ -656,16 +809,28 @@ function SPCAnalyticsInner() {
                     </th>
                     <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider cursor-pointer hover:text-gray-700"
-                      onClick={() => handleSort('cd_6sig')}
+                      onClick={() => handleSort("cd_6sig")}
                     >
                       <div className="flex items-center gap-1">
                         <span className="uppercase">CD 6</span>σ
-                        {sortColumn === 'cd_6sig' && (
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            {sortDirection === 'asc' ? (
-                              <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        {sortColumn === "cd_6sig" && (
+                          <svg
+                            className="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            {sortDirection === "asc" ? (
+                              <path
+                                fillRule="evenodd"
+                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L10 6.414l-3.293 3.293a1 1 0 01-1.414 0z"
+                                clipRule="evenodd"
+                              />
                             ) : (
-                              <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              <path
+                                fillRule="evenodd"
+                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L10 13.586l3.293-3.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             )}
                           </svg>
                         )}
@@ -722,30 +887,54 @@ function SPCAnalyticsInner() {
                   <button
                     onClick={handlePrevPage}
                     disabled={currentPage === 1 || loading}
-                    className={`flex items-center gap-1 px-3 py-1 rounded ${currentPage === 1 || loading
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
+                    className={`flex items-center gap-1 px-3 py-1 rounded ${
+                      currentPage === 1 || loading
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
                     </svg>
                     Previous
                   </button>
                   <span className="text-sm text-gray-600">
-                    Showing {offset + 1}-{Math.min(offset + pageSize, totalDisplayRecords)} of {totalDisplayRecords}
+                    Showing {offset + 1}-
+                    {Math.min(offset + pageSize, totalDisplayRecords)} of{" "}
+                    {totalDisplayRecords}
                   </span>
                   <button
                     onClick={handleNextPage}
                     disabled={!hasMore || loading}
-                    className={`flex items-center gap-1 px-3 py-1 rounded ${!hasMore || loading
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
+                    className={`flex items-center gap-1 px-3 py-1 rounded ${
+                      !hasMore || loading
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
                   >
                     Next
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -763,7 +952,7 @@ export default function SPCAnalyticsPage() {
 
   const spcMonitor = decodeURIComponent(params.spcMonitor as string);
   const processProduct = decodeURIComponent(params.processProduct as string);
-  const [processType, productType] = processProduct.split('-');
+  const [processType, productType] = processProduct.split("-");
 
   return (
     <ErrorBoundary errorMessage="Unable to load SPC Analytics">
@@ -784,3 +973,4 @@ export default function SPCAnalyticsPage() {
     </ErrorBoundary>
   );
 }
+

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { createSPCService } from '@/services/spcGenericService';
-import { useAuth } from '@/contexts/AuthContext';
-import { DatePicker } from '@/components/ui/date-picker';
+import { useState, useEffect, useCallback } from "react";
+import { createSPCService } from "@/services/spcGenericService";
+import { useAuth } from "@/contexts/AuthContext";
+import { DatePicker } from "@/components/ui/date-picker";
 
 export interface FilterState {
   entity: string;
@@ -18,50 +18,40 @@ interface FilterControlsProps {
   spcMonitor: string;
 }
 
-export default function FilterControls({ 
-  filters, 
-  onFiltersChange, 
+export default function FilterControls({
+  filters,
+  onFiltersChange,
   loading = false,
-  spcMonitor
+  spcMonitor,
 }: FilterControlsProps) {
   const [entities, setEntities] = useState<string[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [entitySupported, setEntitySupported] = useState(true);
   const { user } = useAuth();
-  
+
   // Local state for date inputs to prevent immediate updates
   const [localStartDate, setLocalStartDate] = useState(filters.startDate);
   const [localEndDate, setLocalEndDate] = useState(filters.endDate);
-  
+
   const isGuest = !user;
   const today = new Date();
   today.setHours(0, 0, 0, 0); // Set to midnight for consistent date comparisons
-  
+
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
-  
+
   const thirtyDaysAgo = new Date(today);
   thirtyDaysAgo.setDate(today.getDate() - 30);
 
-  useEffect(() => {
-    loadFilterOptions();
-  }, [spcMonitor]); // Re-load when spcMonitor changes
-
-  // Sync local state with parent filters
-  useEffect(() => {
-    setLocalStartDate(filters.startDate);
-    setLocalEndDate(filters.endDate);
-  }, [filters.startDate, filters.endDate]);
-
-  const loadFilterOptions = async () => {
+  const loadFilterOptions = useCallback(async () => {
     try {
       setLoadingOptions(true);
       const spcService = createSPCService(spcMonitor);
-      
+
       // Check if entity filtering is supported for this SPC monitor
       const supportsEntities = spcService.supportsEntityFiltering();
       setEntitySupported(supportsEntities);
-      
+
       if (supportsEntities) {
         const entitiesData = await spcService.fetchEntities();
         setEntities(entitiesData);
@@ -69,64 +59,78 @@ export default function FilterControls({
         setEntities([]);
       }
     } catch (error) {
-      console.error('Error loading filter options:', error);
+      console.error("Error loading filter options:", error);
       setEntitySupported(false);
       setEntities([]);
     } finally {
       setLoadingOptions(false);
     }
-  };
+  }, [spcMonitor]);
+
+  useEffect(() => {
+    loadFilterOptions();
+  }, [loadFilterOptions]);
+
+  // Sync local state with parent filters
+  useEffect(() => {
+    setLocalStartDate(filters.startDate);
+    setLocalEndDate(filters.endDate);
+  }, [filters.startDate, filters.endDate]);
 
   const handleFilterChange = (key: keyof FilterState, value: string) => {
-    
     // For guests, enforce date restrictions
-    if (isGuest && (key === 'startDate' || key === 'endDate')) {
-      if (key === 'startDate' && value) {
+    if (isGuest && (key === "startDate" || key === "endDate")) {
+      if (key === "startDate" && value) {
         // Parse date string as local date to avoid timezone issues
-        const [year, month, day] = value.split('-').map(Number);
+        const [year, month, day] = value.split("-").map(Number);
         const selectedDate = new Date(year, month - 1, day);
-        
+
         // Create thirty days ago at midnight local time
         const thirtyDaysAgoMidnight = new Date(today);
         thirtyDaysAgoMidnight.setDate(today.getDate() - 30);
         thirtyDaysAgoMidnight.setHours(0, 0, 0, 0);
-        
+
         if (selectedDate < thirtyDaysAgoMidnight) {
           const year = thirtyDaysAgoMidnight.getFullYear();
-          const month = String(thirtyDaysAgoMidnight.getMonth() + 1).padStart(2, '0');
-          const day = String(thirtyDaysAgoMidnight.getDate()).padStart(2, '0');
+          const month = String(thirtyDaysAgoMidnight.getMonth() + 1).padStart(
+            2,
+            "0",
+          );
+          const day = String(thirtyDaysAgoMidnight.getDate()).padStart(2, "0");
           value = `${year}-${month}-${day}`;
         }
       }
-      if (key === 'endDate' && value) {
+      if (key === "endDate" && value) {
         // Parse date string as local date to avoid timezone issues
-        const [year, month, day] = value.split('-').map(Number);
+        const [year, month, day] = value.split("-").map(Number);
         const selectedDate = new Date(year, month - 1, day);
-        
+
         // Create tomorrow's date at midnight local time
         const tomorrowMidnight = new Date(today);
         tomorrowMidnight.setDate(today.getDate() + 1);
         tomorrowMidnight.setHours(0, 0, 0, 0);
-        
-        
+
         if (selectedDate > tomorrowMidnight) {
           const year = tomorrowMidnight.getFullYear();
-          const month = String(tomorrowMidnight.getMonth() + 1).padStart(2, '0');
-          const day = String(tomorrowMidnight.getDate()).padStart(2, '0');
+          const month = String(tomorrowMidnight.getMonth() + 1).padStart(
+            2,
+            "0",
+          );
+          const day = String(tomorrowMidnight.getDate()).padStart(2, "0");
           value = `${year}-${month}-${day}`;
         }
       }
     }
-    
+
     onFiltersChange({
       ...filters,
-      [key]: value
+      [key]: value,
     });
   };
 
-  const handleDateChange = (key: 'startDate' | 'endDate', value: string) => {
+  const handleDateChange = (key: "startDate" | "endDate", value: string) => {
     // Update local state
-    if (key === 'startDate') {
+    if (key === "startDate") {
       setLocalStartDate(value);
     } else {
       setLocalEndDate(value);
@@ -136,12 +140,12 @@ export default function FilterControls({
   };
 
   const clearFilters = () => {
-    setLocalStartDate('');
-    setLocalEndDate('');
+    setLocalStartDate("");
+    setLocalEndDate("");
     onFiltersChange({
-      entity: entitySupported && entities.length > 0 ? entities[0] : '', // Use first entity if supported, otherwise empty
-      startDate: '',
-      endDate: ''
+      entity: entitySupported && entities.length > 0 ? entities[0] : "", // Use first entity if supported, otherwise empty
+      startDate: "",
+      endDate: "",
     });
   };
 
@@ -172,8 +176,10 @@ export default function FilterControls({
           Clear All
         </button>
       </div>
-      
-      <div className={`grid grid-cols-1 gap-4 ${entitySupported ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2'}`}>
+
+      <div
+        className={`grid grid-cols-1 gap-4 ${entitySupported ? "md:grid-cols-2 lg:grid-cols-3" : "md:grid-cols-2"}`}
+      >
         {/* Entity Filter - only show if supported */}
         {entitySupported && (
           <div>
@@ -182,7 +188,7 @@ export default function FilterControls({
             </label>
             <select
               value={filters.entity}
-              onChange={(e) => handleFilterChange('entity', e.target.value)}
+              onChange={(e) => handleFilterChange("entity", e.target.value)}
               className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm bg-white text-black appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2714%27%20height%3D%278%27%20viewBox%3D%270%200%2014%208%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cpath%20d%3D%27M1%201l6%206%206-6%27%20stroke%3D%27%236b7280%27%20stroke-width%3D%272%27%20fill%3D%27none%27%20fill-rule%3D%27evenodd%27%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_0.7rem_center] bg-no-repeat"
               disabled={loading}
               required
@@ -203,7 +209,7 @@ export default function FilterControls({
           </label>
           <DatePicker
             value={localStartDate}
-            onChange={(date) => handleDateChange('startDate', date)}
+            onChange={(date) => handleDateChange("startDate", date)}
             disabled={loading}
             minDate={isGuest ? thirtyDaysAgo : undefined}
             maxDate={isGuest ? tomorrow : undefined}
@@ -218,7 +224,7 @@ export default function FilterControls({
           </label>
           <DatePicker
             value={localEndDate}
-            onChange={(date) => handleDateChange('endDate', date)}
+            onChange={(date) => handleDateChange("endDate", date)}
             disabled={loading}
             minDate={isGuest ? thirtyDaysAgo : undefined}
             maxDate={isGuest ? tomorrow : undefined}
@@ -229,3 +235,4 @@ export default function FilterControls({
     </div>
   );
 }
+

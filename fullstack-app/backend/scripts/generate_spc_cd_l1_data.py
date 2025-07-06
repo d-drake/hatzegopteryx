@@ -76,23 +76,21 @@ def generate_spc_cd_l1_data():
     # Pre-generate all possible combinations
     for entity in entities:
         for process_type, product_type in valid_process_product_combos:
-                combo_key = (entity, spc_monitor_name, product_type, process_type)
+            combo_key = (entity, spc_monitor_name, product_type, process_type)
 
-                # Initialize with random bias values
-                # Average change frequency: once per 2 weeks (14 days)
-                next_bias_change = start_date + timedelta(days=random.uniform(10, 18))
-                next_bias_x_y_change = start_date + timedelta(
-                    days=random.uniform(10, 18)
-                )
+            # Initialize with random bias values
+            # Average change frequency: once per 2 weeks (14 days)
+            next_bias_change = start_date + timedelta(days=random.uniform(10, 18))
+            next_bias_x_y_change = start_date + timedelta(days=random.uniform(10, 18))
 
-                bias_settings_by_combo[combo_key] = {
-                    "current_bias": random.choice(possible_bias),
-                    "next_bias_change": next_bias_change,
-                    "current_bias_x_y": random.choice(possible_bias_x_y),
-                    "next_bias_x_y_change": next_bias_x_y_change,
-                    "cd_att_noise_factor": 1.0,
-                    "cd_x_y_noise_factor": 1.0,
-                }
+            bias_settings_by_combo[combo_key] = {
+                "current_bias": random.choice(possible_bias),
+                "next_bias_change": next_bias_change,
+                "current_bias_x_y": random.choice(possible_bias_x_y),
+                "next_bias_x_y_change": next_bias_x_y_change,
+                "cd_att_noise_factor": 1.0,
+                "cd_x_y_noise_factor": 1.0,
+            }
 
     # Generate data points
     data_points = []

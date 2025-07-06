@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 interface BoxHoverData {
-  type: 'box';
+  type: "box";
   entity: string;
   count: number;
   mean: number;
@@ -13,7 +13,7 @@ interface BoxHoverData {
 }
 
 interface PointHoverData {
-  type: 'point';
+  type: "point";
   entity: string;
   value: number;
   isOutlier: boolean;
@@ -23,14 +23,14 @@ interface PointHoverData {
 }
 
 interface MeanHoverData {
-  type: 'mean';
+  type: "mean";
   entity: string;
   mean: number;
 }
 
 export type HoverData = BoxHoverData | PointHoverData | MeanHoverData;
 
-type HoverDataSetter<T extends HoverData> = Omit<T, 'type'>;
+type HoverDataSetter<T extends HoverData> = Omit<T, "type">;
 
 interface MousePosition {
   x: number;
@@ -45,9 +45,15 @@ interface UseBoxPlotInteractionsReturn {
   /** Set hover data for box plot elements */
   setBoxHover: (data: HoverDataSetter<BoxHoverData>, event: MouseEvent) => void;
   /** Set hover data for individual data points */
-  setPointHover: (data: HoverDataSetter<PointHoverData>, event: MouseEvent) => void;
+  setPointHover: (
+    data: HoverDataSetter<PointHoverData>,
+    event: MouseEvent,
+  ) => void;
   /** Set hover data for mean markers */
-  setMeanHover: (data: HoverDataSetter<MeanHoverData>, event: MouseEvent) => void;
+  setMeanHover: (
+    data: HoverDataSetter<MeanHoverData>,
+    event: MouseEvent,
+  ) => void;
   /** Clear all hover state */
   clearHover: () => void;
   /** Update mouse position from mouse events */
@@ -60,44 +66,54 @@ interface UseBoxPlotInteractionsReturn {
  */
 export function useBoxPlotInteractions(): UseBoxPlotInteractionsReturn {
   const [hoveredData, setHoveredData] = useState<HoverData | null>(null);
-  const [mousePosition, setMousePosition] = useState<MousePosition | null>(null);
+  const [mousePosition, setMousePosition] = useState<MousePosition | null>(
+    null,
+  );
 
+  const setBoxHover = useCallback(
+    (data: HoverDataSetter<BoxHoverData>, event: MouseEvent) => {
+      const element = event.target as Element;
+      const rect = element.getBoundingClientRect();
+      const position = {
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      };
 
-  const setBoxHover = useCallback((data: HoverDataSetter<BoxHoverData>, event: MouseEvent) => {
-    const element = event.target as Element;
-    const rect = element.getBoundingClientRect();
-    const position = { 
-      x: rect.left + rect.width / 2, 
-      y: rect.top 
-    };
-    
-    setHoveredData({ type: 'box', ...data } as BoxHoverData);
-    setMousePosition(position);
-  }, []);
+      setHoveredData({ type: "box", ...data } as BoxHoverData);
+      setMousePosition(position);
+    },
+    [],
+  );
 
-  const setPointHover = useCallback((data: HoverDataSetter<PointHoverData>, event: MouseEvent) => {
-    const element = event.target as Element;
-    const rect = element.getBoundingClientRect();
-    const position = { 
-      x: rect.left + rect.width / 2, 
-      y: rect.top 
-    };
-    
-    setHoveredData({ type: 'point', ...data } as PointHoverData);
-    setMousePosition(position);
-  }, []);
+  const setPointHover = useCallback(
+    (data: HoverDataSetter<PointHoverData>, event: MouseEvent) => {
+      const element = event.target as Element;
+      const rect = element.getBoundingClientRect();
+      const position = {
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      };
 
-  const setMeanHover = useCallback((data: HoverDataSetter<MeanHoverData>, event: MouseEvent) => {
-    const element = event.target as Element;
-    const rect = element.getBoundingClientRect();
-    const position = { 
-      x: rect.left + rect.width / 2, 
-      y: rect.top 
-    };
-    
-    setHoveredData({ type: 'mean', ...data } as MeanHoverData);
-    setMousePosition(position);
-  }, []);
+      setHoveredData({ type: "point", ...data } as PointHoverData);
+      setMousePosition(position);
+    },
+    [],
+  );
+
+  const setMeanHover = useCallback(
+    (data: HoverDataSetter<MeanHoverData>, event: MouseEvent) => {
+      const element = event.target as Element;
+      const rect = element.getBoundingClientRect();
+      const position = {
+        x: rect.left + rect.width / 2,
+        y: rect.top,
+      };
+
+      setHoveredData({ type: "mean", ...data } as MeanHoverData);
+      setMousePosition(position);
+    },
+    [],
+  );
 
   const clearHover = useCallback(() => {
     setHoveredData(null);

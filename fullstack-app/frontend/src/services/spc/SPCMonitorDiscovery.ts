@@ -1,5 +1,5 @@
-import { SPCDataServiceFactory } from './SPCDataServiceFactory';
-import { ProcessProductCombination } from '@/types';
+import { SPCDataServiceFactory } from "./SPCDataServiceFactory";
+import { ProcessProductCombination } from "@/types";
 
 export interface SPCMonitorData {
   monitors: string[];
@@ -16,12 +16,14 @@ export class SPCMonitorDiscovery {
   private static getConfiguredMonitors(): string[] {
     const allMonitors = SPCDataServiceFactory.getSupportedMonitors();
     const configuredMonitors: string[] = [];
-    
+
     // Check which monitors have corresponding metric configuration files
     for (const monitor of allMonitors) {
       try {
         // Check if configuration exists in the loader
-        const { hasMonitorConfig } = require('@/lib/spc-dashboard/config/loader');
+        const {
+          hasMonitorConfig,
+        } = require("@/lib/spc-dashboard/config/loader");
         if (hasMonitorConfig(monitor)) {
           configuredMonitors.push(monitor);
         } else {
@@ -32,7 +34,7 @@ export class SPCMonitorDiscovery {
         console.warn(`No metric configuration found for ${monitor}:`, error);
       }
     }
-    
+
     return configuredMonitors;
   }
 
@@ -45,7 +47,7 @@ export class SPCMonitorDiscovery {
 
     // Fetch process-product combinations from all unique service types
     const uniqueServices = new Map<string, any>();
-    
+
     for (const monitor of supportedMonitors) {
       const dataType = SPCDataServiceFactory.getDataType(monitor);
       if (!uniqueServices.has(dataType)) {
@@ -55,18 +57,20 @@ export class SPCMonitorDiscovery {
     }
 
     // Fetch process-product combinations from each unique service
-    const fetchPromises = Array.from(uniqueServices.values()).map(async (service) => {
-      try {
-        const combinations = await service.fetchProcessProductCombinations();
-        return combinations;
-      } catch (error) {
-        console.error('Error fetching process-product combinations:', error);
-        return [];
-      }
-    });
+    const fetchPromises = Array.from(uniqueServices.values()).map(
+      async (service) => {
+        try {
+          const combinations = await service.fetchProcessProductCombinations();
+          return combinations;
+        } catch (error) {
+          console.error("Error fetching process-product combinations:", error);
+          return [];
+        }
+      },
+    );
 
     const results = await Promise.all(fetchPromises);
-    
+
     // Merge all process-product combinations
     for (const combinations of results) {
       for (const combo of combinations) {
@@ -77,19 +81,24 @@ export class SPCMonitorDiscovery {
 
     return {
       monitors: supportedMonitors,
-      processProductCombinations: Array.from(processProductMap.values())
+      processProductCombinations: Array.from(processProductMap.values()),
     };
   }
 
   /**
    * Fetches process-product combinations for a specific monitor
    */
-  static async fetchMonitorProcessProducts(spcMonitor: string): Promise<ProcessProductCombination[]> {
+  static async fetchMonitorProcessProducts(
+    spcMonitor: string,
+  ): Promise<ProcessProductCombination[]> {
     try {
       const service = SPCDataServiceFactory.create(spcMonitor);
       return await service.fetchProcessProductCombinations();
     } catch (error) {
-      console.error(`Error fetching process-product combinations for ${spcMonitor}:`, error);
+      console.error(
+        `Error fetching process-product combinations for ${spcMonitor}:`,
+        error,
+      );
       return [];
     }
   }
@@ -101,3 +110,4 @@ export class SPCMonitorDiscovery {
     return this.getConfiguredMonitors();
   }
 }
+

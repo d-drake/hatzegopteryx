@@ -3,7 +3,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import engine, Base
-from routers import items, spc_cd_l1, spc_reg_l1, spc_limits, auth, users, audit, security, system
+from routers import (
+    items,
+    spc_cd_l1,
+    spc_reg_l1,
+    spc_limits,
+    auth,
+    users,
+    audit,
+    security,
+    system,
+)
 from middleware import SecurityHeadersMiddleware, RateLimitMiddleware
 
 # Initialize Sentry only if DSN is provided and not in Lambda

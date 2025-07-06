@@ -1,7 +1,7 @@
-import axios from 'axios';
-import Cookies from 'js-cookie';
+import axios from "axios";
+import Cookies from "js-cookie";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // Create axios instance with timeout
 const axiosInstance = axios.create({
@@ -14,8 +14,8 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     // Only access localStorage on client side
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token');
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("access_token");
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -24,7 +24,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Add response interceptor to handle token refresh
@@ -37,17 +37,18 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = Cookies.get('refresh_token');
+        const refreshToken = Cookies.get("refresh_token");
         if (refreshToken) {
           const response = await axios.post(`${API_URL}/api/auth/refresh`, {
-            refresh_token: refreshToken
+            refresh_token: refreshToken,
           });
 
-          const { access_token, refresh_token: newRefreshToken } = response.data;
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('access_token', access_token);
+          const { access_token, refresh_token: newRefreshToken } =
+            response.data;
+          if (typeof window !== "undefined") {
+            localStorage.setItem("access_token", access_token);
           }
-          Cookies.set('refresh_token', newRefreshToken);
+          Cookies.set("refresh_token", newRefreshToken);
 
           // Retry original request with new token
           originalRequest.headers.Authorization = `Bearer ${access_token}`;
@@ -55,16 +56,16 @@ axiosInstance.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh failed, redirect to login
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('access_token');
-          window.location.href = '/login';
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("access_token");
+          window.location.href = "/login";
         }
-        Cookies.remove('refresh_token');
+        Cookies.remove("refresh_token");
       }
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

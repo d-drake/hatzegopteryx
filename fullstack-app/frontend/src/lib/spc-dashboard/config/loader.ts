@@ -1,15 +1,20 @@
-import { SPCMonitorConfig, MetricDefinition, ChartConfig, ColumnConfig } from './types';
+import {
+  SPCMonitorConfig,
+  MetricDefinition,
+  ChartConfig,
+  ColumnConfig,
+} from "./types";
 // Import TypeScript configurations (generated from YAML files)
-import { spcCdL1Config } from './metrics/generated/spc-cd-l1';
-import { spcRegL1Config } from './metrics/generated/spc-reg-l1';
+import { spcCdL1Config } from "./metrics/generated/spc-cd-l1";
+import { spcRegL1Config } from "./metrics/generated/spc-reg-l1";
 
 // Configuration cache
 const configCache = new Map<string, SPCMonitorConfig>();
 
 // Pre-load configurations
 const configs: Record<string, SPCMonitorConfig> = {
-  'SPC_CD_L1': spcCdL1Config,
-  'SPC_REG_L1': spcRegL1Config,
+  SPC_CD_L1: spcCdL1Config,
+  SPC_REG_L1: spcRegL1Config,
 };
 
 // Initialize cache
@@ -27,7 +32,10 @@ export function loadSPCConfig(monitorId: string): SPCMonitorConfig | undefined {
 /**
  * Get metric configuration for a specific metric
  */
-export function getMetricConfig(monitorId: string, metricKey: string): MetricDefinition | undefined {
+export function getMetricConfig(
+  monitorId: string,
+  metricKey: string,
+): MetricDefinition | undefined {
   const config = configCache.get(monitorId);
   return config?.metrics[metricKey];
 }
@@ -38,7 +46,7 @@ export function getMetricConfig(monitorId: string, metricKey: string): MetricDef
 export function getMetricsConfig(monitorId: string): MetricDefinition[] {
   const config = configCache.get(monitorId);
   if (!config) return [];
-  
+
   return Object.values(config.metrics);
 }
 
@@ -96,3 +104,4 @@ export function getShapeFields(monitorId: string): string[] {
 export function hasMonitorConfig(monitorId: string): boolean {
   return configCache.has(monitorId);
 }
+

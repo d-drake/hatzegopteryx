@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { SPCDataItem, MetricConfig, ColumnConfig } from '@/types';
-import { FilterState } from '@/components/spc-dashboard/FilterControls';
-import GenericStatisticsTabs from './GenericStatisticsTabs';
-import GenericDataTable from './GenericDataTable';
-import { SPCDataServiceFactory } from '@/services/spc/SPCDataServiceFactory';
-import { ISPCDataService } from '@/services/spc/ISPCDataService';
+import { useState, useEffect, useMemo } from "react";
+import { SPCDataItem, MetricConfig, ColumnConfig } from "@/types";
+import { FilterState } from "@/components/spc-dashboard/FilterControls";
+import GenericStatisticsTabs from "./GenericStatisticsTabs";
+import GenericDataTable from "./GenericDataTable";
+import { SPCDataServiceFactory } from "@/services/spc/SPCDataServiceFactory";
+import { ISPCDataService } from "@/services/spc/ISPCDataService";
 
 interface GenericSPCAnalyticsPageProps<T extends SPCDataItem> {
   spcMonitor: string;
@@ -27,11 +27,11 @@ export default function GenericSPCAnalyticsPage<T extends SPCDataItem>({
   loading = false,
   error = null,
   onFiltersChange,
-  selectedEntity
+  selectedEntity,
 }: GenericSPCAnalyticsPageProps<T>) {
-  const [localSelectedEntity, setLocalSelectedEntity] = useState<string>('');
-  const [filterStartDate, setFilterStartDate] = useState<string>('');
-  const [filterEndDate, setFilterEndDate] = useState<string>('');
+  const [localSelectedEntity, setLocalSelectedEntity] = useState<string>("");
+  const [filterStartDate, setFilterStartDate] = useState<string>("");
+  const [filterEndDate, setFilterEndDate] = useState<string>("");
 
   // Get the appropriate service and configurations
   const service = useMemo(() => {
@@ -51,7 +51,7 @@ export default function GenericSPCAnalyticsPage<T extends SPCDataItem>({
   // Filter data based on entity selection
   const dataForAnalytics = useMemo(() => {
     if (localSelectedEntity) {
-      return data.filter(d => d.entity === localSelectedEntity);
+      return data.filter((d) => d.entity === localSelectedEntity);
     }
     return data;
   }, [data, localSelectedEntity]);
@@ -63,7 +63,7 @@ export default function GenericSPCAnalyticsPage<T extends SPCDataItem>({
       onFiltersChange({
         entity,
         startDate: filterStartDate,
-        endDate: filterEndDate
+        endDate: filterEndDate,
       });
     }
   };
@@ -75,14 +75,14 @@ export default function GenericSPCAnalyticsPage<T extends SPCDataItem>({
       onFiltersChange({
         entity: localSelectedEntity,
         startDate,
-        endDate
+        endDate,
       });
     }
   };
 
   // Get unique entities for filter
   const uniqueEntities = useMemo(() => {
-    return Array.from(new Set(data.map(d => d.entity))).sort();
+    return Array.from(new Set(data.map((d) => d.entity))).sort();
   }, [data]);
 
   if (error) {
@@ -111,7 +111,10 @@ export default function GenericSPCAnalyticsPage<T extends SPCDataItem>({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Entity Filter */}
           <div>
-            <label htmlFor="entity-filter" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="entity-filter"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Entity
             </label>
             <select
@@ -121,15 +124,20 @@ export default function GenericSPCAnalyticsPage<T extends SPCDataItem>({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All Entities</option>
-              {uniqueEntities.map(entity => (
-                <option key={entity} value={entity}>{entity}</option>
+              {uniqueEntities.map((entity) => (
+                <option key={entity} value={entity}>
+                  {entity}
+                </option>
               ))}
             </select>
           </div>
 
           {/* Date Range Filters */}
           <div>
-            <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="start-date"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Start Date
             </label>
             <input
@@ -142,14 +150,19 @@ export default function GenericSPCAnalyticsPage<T extends SPCDataItem>({
           </div>
 
           <div>
-            <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="end-date"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               End Date
             </label>
             <input
               id="end-date"
               type="date"
               value={filterEndDate}
-              onChange={(e) => handleDateChange(filterStartDate, e.target.value)}
+              onChange={(e) =>
+                handleDateChange(filterStartDate, e.target.value)
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

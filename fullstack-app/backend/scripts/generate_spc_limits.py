@@ -27,7 +27,7 @@ def generate_spc_limits():
         ("1000", "XLY2"),
         ("1100", "BNT44"),
     ]
-    
+
     # Define SPC monitors and their charts
     spc_monitor_configs = {
         "SPC_CD_L1": {
@@ -40,19 +40,38 @@ def generate_spc_limits():
                     "lcl": None,  # No LCL for cd_6sig
                     "ucl": (55, 75),
                 },
-            }
+            },
         },
         "SPC_REG_L1": {
-            "charts": ["scale_x", "scale_y", "ortho", "centrality_x", "centrality_y", "centrality_rotation"],
+            "charts": [
+                "scale_x",
+                "scale_y",
+                "ortho",
+                "centrality_x",
+                "centrality_y",
+                "centrality_rotation",
+            ],
             "limit_ranges": {
                 "scale_x": {"cl": (6, 10), "lcl": (-1, 1), "ucl": (12, 16)},
                 "scale_y": {"cl": (-6, -2), "lcl": (-20, -15), "ucl": (8, 12)},
                 "ortho": {"cl": (5, 10), "lcl": (-18, -12), "ucl": (18, 22)},
-                "centrality_x": {"cl": (-5, 15), "lcl": (-580, -520), "ucl": (520, 580)},
-                "centrality_y": {"cl": (-15, 5), "lcl": (-600, -540), "ucl": (540, 600)},
-                "centrality_rotation": {"cl": (-20, -10), "lcl": (-620, -560), "ucl": (460, 520)},
-            }
-        }
+                "centrality_x": {
+                    "cl": (-5, 15),
+                    "lcl": (-580, -520),
+                    "ucl": (520, 580),
+                },
+                "centrality_y": {
+                    "cl": (-15, 5),
+                    "lcl": (-600, -540),
+                    "ucl": (540, 600),
+                },
+                "centrality_rotation": {
+                    "cl": (-20, -10),
+                    "lcl": (-620, -560),
+                    "ucl": (460, 520),
+                },
+            },
+        },
     }
 
     # Track limit change schedules for each combination
@@ -81,7 +100,9 @@ def generate_spc_limits():
         for process_type, product_type in valid_process_product_combos:
             for spc_monitor_name, config in spc_monitor_configs.items():
                 for chart_name in config["charts"]:
-                    key = f"{process_type}_{product_type}_{spc_monitor_name}_{chart_name}"
+                    key = (
+                        f"{process_type}_{product_type}_{spc_monitor_name}_{chart_name}"
+                    )
                     schedule = limit_schedules[key]
 
                     # Check if we need to create new limits
@@ -154,7 +175,9 @@ def generate_spc_limits():
     print("\\nSummary by SPC monitor and chart type:")
     for spc_monitor_name, config in spc_monitor_configs.items():
         monitor_count = (
-            db.query(SPCLimits).filter(SPCLimits.spc_monitor_name == spc_monitor_name).count()
+            db.query(SPCLimits)
+            .filter(SPCLimits.spc_monitor_name == spc_monitor_name)
+            .count()
         )
         print(f"  {spc_monitor_name}: {monitor_count} total records")
         for chart_name in config["charts"]:

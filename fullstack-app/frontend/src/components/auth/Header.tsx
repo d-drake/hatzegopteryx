@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -34,9 +34,7 @@ export default function Header() {
                   </Link>
                 )}
                 <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-gray-200">
-                  <span className="text-sm text-gray-700">
-                    {user.username}
-                  </span>
+                  <span className="text-sm text-gray-700">{user.username}</span>
                   <button
                     onClick={logout}
                     className="text-sm text-gray-700 hover:text-gray-900 font-medium"

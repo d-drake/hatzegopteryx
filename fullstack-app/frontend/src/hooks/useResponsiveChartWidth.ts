@@ -1,4 +1,4 @@
-import { useEffect, useState, RefObject, useCallback } from 'react';
+import { useEffect, useState, RefObject, useCallback } from "react";
 
 interface UseResponsiveChartWidthOptions {
   maxWidth?: number;
@@ -12,12 +12,12 @@ interface UseResponsiveChartWidthOptions {
  */
 export function useResponsiveChartWidth(
   containerRef: RefObject<HTMLElement | null>,
-  options: UseResponsiveChartWidthOptions = {}
+  options: UseResponsiveChartWidthOptions = {},
 ) {
-  const { 
-    maxWidth = 800, 
+  const {
+    maxWidth = 800,
     padding = 32, // Default padding to account for container padding
-    debounceMs = 150 
+    debounceMs = 150,
   } = options;
 
   const [width, setWidth] = useState<number>(maxWidth);
@@ -30,16 +30,16 @@ export function useResponsiveChartWidth(
 
     const containerWidth = containerRef.current.clientWidth;
     const availableWidth = containerWidth - padding;
-    
+
     // Ensure we never exceed container width or max width
     const calculatedWidth = Math.min(maxWidth, Math.max(200, availableWidth)); // Min width of 200px
-    
+
     return calculatedWidth;
   }, [containerRef, maxWidth, padding]);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    
+
     const updateWidth = () => {
       // Clear any pending updates
       if (timeoutId) {
@@ -59,20 +59,20 @@ export function useResponsiveChartWidth(
 
     // Create ResizeObserver for container
     const resizeObserver = new ResizeObserver(updateWidth);
-    
+
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current);
     }
 
     // Also listen to window resize as fallback
-    window.addEventListener('resize', updateWidth);
+    window.addEventListener("resize", updateWidth);
 
     return () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
       resizeObserver.disconnect();
-      window.removeEventListener('resize', updateWidth);
+      window.removeEventListener("resize", updateWidth);
     };
   }, [containerRef, calculateWidth, debounceMs]);
 
@@ -83,6 +83,6 @@ export function useResponsiveChartWidth(
       const newWidth = calculateWidth();
       setWidth(newWidth);
       return newWidth;
-    }
+    },
   };
 }

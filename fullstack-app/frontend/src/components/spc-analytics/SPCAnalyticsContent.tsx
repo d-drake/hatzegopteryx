@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useSPCCdL1 } from '@/contexts/SPCCdL1Context';
-import { useSPCRegL1 } from '@/contexts/SPCRegL1Context';
-import GenericSPCAnalyticsPage from './GenericSPCAnalyticsPage';
+import { useSPCCdL1 } from "@/contexts/SPCCdL1Context";
+import { useSPCRegL1 } from "@/contexts/SPCRegL1Context";
+import GenericSPCAnalyticsPage from "./GenericSPCAnalyticsPage";
 
 interface SPCAnalyticsContentProps {
   spcMonitor: string;
@@ -14,15 +14,9 @@ interface SPCAnalyticsContentProps {
 export function SPCCdL1AnalyticsContent({
   spcMonitor,
   processType,
-  productType
+  productType,
 }: SPCAnalyticsContentProps) {
-  const { 
-    data, 
-    isLoading, 
-    error, 
-    filters,
-    handleFiltersChange 
-  } = useSPCCdL1();
+  const { data, isLoading, error, filters, handleFiltersChange } = useSPCCdL1();
 
   return (
     <GenericSPCAnalyticsPage
@@ -42,15 +36,10 @@ export function SPCCdL1AnalyticsContent({
 export function SPCRegL1AnalyticsContent({
   spcMonitor,
   processType,
-  productType
+  productType,
 }: SPCAnalyticsContentProps) {
-  const { 
-    data, 
-    isLoading, 
-    error, 
-    filters,
-    handleFiltersChange 
-  } = useSPCRegL1();
+  const { data, isLoading, error, filters, handleFiltersChange } =
+    useSPCRegL1();
 
   return (
     <GenericSPCAnalyticsPage
@@ -70,14 +59,16 @@ export function SPCRegL1AnalyticsContent({
 export default function SPCAnalyticsContent({
   spcMonitor,
   processType,
-  productType
+  productType,
 }: SPCAnalyticsContentProps) {
-  const dataType = spcMonitor.includes('_CD_') ? 'CD' : 
-                   spcMonitor.includes('_REG_') ? 'REG' : 
-                   'UNKNOWN';
+  const dataType = spcMonitor.includes("_CD_")
+    ? "CD"
+    : spcMonitor.includes("_REG_")
+      ? "REG"
+      : "UNKNOWN";
 
   switch (dataType) {
-    case 'CD':
+    case "CD":
       return (
         <SPCCdL1AnalyticsContent
           spcMonitor={spcMonitor}
@@ -85,8 +76,8 @@ export default function SPCAnalyticsContent({
           productType={productType}
         />
       );
-    
-    case 'REG':
+
+    case "REG":
       return (
         <SPCRegL1AnalyticsContent
           spcMonitor={spcMonitor}
@@ -94,7 +85,7 @@ export default function SPCAnalyticsContent({
           productType={productType}
         />
       );
-    
+
     default:
       return (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">

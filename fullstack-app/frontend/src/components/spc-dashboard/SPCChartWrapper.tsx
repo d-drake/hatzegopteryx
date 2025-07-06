@@ -1,8 +1,14 @@
-'use client';
+"use client";
 
-import React, { useState, useCallback, cloneElement, ReactElement, isValidElement } from 'react';
-import { useViewportWidth } from '@/hooks/useViewportWidth';
-import ResponsiveChartWrapper from '@/components/charts/ResponsiveChartWrapper';
+import React, {
+  useState,
+  useCallback,
+  cloneElement,
+  ReactElement,
+  isValidElement,
+} from "react";
+import { useViewportWidth } from "@/hooks/useViewportWidth";
+import ResponsiveChartWrapper from "@/components/charts/ResponsiveChartWrapper";
 
 interface TabConfig {
   id: string;
@@ -16,8 +22,8 @@ interface SPCChartWrapperProps {
   defaultTab?: string;
   children?: React.ReactNode;
   syncViews?: boolean;
-  activeView?: 'timeline' | 'variability';
-  onViewChange?: (view: 'timeline' | 'variability') => void;
+  activeView?: "timeline" | "variability";
+  onViewChange?: (view: "timeline" | "variability") => void;
   bottomContent?: React.ReactNode;
 }
 
@@ -33,21 +39,29 @@ const CHART_MARGIN = { top: 30, right: 240, bottom: 60, left: 70 };
 export default function SPCChartWrapper({
   title,
   tabs,
-  defaultTab = 'timeline',
+  defaultTab = "timeline",
   children,
   syncViews = false,
   activeView,
   onViewChange,
-  bottomContent
+  bottomContent,
 }: SPCChartWrapperProps) {
   const [localActiveTab, setLocalActiveTab] = useState(defaultTab);
-  const [xZoomDomain, setXZoomDomain] = useState<[number, number] | [Date, Date] | null>(null);
+  const [xZoomDomain, setXZoomDomain] = useState<
+    [number, number] | [Date, Date] | null
+  >(null);
   const [yZoomDomain, setYZoomDomain] = useState<[number, number] | null>(null);
-  const [y2ZoomDomain, setY2ZoomDomain] = useState<[number, number] | null>(null);
+  const [y2ZoomDomain, setY2ZoomDomain] = useState<[number, number] | null>(
+    null,
+  );
 
   // Legend selection state - shared across view changes
-  const [selectedColorItems, setSelectedColorItems] = useState<Set<string>>(new Set());
-  const [selectedShapeItems, setSelectedShapeItems] = useState<Set<string>>(new Set());
+  const [selectedColorItems, setSelectedColorItems] = useState<Set<string>>(
+    new Set(),
+  );
+  const [selectedShapeItems, setSelectedShapeItems] = useState<Set<string>>(
+    new Set(),
+  );
 
   const viewportWidth = useViewportWidth();
 
@@ -61,9 +75,12 @@ export default function SPCChartWrapper({
   // Use synced view if enabled, otherwise use local tab state
   const activeTab = syncViews && activeView ? activeView : localActiveTab;
 
-  const handleXZoomChange = useCallback((domain: [number, number] | [Date, Date] | null) => {
-    setXZoomDomain(domain);
-  }, []);
+  const handleXZoomChange = useCallback(
+    (domain: [number, number] | [Date, Date] | null) => {
+      setXZoomDomain(domain);
+    },
+    [],
+  );
 
   const handleYZoomChange = useCallback((domain: [number, number] | null) => {
     setYZoomDomain(domain);
@@ -81,7 +98,7 @@ export default function SPCChartWrapper({
 
   // Legend selection handlers
   const handleColorLegendClick = useCallback((label: string) => {
-    setSelectedColorItems(prev => {
+    setSelectedColorItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(label)) {
         newSet.delete(label);
@@ -93,7 +110,7 @@ export default function SPCChartWrapper({
   }, []);
 
   const handleShapeLegendClick = useCallback((label: string) => {
-    setSelectedShapeItems(prev => {
+    setSelectedShapeItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(label)) {
         newSet.delete(label);
@@ -109,20 +126,34 @@ export default function SPCChartWrapper({
     setSelectedShapeItems(new Set());
   }, []);
 
-  const handleTabClick = useCallback((tabId: string) => {
-    setLocalActiveTab(tabId);
-    if (syncViews && onViewChange && (tabId === 'timeline' || tabId === 'variability')) {
-      onViewChange(tabId);
-    }
-  }, [syncViews, onViewChange]);
+  const handleTabClick = useCallback(
+    (tabId: string) => {
+      setLocalActiveTab(tabId);
+      if (
+        syncViews &&
+        onViewChange &&
+        (tabId === "timeline" || tabId === "variability")
+      ) {
+        onViewChange(tabId);
+      }
+    },
+    [syncViews, onViewChange],
+  );
 
   // Helper function to inject zoom props into chart components
-  const injectZoomProps = (content: React.ReactNode, width?: number, isSideBySide: boolean = false): React.ReactNode => {
+  const injectZoomProps = (
+    content: React.ReactNode,
+    width?: number,
+    isSideBySide: boolean = false,
+  ): React.ReactNode => {
     if (isValidElement(content)) {
       const contentProps = content.props as any;
 
       // Handle ResponsiveChartWrapper
-      if (contentProps.children && typeof contentProps.children === 'function') {
+      if (
+        contentProps.children &&
+        typeof contentProps.children === "function"
+      ) {
         // Let ResponsiveChartWrapper work normally in all cases
         return cloneElement(content, {
           children: (resWidth: number) => {
@@ -147,7 +178,7 @@ export default function SPCChartWrapper({
               } as any);
             }
             return child;
-          }
+          },
         } as any);
       }
 
@@ -177,35 +208,34 @@ export default function SPCChartWrapper({
     return (
       <div className="bg-white rounded-lg shadow">
         <div className="px-4 pt-4 pb-2">
-          <h4 className="text-lg font-medium text-center text-black">{title}</h4>
+          <h4 className="text-lg font-medium text-center text-black">
+            {title}
+          </h4>
         </div>
-        <div className="p-4 pt-0">
-          {children}
-        </div>
-        {bottomContent && (
-          <div className="px-4 pb-4">
-            {bottomContent}
-          </div>
-        )}
+        <div className="p-4 pt-0">{children}</div>
+        {bottomContent && <div className="px-4 pb-4">{bottomContent}</div>}
       </div>
     );
   }
 
   // Check if we should use side-by-side layout
-  const isSideBySide = viewportWidth >= SIDE_BY_SIDE_BREAKPOINT && tabs.length === 2;
+  const isSideBySide =
+    viewportWidth >= SIDE_BY_SIDE_BREAKPOINT && tabs.length === 2;
 
   // Side-by-side layout using flexbox
   if (isSideBySide) {
     // Find the Timeline and Variability tabs
-    const timelineTab = tabs.find(tab => tab.id === 'timeline');
-    const variabilityTab = tabs.find(tab => tab.id === 'variability');
+    const timelineTab = tabs.find((tab) => tab.id === "timeline");
+    const variabilityTab = tabs.find((tab) => tab.id === "variability");
 
     if (timelineTab && variabilityTab) {
       return (
         <div className="bg-white rounded-lg shadow">
           {/* Shared title */}
           <div className="px-4 pt-4 pb-2">
-            <h4 className="text-lg font-medium text-center text-black">{title}</h4>
+            <h4 className="text-lg font-medium text-center text-black">
+              {title}
+            </h4>
           </div>
 
           {/* Side-by-side charts with flexible sizing */}
@@ -221,11 +251,7 @@ export default function SPCChartWrapper({
             </div>
           </div>
 
-          {bottomContent && (
-            <div className="px-4 pb-4">
-              {bottomContent}
-            </div>
-          )}
+          {bottomContent && <div className="px-4 pb-4">{bottomContent}</div>}
         </div>
       );
     }
@@ -249,9 +275,10 @@ export default function SPCChartWrapper({
               className={`
                 px-4 py-2 text-sm font-medium transition-colors
                 border-b-2 -mb-px
-                ${activeTab === tab.id
-                  ? 'text-blue-600 border-blue-600'
-                  : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
+                ${
+                  activeTab === tab.id
+                    ? "text-blue-600 border-blue-600"
+                    : "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300"
                 }
               `}
             >
@@ -270,11 +297,7 @@ export default function SPCChartWrapper({
         })}
       </div>
 
-      {bottomContent && (
-        <div className="px-4 pb-4">
-          {bottomContent}
-        </div>
-      )}
+      {bottomContent && <div className="px-4 pb-4">{bottomContent}</div>}
     </div>
   );
 }
