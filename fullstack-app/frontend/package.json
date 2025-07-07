@@ -9,7 +9,7 @@
     "lint": "next lint",
     "test": "jest ../tests/unit/frontend",
     "test:unit": "jest ../tests/unit/frontend",
-    "test:integration": "jest ../tests/integration/frontend",
+    "test:integration": "jest ../tests/integration/frontend/**/*.test.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "convert-yaml": "node scripts/convert-yaml-to-ts.js"
