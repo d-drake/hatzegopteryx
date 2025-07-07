@@ -131,10 +131,7 @@ export default function CollapsibleStatistics({
   }, [data, metric, config]);
 
   // Format number with appropriate precision
-  const formatNumber = (value: number, isStdDev = false): string => {
-    if (isStdDev) {
-      return value.toFixed(3);
-    }
+  const formatNumber = (value: number): string => {
     return value.toFixed(2);
   };
 
@@ -212,7 +209,7 @@ export default function CollapsibleStatistics({
                       {formatNumber(stat.median)}
                     </td>
                     <td className="px-2 py-1 whitespace-nowrap text-xs text-gray-900 text-right">
-                      {formatNumber(stat.stdDev, true)}
+                      {formatNumber(stat.stdDev)}
                     </td>
                     <td className="px-2 py-1 whitespace-nowrap text-xs text-gray-900 text-right">
                       {formatNumber(stat.min)}
