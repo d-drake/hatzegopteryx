@@ -73,31 +73,25 @@ export default function Home() {
     if (activeImage === null) {
       // Default order when no image is selected
       switch (imageNumber) {
-        case 1:
-          return "z-10";
-        case 2:
-          return "z-20";
-        case 3:
+        case 1: // profile-3 center - highest
+          return "z-40";
+        case 2: // profile-2 top - 2nd
           return "z-30";
+        case 3: // profile-4 lower right - 3rd
+          return "z-20";
+        case 4: // profile-5 lower left - 4th
+          return "z-10";
         default:
           return "z-0";
       }
     }
 
     // When an image is selected
-    if (imageNumber === activeImage) return "z-40";
+    if (imageNumber === activeImage) return "z-50";
 
     // Determine order for non-selected images
-    switch (activeImage) {
-      case 1: // Image 1 selected: 1→front, 3→middle, 2→back
-        return imageNumber === 3 ? "z-20" : "z-10";
-      case 2: // Image 2 selected: 2→front, 1→middle, 3→back
-        return imageNumber === 1 ? "z-20" : "z-10";
-      case 3: // Image 3 selected: 3→front, 2→middle, 1→back
-        return imageNumber === 2 ? "z-20" : "z-10";
-      default:
-        return "z-0";
-    }
+    const baseOrder = [40, 30, 20, 10];
+    return `z-${baseOrder[imageNumber - 1] - 5}`;
   };
 
   return (
@@ -191,61 +185,78 @@ export default function Home() {
               {/* Background decorative elements */}
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl blur-3xl"></div>
 
-              {/* Layered Images Container */}
+              {/* Layered Images Container - Centered 4-Photo Arrangement */}
               <div
                 className="relative h-full flex items-center justify-center"
                 onMouseEnter={handleMouseEnterImages}
                 onMouseLeave={handleMouseLeaveImages}
               >
-                {/* Image 1 - Back layer (positioned right-center for visibility) */}
+                {/* Image 1 - Professional headshot - Center (highest z-index) */}
                 <div
-                  className={`absolute top-1/2 right-16 lg:right-24 transform -translate-y-1/2 translate-x-8 w-72 h-96 lg:w-80 lg:h-[480px] rotate-[3deg] shadow-2xl rounded-lg overflow-hidden transition-z cursor-pointer ${getImageZIndex(1)}`}
+                  className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 translate-y-8 w-60 h-72 lg:w-64 lg:h-80 rotate-[-2deg] shadow-2xl rounded-lg overflow-hidden transition-z cursor-pointer ${getImageZIndex(1)}`}
                   onClick={() => handleImageClick(1)}
                 >
                   <Image
-                    src="/images/profile-1.jpg"
-                    alt="Alpine skiing adventure"
+                    src="/images/profile-3.jpg"
+                    alt="Professional headshot"
                     fill
-                    className={`object-cover filter transition-all duration-1200 ease-smooth-out ${activeImage === 1 ? "grayscale-0" : "grayscale-50"}`}
-                    sizes="(max-width: 768px) 288px, 320px"
+                    className={`object-cover filter transition-all duration-1200 ease-smooth-out ${activeImage === 1 ? "brightness-100" : "brightness-95"}`}
+                    sizes="(max-width: 768px) 240px, 256px"
                     priority
                   />
                   <div
-                    className={`absolute inset-0 transition-all duration-800 ease-smooth pointer-events-none ${activeImage === 1 ? "bg-black/0" : "bg-black/10"}`}
+                    className={`absolute inset-0 transition-all duration-800 ease-smooth pointer-events-none ${activeImage === 1 ? "bg-slate-900/0" : "bg-slate-900/10"}`}
                   ></div>
                 </div>
 
-                {/* Image 2 - Middle layer (more centered, less rotation) */}
+                {/* Image 2 - Skiing - Top center (2nd z-index) */}
                 <div
-                  className={`absolute top-1/2 left-16 lg:left-24 transform -translate-y-1/2 -translate-x-8 w-64 h-80 lg:w-72 lg:h-96 rotate-[-4deg] shadow-2xl rounded-lg overflow-hidden transition-z cursor-pointer ${getImageZIndex(2)}`}
+                  className={`absolute top-24 left-1/2 transform -translate-x-1/2 w-56 h-[272px] lg:w-60 lg:h-72 rotate-[3deg] shadow-2xl rounded-lg overflow-hidden transition-z cursor-pointer ${getImageZIndex(2)}`}
                   onClick={() => handleImageClick(2)}
                 >
                   <Image
                     src="/images/profile-2.jpg"
-                    alt="Engineering and adventure"
+                    alt="Alpine skiing adventure"
                     fill
-                    className={`object-cover filter transition-all duration-1200 ease-smooth-out ${activeImage === 2 ? "sepia-0" : "sepia-50"}`}
-                    sizes="(max-width: 768px) 256px, 288px"
+                    className={`object-cover filter transition-all duration-1200 ease-smooth-out ${activeImage === 2 ? "grayscale-0" : "grayscale-50"}`}
+                    sizes="(max-width: 768px) 224px, 240px"
                   />
                   <div
-                    className={`absolute inset-0 transition-all duration-800 ease-smooth pointer-events-none ${activeImage === 2 ? "bg-amber-900/0" : "bg-amber-900/20"}`}
+                    className={`absolute inset-0 transition-all duration-800 ease-smooth pointer-events-none ${activeImage === 2 ? "bg-black/0" : "bg-black/10"}`}
                   ></div>
                 </div>
 
-                {/* Image 3 - Front layer (centered) */}
+                {/* Image 3 - Life moments - Lower right (3rd z-index) */}
                 <div
-                  className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 translate-y-12 w-56 h-72 lg:w-64 lg:h-80 rotate-[1deg] shadow-2xl rounded-lg overflow-hidden transition-z cursor-pointer ${getImageZIndex(3)}`}
+                  className={`absolute bottom-32 right-4 min-[400px]:right-8 min-[500px]:right-12 sm:right-20 lg:right-32 w-52 h-64 lg:w-56 lg:h-[272px] rotate-[6deg] shadow-2xl rounded-lg overflow-hidden transition-z cursor-pointer ${getImageZIndex(3)}`}
                   onClick={() => handleImageClick(3)}
                 >
                   <Image
-                    src="/images/profile-3.jpg"
-                    alt="Outdoor exploration"
+                    src="/images/profile-5.jpg"
+                    alt="Life moments"
                     fill
-                    className={`object-cover filter transition-all duration-1200 ease-smooth-out ${activeImage === 3 ? "brightness-100" : "brightness-95"}`}
-                    sizes="(max-width: 768px) 224px, 256px"
+                    className={`object-cover filter transition-all duration-1200 ease-smooth-out ${activeImage === 3 ? "hue-rotate-0" : "hue-rotate-15"}`}
+                    sizes="(max-width: 768px) 208px, 224px"
                   />
                   <div
-                    className={`absolute inset-0 transition-all duration-800 ease-smooth pointer-events-none ${activeImage === 3 ? "bg-slate-900/0" : "bg-slate-900/10"}`}
+                    className={`absolute inset-0 transition-all duration-800 ease-smooth pointer-events-none ${activeImage === 3 ? "bg-purple-900/0" : "bg-purple-900/10"}`}
+                  ></div>
+                </div>
+
+                {/* Image 4 - Dog - Lower left (4th z-index) */}
+                <div
+                  className={`absolute bottom-32 left-4 min-[400px]:left-8 min-[500px]:left-12 sm:left-20 lg:left-32 w-52 h-64 lg:w-56 lg:h-[272px] rotate-[-5deg] shadow-2xl rounded-lg overflow-hidden transition-z cursor-pointer ${getImageZIndex(4)}`}
+                  onClick={() => handleImageClick(4)}
+                >
+                  <Image
+                    src="/images/profile-4.jpeg"
+                    alt="With furry companion"
+                    fill
+                    className={`object-cover object-top filter transition-all duration-1200 ease-smooth-out ${activeImage === 4 ? "sepia-0" : "sepia-50"}`}
+                    sizes="(max-width: 768px) 208px, 224px"
+                  />
+                  <div
+                    className={`absolute inset-0 transition-all duration-800 ease-smooth pointer-events-none ${activeImage === 4 ? "bg-amber-900/0" : "bg-amber-900/20"}`}
                   ></div>
                 </div>
 
